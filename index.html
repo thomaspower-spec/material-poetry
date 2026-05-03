@@ -108,10 +108,16 @@
   .detail-media { background: var(--ink); display: flex; align-items: center; justify-content: center; min-height: 400px; max-height: 90vh; position: relative; overflow: hidden; }
   .detail-media img { width: 100%; height: 100%; object-fit: contain; display: block; max-height: 90vh; }
   .detail-media video { width: 100%; height: 100%; object-fit: contain; display: block; max-height: 90vh; }
-  .detail-media:-webkit-full-screen { max-height: 100vh; width: 100vw; }
-  .detail-media:fullscreen { max-height: 100vh; width: 100vw; }
-  .detail-media:-webkit-full-screen img { max-height: 100vh; }
-  .detail-media:fullscreen img { max-height: 100vh; }
+
+  /* Custom fullscreen overlay */
+  #imgFullscreenOverlay { display:none; position:fixed; inset:0; background:#000; z-index:1000; align-items:center; justify-content:center; }
+  #imgFullscreenOverlay.open { display:flex; }
+  #imgFullscreenOverlay img { max-width:100vw; max-height:100vh; object-fit:contain; display:block; }
+  #imgFullscreenOverlay .carousel-btn { position:fixed; top:50%; transform:translateY(-50%); }
+  #imgFullscreenOverlay .carousel-prev { left:1rem; }
+  #imgFullscreenOverlay .carousel-next { right:1rem; }
+  #imgFullscreenOverlay .carousel-counter { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%); }
+  #fsCloseBtn { position:fixed; top:1rem; right:1rem; background:rgba(255,255,255,0.15); border:none; color:#fff; width:36px; height:36px; font-size:1.1rem; cursor:pointer; border-radius:50%; display:flex; align-items:center; justify-content:center; }
   .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.15); border: none; color: var(--white); width: 36px; height: 36px; font-size: 1.1rem; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.15s; z-index: 2; }
   .carousel-btn:hover { background: rgba(255,255,255,0.35); }
   .carousel-prev { left: 0.75rem; }
@@ -571,6 +577,7 @@
 
 <div id="toast"></div>
 <div id="printContactSheet"></div>
+<div id="imgFullscreenOverlay"></div>
 
 <script>
 // ══════════════════════════════════════════════════════════════
@@ -1106,12 +1113,48 @@ function renderCarousel() {
   if (!isVid) {
     document.getElementById('carouselFullscreen').addEventListener('click', e => {
       e.stopPropagation();
-      const panel = document.getElementById('detailMedia');
-      if (panel.requestFullscreen) panel.requestFullscreen();
-      else if (panel.webkitRequestFullscreen) panel.webkitRequestFullscreen();
+      openImgFullscreen();
     });
   }
 }
+
+function renderFsOverlay() {
+  const overlay = document.getElementById('imgFullscreenOverlay');
+  const total = carouselImages.filter(u => !isVideoUrl(u)).length;
+  const nonVideoImages = carouselImages.filter(u => !isVideoUrl(u));
+  const fsIndex = overlay.dataset.fsIndex = parseInt(overlay.dataset.fsIndex)||0;
+  const src = nonVideoImages[fsIndex] || '';
+  const counter = nonVideoImages.length > 1 ? `<div class="carousel-counter">${fsIndex+1} / ${nonVideoImages.length}</div>` : '';
+  const arrows = nonVideoImages.length > 1 ? `
+    <button class="carousel-btn carousel-prev" id="fsPrev">‹</button>
+    <button class="carousel-btn carousel-next" id="fsNext">›</button>` : '';
+  overlay.innerHTML = `
+    <button id="fsCloseBtn">✕</button>
+    <img src="${src}" alt="">
+    ${arrows}
+    ${counter}
+  `;
+  overlay.classList.add('open');
+  document.getElementById('fsCloseBtn').addEventListener('click', () => overlay.classList.remove('open'));
+  if (nonVideoImages.length > 1) {
+    document.getElementById('fsPrev').addEventListener('click', e => { e.stopPropagation(); overlay.dataset.fsIndex=(fsIndex-1+nonVideoImages.length)%nonVideoImages.length; renderFsOverlay(); });
+    document.getElementById('fsNext').addEventListener('click', e => { e.stopPropagation(); overlay.dataset.fsIndex=(fsIndex+1)%nonVideoImages.length; renderFsOverlay(); });
+  }
+}
+
+function openImgFullscreen() {
+  const overlay = document.getElementById('imgFullscreenOverlay');
+  // Start from the currently viewed carousel image
+  const nonVideoImages = carouselImages.filter(u => !isVideoUrl(u));
+  const currentSrc = carouselImages[carouselIndex];
+  overlay.dataset.fsIndex = Math.max(0, nonVideoImages.indexOf(currentSrc));
+  renderFsOverlay();
+}
+
+// Close fullscreen overlay on background click or Escape
+document.getElementById('imgFullscreenOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('imgFullscreenOverlay')) document.getElementById('imgFullscreenOverlay').classList.remove('open');
+});
 
 function openDetail(id) {
   const w = works.find(x => x.id === id);
@@ -1143,6 +1186,12 @@ document.getElementById('detailOverlay').addEventListener('click', e=>{
 
 // Keyboard navigation for carousel
 document.addEventListener('keydown', e => {
+  if (document.getElementById('imgFullscreenOverlay').classList.contains('open')) {
+    if (e.key === 'Escape') document.getElementById('imgFullscreenOverlay').classList.remove('open');
+    if (e.key === 'ArrowLeft') { const o=document.getElementById('imgFullscreenOverlay'); const nv=carouselImages.filter(u=>!isVideoUrl(u)); o.dataset.fsIndex=(parseInt(o.dataset.fsIndex||0)-1+nv.length)%nv.length; renderFsOverlay(); }
+    if (e.key === 'ArrowRight') { const o=document.getElementById('imgFullscreenOverlay'); const nv=carouselImages.filter(u=>!isVideoUrl(u)); o.dataset.fsIndex=(parseInt(o.dataset.fsIndex||0)+1)%nv.length; renderFsOverlay(); }
+    return;
+  }
   if (!document.getElementById('detailOverlay').classList.contains('open')) return;
   if (e.key === 'ArrowLeft' && carouselImages.length > 1) { carouselIndex = (carouselIndex - 1 + carouselImages.length) % carouselImages.length; renderCarousel(); }
   if (e.key === 'ArrowRight' && carouselImages.length > 1) { carouselIndex = (carouselIndex + 1) % carouselImages.length; renderCarousel(); }
