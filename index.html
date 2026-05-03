@@ -105,8 +105,9 @@
   .detail-overlay { display: none; position: fixed; inset: 0; background: rgba(26,24,20,0.5); z-index: 200; align-items: center; justify-content: center; padding: 2rem; }
   .detail-overlay.open { display: flex; }
   .detail-panel { background: var(--cream); width: 100%; max-width: 900px; max-height: 90vh; overflow-y: auto; display: grid; grid-template-columns: 1fr 320px; }
-  .detail-media { background: var(--ink); display: flex; align-items: center; justify-content: center; min-height: 400px; position: relative; }
-  .detail-media img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .detail-media { background: var(--ink); display: flex; align-items: center; justify-content: center; min-height: 400px; max-height: 90vh; position: relative; overflow: hidden; }
+  .detail-media img { width: 100%; height: 100%; object-fit: contain; display: block; max-height: 90vh; }
+  .detail-media video { width: 100%; height: 100%; object-fit: contain; display: block; max-height: 90vh; }
   .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.15); border: none; color: var(--white); width: 36px; height: 36px; font-size: 1.1rem; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.15s; z-index: 2; }
   .carousel-btn:hover { background: rgba(255,255,255,0.35); }
   .carousel-prev { left: 0.75rem; }
