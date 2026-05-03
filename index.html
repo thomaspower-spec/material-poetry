@@ -108,6 +108,10 @@
   .detail-media { background: var(--ink); display: flex; align-items: center; justify-content: center; min-height: 400px; max-height: 90vh; position: relative; overflow: hidden; }
   .detail-media img { width: 100%; height: 100%; object-fit: contain; display: block; max-height: 90vh; }
   .detail-media video { width: 100%; height: 100%; object-fit: contain; display: block; max-height: 90vh; }
+  .detail-media:-webkit-full-screen { max-height: 100vh; width: 100vw; }
+  .detail-media:fullscreen { max-height: 100vh; width: 100vw; }
+  .detail-media:-webkit-full-screen img { max-height: 100vh; }
+  .detail-media:fullscreen img { max-height: 100vh; }
   .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.15); border: none; color: var(--white); width: 36px; height: 36px; font-size: 1.1rem; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.15s; z-index: 2; }
   .carousel-btn:hover { background: rgba(255,255,255,0.35); }
   .carousel-prev { left: 0.75rem; }
@@ -1102,9 +1106,9 @@ function renderCarousel() {
   if (!isVid) {
     document.getElementById('carouselFullscreen').addEventListener('click', e => {
       e.stopPropagation();
-      const img = document.getElementById('carouselImg');
-      if (img.requestFullscreen) img.requestFullscreen();
-      else if (img.webkitRequestFullscreen) img.webkitRequestFullscreen();
+      const panel = document.getElementById('detailMedia');
+      if (panel.requestFullscreen) panel.requestFullscreen();
+      else if (panel.webkitRequestFullscreen) panel.webkitRequestFullscreen();
     });
   }
 }
