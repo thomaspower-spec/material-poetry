@@ -107,6 +107,11 @@
   .detail-panel { background: var(--cream); width: 100%; max-width: 900px; max-height: 90vh; overflow-y: auto; display: grid; grid-template-columns: 1fr 320px; }
   .detail-media { background: var(--ink); display: flex; align-items: center; justify-content: center; min-height: 400px; position: relative; }
   .detail-media img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.15); border: none; color: var(--white); width: 36px; height: 36px; font-size: 1.1rem; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.15s; z-index: 2; }
+  .carousel-btn:hover { background: rgba(255,255,255,0.35); }
+  .carousel-prev { left: 0.75rem; }
+  .carousel-next { right: 0.75rem; }
+  .carousel-counter { position: absolute; bottom: 0.75rem; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.4); color: var(--white); font-family: var(--sans); font-size: 0.65rem; letter-spacing: 0.1em; padding: 0.2rem 0.6rem; border-radius: 10px; }
   .detail-info { padding: 2.5rem 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
   .detail-title { font-family: var(--serif); font-size: 2rem; font-weight: 300; font-style: italic; line-height: 1.1; }
   .detail-fields { display: flex; flex-direction: column; gap: 0.8rem; }
@@ -1017,25 +1022,58 @@ function renderTimeline() {
 //  WORK DETAIL
 // ══════════════════════════════════════════════════════════════
 
+let carouselImages = [];
+let carouselIndex = 0;
+
+function renderCarousel() {
+  const media = document.getElementById('detailMedia');
+  const total = carouselImages.length;
+  const src = carouselImages[carouselIndex] || '';
+  media.innerHTML = `
+    <button class="detail-close" id="detailClose">✕</button>
+    <img src="${src}" alt="" style="width:100%;height:100%;object-fit:contain;display:block;">
+    ${total > 1 ? `
+      <button class="carousel-btn carousel-prev" id="carouselPrev">‹</button>
+      <button class="carousel-btn carousel-next" id="carouselNext">›</button>
+      <div class="carousel-counter">${carouselIndex + 1} / ${total}</div>
+    ` : ''}
+  `;
+  if (total > 1) {
+    document.getElementById('carouselPrev').addEventListener('click', e => { e.stopPropagation(); carouselIndex = (carouselIndex - 1 + total) % total; renderCarousel(); });
+    document.getElementById('carouselNext').addEventListener('click', e => { e.stopPropagation(); carouselIndex = (carouselIndex + 1) % total; renderCarousel(); });
+  }
+}
+
 function openDetail(id) {
-  const w=works.find(x=>x.id===id);
-  if(!w) return;
-  editingWorkId=id;
-  document.getElementById('detailMedia').innerHTML=`<button class="detail-close" id="detailClose">✕</button><img src="${thumbFor(w,600,500)}" alt="${w.title}" style="width:100%;height:100%;object-fit:contain;display:block;">`;
-  document.getElementById('detailTitle').textContent=w.title;
-  document.getElementById('detailYear').textContent=w.year||'—';
-  document.getElementById('detailMedium').textContent=w.medium||'—';
-  document.getElementById('detailDimensions').textContent=w.dimensions||'—';
-  const colNames=(w.collection_ids||[]).map(id=>getCollection(id)).filter(Boolean).map(c=>c.name);
-  document.getElementById('detailCollection').textContent=colNames.length?colNames.join(', '):'—';
-  document.getElementById('detailTags').textContent=(w.tags||[]).length?w.tags.join(', '):'—';
-  document.getElementById('detailVisibility').textContent=w.visibility||'published';
-  document.getElementById('detailNotes').textContent=w.notes||'—';
+  const w = works.find(x => x.id === id);
+  if (!w) return;
+  editingWorkId = id;
+  carouselImages = allImagesFor(w);
+  if (!carouselImages.length) carouselImages = [makePlaceholderSrc(id, 600, 500)];
+  carouselIndex = 0;
+  renderCarousel();
+  document.getElementById('detailTitle').textContent = w.title;
+  document.getElementById('detailYear').textContent = w.year || '—';
+  document.getElementById('detailMedium').textContent = w.medium || '—';
+  document.getElementById('detailDimensions').textContent = w.dimensions || '—';
+  const colNames = (w.collection_ids||[]).map(id=>getCollection(id)).filter(Boolean).map(c=>c.name);
+  document.getElementById('detailCollection').textContent = colNames.length ? colNames.join(', ') : '—';
+  document.getElementById('detailTags').textContent = (w.tags||[]).length ? w.tags.join(', ') : '—';
+  document.getElementById('detailVisibility').textContent = w.visibility || 'published';
+  document.getElementById('detailNotes').textContent = w.notes || '—';
   document.getElementById('detailOverlay').classList.add('open');
 }
 
 document.getElementById('detailOverlay').addEventListener('click', e=>{
   if(e.target===document.getElementById('detailOverlay')||e.target.id==='detailClose') document.getElementById('detailOverlay').classList.remove('open');
+});
+
+// Keyboard navigation for carousel
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('detailOverlay').classList.contains('open')) return;
+  if (e.key === 'ArrowLeft' && carouselImages.length > 1) { carouselIndex = (carouselIndex - 1 + carouselImages.length) % carouselImages.length; renderCarousel(); }
+  if (e.key === 'ArrowRight' && carouselImages.length > 1) { carouselIndex = (carouselIndex + 1) % carouselImages.length; renderCarousel(); }
+  if (e.key === 'Escape') document.getElementById('detailOverlay').classList.remove('open');
 });
 document.getElementById('editWorkBtn').addEventListener('click',()=>{ document.getElementById('detailOverlay').classList.remove('open'); openWorkModal(editingWorkId); });
 document.getElementById('deleteWorkBtn').addEventListener('click', async()=>{
