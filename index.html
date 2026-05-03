@@ -409,7 +409,11 @@
     <h2 id="workModalTitle">Add New Work</h2>
     <div class="form-grid">
       <div class="form-group form-full"><label>Title *</label><input type="text" id="wTitle" placeholder="e.g. Untitled No. 7"></div>
-      <div class="form-group"><label>Year *</label><input type="number" id="wYear" placeholder="2024" min="1900" max="2099"></div>
+      <div class="form-group">
+        <label>Date <span style="font-weight:300;text-transform:none;letter-spacing:0;">(optional — for precise ordering)</span></label>
+        <input type="date" id="wDate">
+      </div>
+      <div class="form-group"><label>Year <span style="font-weight:300;text-transform:none;letter-spacing:0;">(auto-fills from date)</span></label><input type="number" id="wYear" placeholder="2024" min="1900" max="2099"></div>
       <div class="form-group"><label>Medium</label><input type="text" id="wMedium" placeholder="e.g. Oil on linen"></div>
       <div class="form-group"><label>Dimensions</label><input type="text" id="wDimensions" placeholder="e.g. 60 × 80 cm"></div>
       <div class="form-group form-full">
@@ -757,7 +761,7 @@ document.getElementById('adminLogoutBtn').addEventListener('click', async () => 
 async function loadAll() {
   try {
     [works, collections, exhibitions] = await Promise.all([
-      sb.get('works', '?order=year.desc,title.asc'),
+      sb.get('works', '?order=work_date.desc.nullslast,year.desc.nullslast,title.asc'),
       sb.get('collections', '?order=name.asc'),
       sb.get('exhibitions', '?order=start_date.desc')
     ]);
@@ -883,7 +887,13 @@ function filterWorks() {
   if(med) ws=ws.filter(w=>(w.medium||'').startsWith(med));
   if(activeTagFilter) ws=ws.filter(w=>(w.tags||[]).includes(activeTagFilter));
   if(activeMediumFilter) ws=ws.filter(w=>(w.medium||'').startsWith(activeMediumFilter));
-  ws.sort((a,b)=>(b.year||0)-(a.year||0)||a.title.localeCompare(b.title));
+  ws.sort((a,b)=>{
+    // Sort by full date if available, otherwise by year, then title
+    if(a.work_date&&b.work_date) return b.work_date.localeCompare(a.work_date);
+    if(a.work_date&&!b.work_date) return String(b.year||0).localeCompare(a.work_date.slice(0,4))>=0?1:-1;
+    if(!a.work_date&&b.work_date) return a.work_date?1:(b.year||0)-(a.year||0);
+    return (b.year||0)-(a.year||0)||a.title.localeCompare(b.title);
+  });
   return ws;
 }
 
@@ -1027,6 +1037,15 @@ function renderTimeline() {
   const container=document.getElementById('timelineView');
   const byYear={};
   visibleWorks().forEach(w=>{const y=w.year||'Unknown';if(!byYear[y])byYear[y]=[];byYear[y].push(w);});
+  // Sort works within each year by full date descending, then title
+  Object.keys(byYear).forEach(y=>{
+    byYear[y].sort((a,b)=>{
+      if(a.work_date&&b.work_date) return b.work_date.localeCompare(a.work_date);
+      if(a.work_date) return -1;
+      if(b.work_date) return 1;
+      return a.title.localeCompare(b.title);
+    });
+  });
   const years=Object.keys(byYear).sort((a,b)=>b-a);
   if(!years.length){container.innerHTML=`<div class="empty-state"><div class="empty-icon">◻</div><p>No works yet.</p></div>`;return;}
   container.innerHTML='';
@@ -1090,7 +1109,9 @@ function openDetail(id) {
   document.getElementById('detailTitle').textContent = w.title;
   document.getElementById('detailDesc').textContent = w.description || '';
   document.getElementById('detailDesc').style.display = w.description ? 'block' : 'none';
-  document.getElementById('detailYear').textContent = w.year || '—';
+  document.getElementById('detailYear').textContent = isAdmin() && w.work_date
+    ? new Date(w.work_date).toLocaleDateString('en-IE', {day:'numeric', month:'long', year:'numeric'})
+    : (w.year || '—');
   document.getElementById('detailMedium').textContent = w.medium || '—';
   document.getElementById('detailDimensions').textContent = w.dimensions || '—';
   const colNames = (w.collection_ids||[]).map(id=>getCollection(id)).filter(Boolean).map(c=>c.name);
@@ -1181,6 +1202,7 @@ function openWorkModal(id) {
   if(id){
     const w=works.find(x=>x.id===id);
     document.getElementById('wTitle').value=w.title;
+    document.getElementById('wDate').value=w.work_date||'';
     document.getElementById('wYear').value=w.year||'';
     document.getElementById('wMedium').value=w.medium||'';
     document.getElementById('wDimensions').value=w.dimensions||'';
@@ -1192,7 +1214,8 @@ function openWorkModal(id) {
     existingImageUrls=[...allImagesFor(w)];
   } else {
     document.getElementById('wTitle').value='';
-    document.getElementById('wYear').value=new Date().getFullYear();
+    document.getElementById('wDate').value='';
+    document.getElementById('wYear').value='';
     document.getElementById('wMedium').value='';
     document.getElementById('wDimensions').value='';
     document.getElementById('wVisibility').value='draft';
@@ -1207,6 +1230,11 @@ function openWorkModal(id) {
 
 document.getElementById('addWorkBtn').addEventListener('click',()=>openWorkModal(null));
 document.getElementById('cancelWorkBtn').addEventListener('click',()=>document.getElementById('workModal').classList.remove('open'));
+
+// Auto-fill year from date picker
+document.getElementById('wDate').addEventListener('change', function() {
+  if (this.value) document.getElementById('wYear').value = new Date(this.value).getFullYear();
+});
 
 document.getElementById('wFile').addEventListener('change', async function() {
   const files=Array.from(this.files);
@@ -1237,6 +1265,7 @@ document.getElementById('saveWorkBtn').addEventListener('click', async()=>{
   const finalImages=[...existingImageUrls,...pendingImageUrls];
   const data={
     title, year:parseInt(document.getElementById('wYear').value)||null,
+    work_date:document.getElementById('wDate').value||null,
     medium:document.getElementById('wMedium').value.trim(),
     dimensions:document.getElementById('wDimensions').value.trim(),
     visibility:document.getElementById('wVisibility').value,
