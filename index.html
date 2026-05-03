@@ -944,7 +944,6 @@ function renderWorksGrid() {
   // Stats
   document.getElementById('statWorks').textContent=visibleWorks().length;
   document.getElementById('statCollections').textContent=collections.filter(c=>isAdmin()||c.visibility==='published').length;
-  document.getElementById('statExhibitions').textContent=exhibitions.length;
 
   const filtered=filterWorks();
   if(!filtered.length){ grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◻</div><p>No works found.</p></div>`; return; }
