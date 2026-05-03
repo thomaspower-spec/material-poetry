@@ -383,6 +383,7 @@
     <div class="detail-media" id="detailMedia"></div>
     <div class="detail-info">
       <h2 class="detail-title" id="detailTitle"></h2>
+      <p id="detailDesc" style="font-size:0.9rem;line-height:1.7;color:var(--mid);"></p>
       <div class="detail-fields">
         <div class="detail-field"><label>Year</label><p id="detailYear">—</p></div>
         <div class="detail-field"><label>Medium</label><p id="detailMedium">—</p></div>
@@ -422,13 +423,14 @@
         <div id="wCollectionsList" style="background:var(--white);border:1px solid var(--light);max-height:120px;overflow-y:auto;padding:0.4rem 0;border-radius:2px;"></div>
       </div>
       <div class="form-group form-full"><label>Tags <span style="font-weight:300;text-transform:none;letter-spacing:0;">(comma separated)</span></label><input type="text" id="wTags" placeholder="e.g. abstraction, texture, large-scale"></div>
+      <div class="form-group form-full"><label>Description <span style="font-weight:300;text-transform:none;letter-spacing:0;">— public facing</span></label><textarea id="wDesc" placeholder="A short description of this work, visible to everyone…" style="min-height:80px;"></textarea></div>
       <div class="form-group form-full"><label>Private Notes</label><textarea id="wNotes" placeholder="Provenance, exhibition history, sale details…"></textarea></div>
       <div class="form-group form-full">
         <label>Image</label>
         <label class="upload-zone">
-          <input type="file" id="wFile" accept="image/*" multiple>
-          <strong>Click to upload images</strong>
-          <p>Supports JPG, PNG, WebP — multiple images allowed</p>
+          <input type="file" id="wFile" accept="image/*,video/*" multiple>
+          <strong>Click to upload images or video</strong>
+          <p>Images: JPG, PNG, WebP — Video: MP4, MOV — multiple files allowed</p>
         </label>
         <div class="upload-previews" id="uploadPreviews"></div>
         <div id="uploadProgress" style="display:none;font-size:0.78rem;color:var(--mid);margin-top:0.4rem;"></div>
@@ -601,9 +603,10 @@ async function uploadToCloudinary(file, onProgress) {
   const fd = new FormData();
   fd.append('file', file);
   fd.append('upload_preset', CONFIG.CLOUDINARY_UPLOAD_PRESET);
+  const resourceType = file.type.startsWith('video/') ? 'video' : 'image';
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', `https://api.cloudinary.com/v1_1/${CONFIG.CLOUDINARY_CLOUD_NAME}/image/upload`);
+    xhr.open('POST', `https://api.cloudinary.com/v1_1/${CONFIG.CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`);
     xhr.upload.onprogress = e => { if(e.lengthComputable&&onProgress) onProgress(Math.round(e.loaded/e.total*100)); };
     xhr.onload = () => { const d=JSON.parse(xhr.responseText); xhr.status===200?resolve(d.secure_url):reject(new Error(d.error?.message||'Upload failed')); };
     xhr.onerror = () => reject(new Error('Network error'));
@@ -1025,13 +1028,20 @@ function renderTimeline() {
 let carouselImages = [];
 let carouselIndex = 0;
 
+function isVideoUrl(url) {
+  return url && (url.includes('/video/upload/') || /\.(mp4|mov|webm|ogg)(\?|$)/i.test(url));
+}
+
 function renderCarousel() {
   const media = document.getElementById('detailMedia');
   const total = carouselImages.length;
   const src = carouselImages[carouselIndex] || '';
+  const mediaEl = isVideoUrl(src)
+    ? `<video src="${src}" controls style="width:100%;height:100%;object-fit:contain;display:block;max-height:500px;" playsinline></video>`
+    : `<img src="${src}" alt="" style="width:100%;height:100%;object-fit:contain;display:block;">`;
   media.innerHTML = `
     <button class="detail-close" id="detailClose">✕</button>
-    <img src="${src}" alt="" style="width:100%;height:100%;object-fit:contain;display:block;">
+    ${mediaEl}
     ${total > 1 ? `
       <button class="carousel-btn carousel-prev" id="carouselPrev">‹</button>
       <button class="carousel-btn carousel-next" id="carouselNext">›</button>
@@ -1053,6 +1063,8 @@ function openDetail(id) {
   carouselIndex = 0;
   renderCarousel();
   document.getElementById('detailTitle').textContent = w.title;
+  document.getElementById('detailDesc').textContent = w.description || '';
+  document.getElementById('detailDesc').style.display = w.description ? 'block' : 'none';
   document.getElementById('detailYear').textContent = w.year || '—';
   document.getElementById('detailMedium').textContent = w.medium || '—';
   document.getElementById('detailDimensions').textContent = w.dimensions || '—';
@@ -1109,19 +1121,26 @@ function renderUploadPreviews() {
   all.forEach((url,i)=>{
     const wrap=document.createElement('div');
     wrap.style.cssText='position:relative;display:inline-block;';
-    const img=document.createElement('img');
-    img.className='upload-preview';
-    img.src=url;
+    let mediaEl;
+    if(isVideoUrl(url)){
+      mediaEl=document.createElement('div');
+      mediaEl.style.cssText='width:70px;height:70px;background:var(--ink);display:flex;align-items:center;justify-content:center;border:1px solid var(--light);color:var(--white);font-size:1.4rem;';
+      mediaEl.textContent='▶';
+    } else {
+      mediaEl=document.createElement('img');
+      mediaEl.className='upload-preview';
+      mediaEl.src=url;
+    }
     const btn=document.createElement('button');
     btn.textContent='✕';
     btn.style.cssText='position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--ink);color:var(--white);border:none;cursor:pointer;font-size:0.6rem;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;';
-    btn.title='Remove image';
+    btn.title='Remove';
     btn.addEventListener('click',()=>{
       if(i<existingImageUrls.length) existingImageUrls.splice(i,1);
       else pendingImageUrls.splice(i-existingImageUrls.length,1);
       renderUploadPreviews();
     });
-    wrap.appendChild(img);
+    wrap.appendChild(mediaEl);
     wrap.appendChild(btn);
     container.appendChild(wrap);
   });
@@ -1143,6 +1162,7 @@ function openWorkModal(id) {
     document.getElementById('wVisibility').value=w.visibility||'draft';
     renderCollectionCheckboxes(w.collection_ids||[]);
     document.getElementById('wTags').value=(w.tags||[]).join(', ');
+    document.getElementById('wDesc').value=w.description||'';
     document.getElementById('wNotes').value=w.notes||'';
     existingImageUrls=[...allImagesFor(w)];
   } else {
@@ -1153,6 +1173,7 @@ function openWorkModal(id) {
     document.getElementById('wVisibility').value='draft';
     renderCollectionCheckboxes([]);
     document.getElementById('wTags').value='';
+    document.getElementById('wDesc').value='';
     document.getElementById('wNotes').value='';
   }
   renderUploadPreviews();
@@ -1196,6 +1217,7 @@ document.getElementById('saveWorkBtn').addEventListener('click', async()=>{
     visibility:document.getElementById('wVisibility').value,
     collection_ids:getSelectedCollections(),
     tags:document.getElementById('wTags').value.split(',').map(t=>t.trim()).filter(Boolean),
+    description:document.getElementById('wDesc').value.trim(),
     notes:document.getElementById('wNotes').value.trim(),
     image_urls:finalImages
   };
