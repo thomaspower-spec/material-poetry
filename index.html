@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Material Poetry — Cerlin</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Karla:wght@300;400;500&display=swap" rel="stylesheet">
+
+
+
 
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -19,8 +19,8 @@
     --accent: #8b4a2f;
     --white: #ffffff;
     --panel: #f0ece5;
-    --serif: 'Cormorant Garamond', Georgia, serif;
-    --sans: 'Karla', system-ui, sans-serif;
+    --serif: 'Arial', 'Helvetica Neue', Arial, sans-serif;
+    --sans: 'Arial', 'Helvetica Neue', Arial, sans-serif;
   }
 
   html { font-size: 16px; scroll-behavior: smooth; }
@@ -421,9 +421,9 @@
       <div class="form-group form-full">
         <label>Image</label>
         <label class="upload-zone">
-          <input type="file" id="wFile" accept="image/*">
-          <strong>Click to upload image</strong>
-          <p>Supports JPG, PNG, WebP — stored on Cloudinary</p>
+          <input type="file" id="wFile" accept="image/*" multiple>
+          <strong>Click to upload images</strong>
+          <p>Supports JPG, PNG, WebP — multiple images allowed</p>
         </label>
         <div class="upload-previews" id="uploadPreviews"></div>
         <div id="uploadProgress" style="display:none;font-size:0.78rem;color:var(--mid);margin-top:0.4rem;"></div>
@@ -500,6 +500,14 @@
       <div class="form-group form-full"><label>Venue / Place</label><input type="text" id="ePlace" placeholder="e.g. The Model, Sligo"></div>
       <div class="form-group"><label>Start Date</label><input type="date" id="eStart"></div>
       <div class="form-group"><label>End Date</label><input type="date" id="eEnd"></div>
+      <div class="form-group form-full">
+        <label>Visibility</label>
+        <select id="eVisibility">
+          <option value="draft" selected>Draft — admin only</option>
+          <option value="preview">Preview — shareable link only</option>
+          <option value="published">Published — public</option>
+        </select>
+      </div>
       <div class="form-group form-full">
         <label>Select Works</label>
         <input class="search-input" type="text" id="eWorkSearch" placeholder="Search works to add…" style="margin-bottom:0.5rem;">
@@ -607,7 +615,7 @@ let activeFilter='all', activeTagFilter=null, activeMediumFilter=null;
 let editingWorkId=null, editingExhibitionId=null, currentExhibitionId=null;
 let editingCollectionId=null;
 let exhibitionSelectedWorks=[];
-let pendingImageUrl=null;
+let pendingImageUrls=[]; // array of Cloudinary URLs uploaded in current modal session
 let previewToken=null; // set if accessing via ?preview=TOKEN
 let isPreviewMode=false;
 
@@ -766,7 +774,13 @@ function makePlaceholderSrc(id, w=400, h=300) {
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><rect width="${w}" height="${h}" fill="${bg}"/><rect x="${w*0.3}" y="${h*0.25}" width="${w*0.4}" height="${h*0.35}" rx="2" fill="none" stroke="${fg}" stroke-width="1.5"/><line x1="${w*0.42}" y1="${h*0.4}" x2="${w*0.58}" y2="${h*0.55}" stroke="${fg}" stroke-width="1.2"/><circle cx="${w*0.42}" cy="${h*0.37}" r="${w*0.04}" fill="${fg}"/><rect x="${w*0.3}" y="${h*0.68}" width="${w*0.4}" height="1.5" fill="${fg}" opacity="0.4"/></svg>`;
   return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
 }
-function thumbFor(w,pw=400,ph=300) { return w.image_url||makePlaceholderSrc(w.id,pw,ph); }
+function thumbFor(w,pw=400,ph=300) {
+  const urls = w.image_urls && w.image_urls.length ? w.image_urls : (w.image_url ? [w.image_url] : []);
+  return urls[0] || makePlaceholderSrc(w.id,pw,ph);
+}
+function allImagesFor(w) {
+  return w.image_urls && w.image_urls.length ? w.image_urls : (w.image_url ? [w.image_url] : []);
+}
 
 // ══════════════════════════════════════════════════════════════
 //  HELPERS
@@ -920,7 +934,7 @@ function renderCollections() {
     const cWorks=visibleWorks().filter(w=>(w.collection_ids||[]).includes(c.id));
     const card=document.createElement('div');
     card.className='collection-card';
-    const thumbs=cWorks.slice(0,3).map(w=>`<div>${w.image_url?`<img src="${w.image_url}" alt="">`:''}</div>`).join('');
+    const thumbs=cWorks.slice(0,3).map(w=>`<div>${thumbFor(w)?`<img src="${thumbFor(w)}" alt="">`:''}</div>`).join('');
     const empties=Array(3-Math.min(cWorks.length,3)).fill('<div></div>').join('');
     // Admin badges and share button
     let adminControls='';
@@ -946,15 +960,21 @@ function copyShareLink(token) {
 
 function renderExhibitions() {
   const list=document.getElementById('exhibitionsList');
-  if(!exhibitions.length){list.innerHTML=`<div class="empty-state"><div class="empty-icon">◻</div><p>No exhibitions yet.</p></div>`;return;}
+  // Filter by visibility based on access level
+  const visibleExhibitions = isAdmin()
+    ? exhibitions
+    : exhibitions.filter(ex => ex.visibility === 'published' || !ex.visibility);
+  if(!visibleExhibitions.length){list.innerHTML=`<div class="empty-state"><div class="empty-icon">◻</div><p>No exhibitions yet.</p></div>`;return;}
   list.innerHTML='';
-  [...exhibitions].sort((a,b)=>(b.start_date||'').localeCompare(a.start_date||'')).forEach(ex=>{
+  [...visibleExhibitions].sort((a,b)=>(b.start_date||'').localeCompare(a.start_date||'')).forEach(ex=>{
     const card=document.createElement('div');
     card.className='exhibition-card';
     const start=ex.start_date?new Date(ex.start_date).toLocaleDateString('en-IE',{month:'short',year:'numeric'}):'';
     const end=ex.end_date?new Date(ex.end_date).toLocaleDateString('en-IE',{month:'short',year:'numeric'}):'';
     const wCount=(ex.work_ids||[]).length;
-    card.innerHTML=`<div><h3>${ex.name}</h3><p>${ex.place||''}${wCount?' · '+wCount+' work'+(wCount!==1?'s':''):''}</p></div><div class="exhibition-date">${start}${end&&end!==start?' – '+end:''}</div>`;
+    const badge=isAdmin()&&ex.visibility&&ex.visibility!=='published'
+      ?`<span class="visibility-badge badge-${ex.visibility}" style="margin-left:0.5rem;vertical-align:middle;">${ex.visibility}</span>`:'';
+    card.innerHTML=`<div><h3>${ex.name}${badge}</h3><p>${ex.place||''}${wCount?' · '+wCount+' work'+(wCount!==1?'s':''):''}</p></div><div class="exhibition-date">${start}${end&&end!==start?' – '+end:''}</div>`;
     card.addEventListener('click',()=>openExhibitionDetail(ex.id));
     list.appendChild(card);
   });
@@ -1034,10 +1054,39 @@ function renderCollectionCheckboxes(selectedIds) {
 
 function getSelectedCollections() { return Array.from(document.querySelectorAll('#wCollectionsList input[type=checkbox]:checked')).map(cb=>cb.value); }
 
+// Renders existing image previews with ✕ remove buttons
+// existingUrls is the current saved list; pendingImageUrls holds newly uploaded ones
+let existingImageUrls=[];
+
+function renderUploadPreviews() {
+  const container=document.getElementById('uploadPreviews');
+  container.innerHTML='';
+  const all=[...existingImageUrls,...pendingImageUrls];
+  all.forEach((url,i)=>{
+    const wrap=document.createElement('div');
+    wrap.style.cssText='position:relative;display:inline-block;';
+    const img=document.createElement('img');
+    img.className='upload-preview';
+    img.src=url;
+    const btn=document.createElement('button');
+    btn.textContent='✕';
+    btn.style.cssText='position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--ink);color:var(--white);border:none;cursor:pointer;font-size:0.6rem;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;';
+    btn.title='Remove image';
+    btn.addEventListener('click',()=>{
+      if(i<existingImageUrls.length) existingImageUrls.splice(i,1);
+      else pendingImageUrls.splice(i-existingImageUrls.length,1);
+      renderUploadPreviews();
+    });
+    wrap.appendChild(img);
+    wrap.appendChild(btn);
+    container.appendChild(wrap);
+  });
+}
+
 function openWorkModal(id) {
   editingWorkId=id||null;
-  pendingImageUrl=null;
-  document.getElementById('uploadPreviews').innerHTML='';
+  pendingImageUrls=[];
+  existingImageUrls=[];
   document.getElementById('wFile').value='';
   document.getElementById('uploadProgress').style.display='none';
   document.getElementById('workModalTitle').textContent=id?'Edit Work':'Add New Work';
@@ -1047,21 +1096,22 @@ function openWorkModal(id) {
     document.getElementById('wYear').value=w.year||'';
     document.getElementById('wMedium').value=w.medium||'';
     document.getElementById('wDimensions').value=w.dimensions||'';
-    document.getElementById('wVisibility').value=w.visibility||'published';
+    document.getElementById('wVisibility').value=w.visibility||'draft';
     renderCollectionCheckboxes(w.collection_ids||[]);
     document.getElementById('wTags').value=(w.tags||[]).join(', ');
     document.getElementById('wNotes').value=w.notes||'';
-    if(w.image_url){ const img=document.createElement('img'); img.className='upload-preview'; img.src=w.image_url; document.getElementById('uploadPreviews').appendChild(img); }
+    existingImageUrls=[...allImagesFor(w)];
   } else {
     document.getElementById('wTitle').value='';
     document.getElementById('wYear').value=new Date().getFullYear();
     document.getElementById('wMedium').value='';
     document.getElementById('wDimensions').value='';
-    document.getElementById('wVisibility').value='published';
+    document.getElementById('wVisibility').value='draft';
     renderCollectionCheckboxes([]);
     document.getElementById('wTags').value='';
     document.getElementById('wNotes').value='';
   }
+  renderUploadPreviews();
   document.getElementById('workModal').classList.add('open');
 }
 
@@ -1069,20 +1119,22 @@ document.getElementById('addWorkBtn').addEventListener('click',()=>openWorkModal
 document.getElementById('cancelWorkBtn').addEventListener('click',()=>document.getElementById('workModal').classList.remove('open'));
 
 document.getElementById('wFile').addEventListener('change', async function() {
-  const file=this.files[0];
-  if(!file) return;
-  const previews=document.getElementById('uploadPreviews');
+  const files=Array.from(this.files);
+  if(!files.length) return;
   const progress=document.getElementById('uploadProgress');
-  previews.innerHTML=''; pendingImageUrl=null;
-  const reader=new FileReader();
-  reader.onload=e=>{ const img=document.createElement('img'); img.className='upload-preview'; img.src=e.target.result; previews.appendChild(img); };
-  reader.readAsDataURL(file);
-  progress.style.display='block'; progress.textContent='Uploading… 0%';
-  try {
-    pendingImageUrl=await uploadToCloudinary(file, pct=>{ progress.textContent=`Uploading… ${pct}%`; });
-    progress.textContent='✓ Uploaded';
-    setTimeout(()=>{progress.style.display='none';},2000);
-  } catch(e){ progress.textContent='Upload failed: '+e.message; toast('Image upload failed',true); }
+  progress.style.display='block';
+  for(let i=0;i<files.length;i++){
+    const file=files[i];
+    progress.textContent=`Uploading ${i+1} of ${files.length}… 0%`;
+    try {
+      const url=await uploadToCloudinary(file, pct=>{ progress.textContent=`Uploading ${i+1} of ${files.length}… ${pct}%`; });
+      pendingImageUrls.push(url);
+      renderUploadPreviews();
+    } catch(e){ toast('Upload failed: '+e.message,true); }
+  }
+  progress.textContent=`✓ ${files.length} image${files.length!==1?'s':''} uploaded`;
+  setTimeout(()=>{progress.style.display='none';},2000);
+  this.value=''; // reset so same file can be added again if needed
 });
 
 document.getElementById('saveWorkBtn').addEventListener('click', async()=>{
@@ -1090,7 +1142,7 @@ document.getElementById('saveWorkBtn').addEventListener('click', async()=>{
   if(!title){alert('Please enter a title.');return;}
   const btn=document.getElementById('saveWorkBtn');
   btn.innerHTML='<span class="spinner"></span>Saving…'; btn.disabled=true;
-  const existing=editingWorkId?works.find(w=>w.id===editingWorkId):null;
+  const finalImages=[...existingImageUrls,...pendingImageUrls];
   const data={
     title, year:parseInt(document.getElementById('wYear').value)||null,
     medium:document.getElementById('wMedium').value.trim(),
@@ -1099,7 +1151,7 @@ document.getElementById('saveWorkBtn').addEventListener('click', async()=>{
     collection_ids:getSelectedCollections(),
     tags:document.getElementById('wTags').value.split(',').map(t=>t.trim()).filter(Boolean),
     notes:document.getElementById('wNotes').value.trim(),
-    image_url:pendingImageUrl||(existing?existing.image_url:null)
+    image_urls:finalImages
   };
   try {
     if(editingWorkId){
@@ -1110,7 +1162,7 @@ document.getElementById('saveWorkBtn').addEventListener('click', async()=>{
       const created=await sb.post('works',data);
       works.push(created[0]||{id:uid(),...data});
     }
-    pendingImageUrl=null;
+    pendingImageUrls=[]; existingImageUrls=[];
     document.getElementById('workModal').classList.remove('open');
     renderAll(); toast(editingWorkId?'Work updated':'Work added');
   } catch(e){ toast('Save failed: '+e.message,true); }
@@ -1238,8 +1290,8 @@ function openExhibitionModal(id) {
   editingExhibitionId=id||null;
   exhibitionSelectedWorks=[];
   document.getElementById('exhibitionModalTitle').textContent=id?'Edit Exhibition':'New Exhibition';
-  if(id){ const ex=exhibitions.find(e=>e.id===id); document.getElementById('eName').value=ex.name; document.getElementById('ePlace').value=ex.place||''; document.getElementById('eStart').value=ex.start_date||''; document.getElementById('eEnd').value=ex.end_date||''; exhibitionSelectedWorks=[...(ex.work_ids||[])]; }
-  else { ['eName','ePlace','eStart','eEnd'].forEach(id=>document.getElementById(id).value=''); }
+  if(id){ const ex=exhibitions.find(e=>e.id===id); document.getElementById('eName').value=ex.name; document.getElementById('ePlace').value=ex.place||''; document.getElementById('eStart').value=ex.start_date||''; document.getElementById('eEnd').value=ex.end_date||''; document.getElementById('eVisibility').value=ex.visibility||'draft'; exhibitionSelectedWorks=[...(ex.work_ids||[])]; }
+  else { ['eName','ePlace','eStart','eEnd'].forEach(id=>document.getElementById(id).value=''); document.getElementById('eVisibility').value='draft'; }
   renderExhibitionWorksList(''); renderSelectedWorks();
   document.getElementById('exhibitionModal').classList.add('open');
 }
@@ -1266,7 +1318,7 @@ document.getElementById('saveExhibitionBtn').addEventListener('click', async()=>
   if(!name){alert('Please enter a name.');return;}
   const btn=document.getElementById('saveExhibitionBtn');
   btn.innerHTML='<span class="spinner"></span>Saving…'; btn.disabled=true;
-  const data={name,place:document.getElementById('ePlace').value.trim(),start_date:document.getElementById('eStart').value,end_date:document.getElementById('eEnd').value,work_ids:[...exhibitionSelectedWorks]};
+  const data={name,place:document.getElementById('ePlace').value.trim(),start_date:document.getElementById('eStart').value,end_date:document.getElementById('eEnd').value,visibility:document.getElementById('eVisibility').value,work_ids:[...exhibitionSelectedWorks]};
   try {
     if(editingExhibitionId){ const updated=await sb.patch('exhibitions',editingExhibitionId,data); const idx=exhibitions.findIndex(e=>e.id===editingExhibitionId); exhibitions[idx]=updated[0]||{...exhibitions[idx],...data}; }
     else { const created=await sb.post('exhibitions',data); exhibitions.push(created[0]||{id:uid(),...data}); }
