@@ -316,7 +316,7 @@
     <!-- WORKS -->
     <div class="view active" id="view-works">
       <div class="page-header">
-        <h1 id="worksHeading"><small id="worksSubheading">Portfolio</small>All Works</h1>
+        <h1 id="worksHeading"><small id="worksSubheading">Portfolio</small><span id="worksTitle">All Works</span></h1>
         <div class="page-actions">
           <button class="btn primary admin-only" id="addWorkBtn">+ Add Work</button>
         </div>
@@ -900,19 +900,19 @@ function renderWorksGrid() {
   const grid=document.getElementById('worksGrid');
 
   // Update page heading based on active collection filter
-  const heading=document.getElementById('worksHeading');
   const subheading=document.getElementById('worksSubheading');
+  const worksTitle=document.getElementById('worksTitle');
   const collectionDesc=document.getElementById('worksCollectionDesc');
   if(activeFilter==='all'){
-    heading.childNodes[heading.childNodes.length-1].textContent='All Works';
     subheading.textContent='Portfolio';
+    worksTitle.textContent='All Works';
     collectionDesc.style.display='none';
     collectionDesc.textContent='';
   } else {
     const col=getCollection(activeFilter);
     if(col){
-      heading.childNodes[heading.childNodes.length-1].textContent=col.name;
       subheading.textContent='Collection';
+      worksTitle.textContent=col.name;
       if(col.description){
         collectionDesc.textContent=col.description;
         collectionDesc.style.display='block';
