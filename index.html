@@ -1078,12 +1078,17 @@ function renderCarousel() {
   const media = document.getElementById('detailMedia');
   const total = carouselImages.length;
   const src = carouselImages[carouselIndex] || '';
-  const mediaEl = isVideoUrl(src)
+  const isVid = isVideoUrl(src);
+  const mediaEl = isVid
     ? `<video src="${src}" controls style="width:100%;height:100%;object-fit:contain;display:block;max-height:500px;" playsinline></video>`
-    : `<img src="${src}" alt="" style="width:100%;height:100%;object-fit:contain;display:block;">`;
+    : `<img src="${src}" alt="" id="carouselImg" style="width:100%;height:100%;object-fit:contain;display:block;max-height:500px;">`;
+  const fullscreenBtn = !isVid
+    ? `<button id="carouselFullscreen" title="Full screen" style="position:absolute;bottom:0.75rem;right:0.75rem;background:rgba(0,0,0,0.4);border:none;color:var(--white);width:28px;height:28px;border-radius:4px;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;justify-content:center;">⛶</button>`
+    : '';
   media.innerHTML = `
     <button class="detail-close" id="detailClose">✕</button>
     ${mediaEl}
+    ${fullscreenBtn}
     ${total > 1 ? `
       <button class="carousel-btn carousel-prev" id="carouselPrev">‹</button>
       <button class="carousel-btn carousel-next" id="carouselNext">›</button>
@@ -1093,6 +1098,14 @@ function renderCarousel() {
   if (total > 1) {
     document.getElementById('carouselPrev').addEventListener('click', e => { e.stopPropagation(); carouselIndex = (carouselIndex - 1 + total) % total; renderCarousel(); });
     document.getElementById('carouselNext').addEventListener('click', e => { e.stopPropagation(); carouselIndex = (carouselIndex + 1) % total; renderCarousel(); });
+  }
+  if (!isVid) {
+    document.getElementById('carouselFullscreen').addEventListener('click', e => {
+      e.stopPropagation();
+      const img = document.getElementById('carouselImg');
+      if (img.requestFullscreen) img.requestFullscreen();
+      else if (img.webkitRequestFullscreen) img.webkitRequestFullscreen();
+    });
   }
 }
 
