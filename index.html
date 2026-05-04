@@ -601,6 +601,39 @@ const CONFIG = {
 const sb = {
   headers: () => ({ 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' }),
   authHeaders: () => { const t = sessionStorage.getItem('sb_token'); return { ...sb.headers(), ...(t ? { 'Authorization': `Bearer ${t}` } : {}) }; },
+  async refreshSession() {
+    const refreshToken = sessionStorage.getItem('sb_refresh_token');
+    if (!refreshToken) return false;
+    try {
+      const r = await fetch(sb.authUrl('token?grant_type=refresh_token'), {
+        method: 'POST',
+        headers: { 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: refreshToken })
+      });
+      if (!r.ok) return false;
+      const data = await r.json();
+      sessionStorage.setItem('sb_token', data.access_token);
+      sessionStorage.setItem('sb_refresh_token', data.refresh_token);
+      return true;
+    } catch(e) { return false; }
+  },
+  async fetchWithRefresh(fn) {
+    try {
+      return await fn();
+    } catch(e) {
+      if (e.message && e.message.includes('JWT expired')) {
+        const refreshed = await sb.refreshSession();
+        if (refreshed) return await fn();
+        // Refresh failed — force logout and prompt re-login
+        sessionStorage.removeItem('sb_token');
+        sessionStorage.removeItem('sb_refresh_token');
+        setAdminMode(false);
+        toast('Session expired — please sign in again', true);
+        document.getElementById('loginModal').classList.add('open');
+      }
+      throw e;
+    }
+  },
   url: (table, q='') => `${CONFIG.SUPABASE_URL}/rest/v1/${table}${q}`,
   authUrl: (path) => `${CONFIG.SUPABASE_URL}/auth/v1/${path}`,
   async get(table, q='') { const r=await fetch(sb.url(table,q),{headers:sb.authHeaders()}); if(!r.ok)throw new Error(await r.text()); return r.json(); },
@@ -608,7 +641,10 @@ const sb = {
   async patch(table, id, body) { const r=await fetch(sb.url(table,`?id=eq.${id}`),{method:'PATCH',headers:sb.authHeaders(),body:JSON.stringify(body)}); if(!r.ok)throw new Error(await r.text()); return r.json(); },
   async delete(table, id) { const r=await fetch(sb.url(table,`?id=eq.${id}`),{method:'DELETE',headers:sb.authHeaders()}); if(!r.ok)throw new Error(await r.text()); },
   async signIn(email, password) { const r=await fetch(sb.authUrl('token?grant_type=password'),{method:'POST',headers:{'apikey':CONFIG.SUPABASE_ANON_KEY,'Content-Type':'application/json'},body:JSON.stringify({email,password})}); const d=await r.json(); if(!r.ok)throw new Error(d.error_description||d.msg||'Login failed'); return d; },
-  async signOut() { const t=sessionStorage.getItem('sb_token'); if(t)await fetch(sb.authUrl('logout'),{method:'POST',headers:{'apikey':CONFIG.SUPABASE_ANON_KEY,'Authorization':`Bearer ${t}`}}).catch(()=>{}); sessionStorage.removeItem('sb_token'); }
+  async signOut() { const t=sessionStorage.getItem('sb_token'); if(t)await fetch(sb.authUrl('logout'),{method:'POST',headers:{'apikey':CONFIG.SUPABASE_ANON_KEY,'Authorization':`Bearer ${t}`}}).catch(()=>{}); sessionStorage.removeItem('sb_token'); sessionStorage.removeItem('sb_refresh_token'); },
+  async safePost(table, body) { return sb.fetchWithRefresh(() => sb.post(table, body)); },
+  async safePatch(table, id, body) { return sb.fetchWithRefresh(() => sb.patch(table, id, body)); },
+  async safeDelete(table, id) { return sb.fetchWithRefresh(() => sb.delete(table, id)); }
 };
 
 // ══════════════════════════════════════════════════════════════
@@ -746,6 +782,7 @@ async function doLogin() {
   try {
     const data=await sb.signIn(document.getElementById('loginEmail').value.trim(), document.getElementById('loginPassword').value);
     sessionStorage.setItem('sb_token', data.access_token);
+    sessionStorage.setItem('sb_refresh_token', data.refresh_token);
     document.getElementById('loginModal').classList.remove('open');
     setAdminMode(true);
     toast('Signed in');
@@ -999,7 +1036,8 @@ function renderCollections() {
     if(isAdmin()){
       const badge=c.visibility!=='published'?`<span class="visibility-badge badge-${c.visibility}" style="position:absolute;top:0.5rem;left:0.5rem;">${c.visibility}</span>`:'';
       const shareBtn=c.visibility==='preview'&&c.share_token?`<button class="btn" style="position:absolute;top:0.5rem;right:0.5rem;font-size:0.6rem;padding:0.2rem 0.5rem;" onclick="event.stopPropagation();copyShareLink('${c.share_token}')">Copy link</button>`:'';
-      adminControls=badge+shareBtn;
+      const editBtn=`<button class="btn" style="position:absolute;bottom:0.5rem;right:0.5rem;font-size:0.6rem;padding:0.2rem 0.5rem;" onclick="event.stopPropagation();openCollectionModal('${c.id}')">Edit</button>`;
+      adminControls=badge+shareBtn+editBtn;
     }
     card.innerHTML=`<div style="position:relative;">${adminControls}<div class="collection-strip">${thumbs}${empties}</div></div><div class="collection-meta"><h3>${c.name}</h3><p>${cWorks.length} work${cWorks.length!==1?'s':''}${c.description?' — '+c.description:''}</p></div>`;
     card.addEventListener('click',()=>{ activeFilter=c.id; renderSidebar(); renderWorksGrid(); window.switchView('works'); });
@@ -1201,7 +1239,7 @@ document.getElementById('editWorkBtn').addEventListener('click',()=>{ document.g
 document.getElementById('deleteWorkBtn').addEventListener('click', async()=>{
   if(!confirm('Delete this work?')) return;
   try {
-    await sb.delete('works',editingWorkId);
+    await sb.safeDelete('works',editingWorkId);
     works=works.filter(w=>w.id!==editingWorkId);
     document.getElementById('detailOverlay').classList.remove('open');
     renderAll(); toast('Work deleted');
@@ -1367,11 +1405,11 @@ document.getElementById('saveWorkBtn').addEventListener('click', async()=>{
   };
   try {
     if(editingWorkId){
-      const updated=await sb.patch('works',editingWorkId,data);
+      const updated=await sb.safePatch('works',editingWorkId,data);
       const idx=works.findIndex(w=>w.id===editingWorkId);
       works[idx]=updated[0]||{...works[idx],...data};
     } else {
-      const created=await sb.post('works',data);
+      const created=await sb.safePost('works',data);
       works.push(created[0]||{id:uid(),...data});
     }
     pendingImageUrls=[]; existingImageUrls=[];
@@ -1441,11 +1479,11 @@ document.getElementById('saveCollectionBtn').addEventListener('click', async()=>
   btn.innerHTML='<span class="spinner"></span>Saving…'; btn.disabled=true;
   try {
     if(editingCollectionId){
-      const updated=await sb.patch('collections',editingCollectionId,data);
+      const updated=await sb.safePatch('collections',editingCollectionId,data);
       const idx=collections.findIndex(c=>c.id===editingCollectionId);
       collections[idx]=updated[0]||{...collections[idx],...data};
     } else {
-      const created=await sb.post('collections',data);
+      const created=await sb.safePost('collections',data);
       collections.push(created[0]||{id:uid(),...data});
     }
     document.getElementById('collectionModal').classList.remove('open');
@@ -1489,7 +1527,7 @@ document.getElementById('exhibitionDetailOverlay').addEventListener('click',e=>{
 document.getElementById('exDetailEditBtn').addEventListener('click',()=>{ document.getElementById('exhibitionDetailOverlay').classList.remove('open'); openExhibitionModal(currentExhibitionId); });
 document.getElementById('exDetailDeleteBtn').addEventListener('click', async()=>{
   if(!confirm('Delete this exhibition?')) return;
-  try { await sb.delete('exhibitions',currentExhibitionId); exhibitions=exhibitions.filter(e=>e.id!==currentExhibitionId); document.getElementById('exhibitionDetailOverlay').classList.remove('open'); renderAll(); toast('Exhibition deleted'); }
+  try { await sb.safeDelete('exhibitions',currentExhibitionId); exhibitions=exhibitions.filter(e=>e.id!==currentExhibitionId); document.getElementById('exhibitionDetailOverlay').classList.remove('open'); renderAll(); toast('Exhibition deleted'); }
   catch(e){ toast('Delete failed: '+e.message,true); }
 });
 document.getElementById('exDetailPrintBtn').addEventListener('click',()=>printContactSheet(currentExhibitionId));
@@ -1532,8 +1570,8 @@ document.getElementById('saveExhibitionBtn').addEventListener('click', async()=>
   btn.innerHTML='<span class="spinner"></span>Saving…'; btn.disabled=true;
   const data={name,place:document.getElementById('ePlace').value.trim(),start_date:document.getElementById('eStart').value,end_date:document.getElementById('eEnd').value,visibility:document.getElementById('eVisibility').value,work_ids:[...exhibitionSelectedWorks]};
   try {
-    if(editingExhibitionId){ const updated=await sb.patch('exhibitions',editingExhibitionId,data); const idx=exhibitions.findIndex(e=>e.id===editingExhibitionId); exhibitions[idx]=updated[0]||{...exhibitions[idx],...data}; }
-    else { const created=await sb.post('exhibitions',data); exhibitions.push(created[0]||{id:uid(),...data}); }
+    if(editingExhibitionId){ const updated=await sb.safePatch('exhibitions',editingExhibitionId,data); const idx=exhibitions.findIndex(e=>e.id===editingExhibitionId); exhibitions[idx]=updated[0]||{...exhibitions[idx],...data}; }
+    else { const created=await sb.safePost('exhibitions',data); exhibitions.push(created[0]||{id:uid(),...data}); }
     document.getElementById('exhibitionModal').classList.remove('open');
     renderAll(); toast(editingExhibitionId?'Exhibition updated':'Exhibition created');
   } catch(e){ toast('Save failed: '+e.message,true); }
@@ -1552,8 +1590,8 @@ document.getElementById('saveBioBtn').addEventListener('click', async()=>{
   document.getElementById('bioText').textContent=bio.text;
   document.getElementById('bioStatement').textContent=bio.statement;
   try {
-    if(bio.id) await sb.patch('bio',bio.id,{text:bio.text,statement:bio.statement});
-    else { const r=await sb.post('bio',{text:bio.text,statement:bio.statement}); bio=r[0]; }
+    if(bio.id) await sb.safePatch('bio',bio.id,{text:bio.text,statement:bio.statement});
+    else { const r=await sb.safePost('bio',{text:bio.text,statement:bio.statement}); bio=r[0]; }
     document.getElementById('bioModal').classList.remove('open');
     toast('Bio saved');
   } catch(e){ toast('Save failed: '+e.message,true); }
