@@ -1028,10 +1028,10 @@ function renderCollections() {
     if(isAdmin()){
       const badge=c.visibility!=='published'?`<span class="visibility-badge badge-${c.visibility}" style="position:absolute;top:0.5rem;left:0.5rem;">${c.visibility}</span>`:'';
       const shareBtn=c.visibility==='preview'&&c.share_token?`<button class="btn" style="position:absolute;top:0.5rem;right:0.5rem;font-size:0.6rem;padding:0.2rem 0.5rem;" onclick="event.stopPropagation();copyShareLink('${c.share_token}')">Copy link</button>`:'';
-      const editBtn=`<button class="btn" style="position:absolute;bottom:0.5rem;right:0.5rem;font-size:0.6rem;padding:0.2rem 0.5rem;" onclick="event.stopPropagation();openCollectionModal('${c.id}')">Edit</button>`;
-      adminControls=badge+shareBtn+editBtn;
+      adminControls=badge+shareBtn;
     }
-    card.innerHTML=`<div style="position:relative;">${adminControls}<div class="collection-strip">${thumbs}${empties}</div></div><div class="collection-meta"><h3>${c.name}</h3><p>${cWorks.length} work${cWorks.length!==1?'s':''}${c.description?' — '+c.description:''}</p></div>`;
+    const editBtn=isAdmin()?`<button class="btn" style="font-size:0.72rem;padding:0.3rem 0.8rem;margin-top:0.7rem;" onclick="event.stopPropagation();openCollectionModal('${c.id}')">Edit collection</button>`:'';
+    card.innerHTML=`<div style="position:relative;">${adminControls}<div class="collection-strip">${thumbs}${empties}</div></div><div class="collection-meta"><h3>${c.name}</h3><p>${cWorks.length} work${cWorks.length!==1?'s':''}${c.description?' — '+c.description:''}</p>${editBtn}</div>`;
     card.addEventListener('click',()=>{ activeFilter=c.id; renderSidebar(); renderWorksGrid(); window.switchView('works'); });
     grid.appendChild(card);
   });
