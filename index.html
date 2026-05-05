@@ -1027,7 +1027,7 @@ function renderCollections() {
     let adminControls='';
     if(isAdmin()){
       const badge=c.visibility!=='published'?`<span class="visibility-badge badge-${c.visibility}" style="position:absolute;top:0.5rem;left:0.5rem;">${c.visibility}</span>`:'';
-      const shareBtn=c.visibility==='preview'&&c.share_token?`<button class="visibility-badge badge-preview" style="position:absolute;top:0.5rem;right:0.5rem;cursor:pointer;border:none;" onclick="event.stopPropagation();copyShareLink('${c.share_token}')">Copy link</button>`:'';
+      const shareBtn=c.visibility==='preview'&&c.share_token?`<button style="position:absolute;top:0.5rem;right:0.5rem;background:var(--accent);color:var(--white);border:none;cursor:pointer;font-size:0.58rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.5rem;border-radius:1px;" onclick="event.stopPropagation();copyShareLink('${c.share_token}')">Copy link</button>`:'';
       adminControls=badge+shareBtn;
     }
     const editBtn=isAdmin()?`<button class="btn" style="font-size:0.72rem;padding:0.3rem 0.8rem;margin-top:0.7rem;" onclick="event.stopPropagation();openCollectionModal('${c.id}')">Edit collection</button>`:'';
