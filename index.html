@@ -332,6 +332,10 @@
         </div>
       </div>
       <p id="worksCollectionDesc" style="display:none;font-size:0.95rem;line-height:1.7;color:var(--mid);margin-bottom:2rem;max-width:640px;"></p>
+      <div class="stats-bar admin-only">
+        <div class="stat"><span class="stat-num" id="statWorks">—</span><span class="stat-label">Works</span></div>
+        <div class="stat"><span class="stat-num" id="statCollections">—</span><span class="stat-label">Collections</span></div>
+      </div>
       <div class="search-row">
         <input class="search-input" type="text" id="searchWorks" placeholder="Search works…">
         <select class="filter-select" id="filterYear"><option value="">All Years</option></select>
@@ -984,7 +988,10 @@ function renderWorksGrid() {
   const medVal=medSel.value;
   medSel.innerHTML='<option value="">All Media</option>';
   getAllMediums().forEach(m=>medSel.innerHTML+=`<option value="${m}"${m===medVal?' selected':''}>${m}</option>`);
-
+  if(isAdmin()){
+    document.getElementById('statWorks').textContent=visibleWorks().length;
+    document.getElementById('statCollections').textContent=collections.filter(c=>isAdmin()||c.visibility==='published').length;
+  }
   const filtered=filterWorks();
   if(!filtered.length){ grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◻</div><p>No works found.</p></div>`; return; }
   grid.innerHTML='';
