@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Material Poetry — Cerlin</title>
-
-
-
-
+ 
+ 
+ 
+ 
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+ 
   :root {
     --cream: #f7f4ef;
     --ink: #1a1814;
@@ -22,13 +22,13 @@
     --serif: 'Arial', 'Helvetica Neue', Arial, sans-serif;
     --sans: 'Arial', 'Helvetica Neue', Arial, sans-serif;
   }
-
+ 
   html { font-size: 16px; scroll-behavior: smooth; }
   body { background: var(--cream); color: var(--ink); font-family: var(--sans); font-weight: 300; min-height: 100vh; }
-
+ 
   /* ── LAYOUT ── */
   .shell { display: grid; grid-template-columns: 220px 1fr; grid-template-rows: auto 1fr; min-height: 100vh; }
-
+ 
   /* ── HEADER ── */
   header { grid-column: 1 / -1; border-bottom: 1px solid var(--light); padding: 1.5rem 2rem; display: flex; align-items: baseline; gap: 2rem; background: var(--cream); position: sticky; top: 0; z-index: 100; }
   .logo { font-family: var(--serif); font-size: 1.6rem; font-weight: 300; letter-spacing: 0.02em; color: var(--ink); white-space: nowrap; }
@@ -38,7 +38,7 @@
   .tab-btn:last-child { border-right: none; }
   .tab-btn.active { background: var(--ink); color: var(--white); }
   .tab-btn:hover:not(.active) { background: var(--panel); color: var(--ink); }
-
+ 
   /* ── SIDEBAR ── */
   aside { border-right: 1px solid var(--light); padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 2rem; background: var(--cream); }
   .sidebar-section h3 { font-family: var(--sans); font-size: 0.65rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--light); margin-bottom: 0.8rem; }
@@ -47,18 +47,18 @@
   .sidebar-list li button:hover, .sidebar-list li button.active { background: var(--panel); color: var(--ink); }
   .add-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.7rem; font-family: var(--sans); font-size: 0.78rem; font-weight: 400; letter-spacing: 0.05em; color: var(--accent); background: none; border: 1px dashed var(--accent); cursor: pointer; border-radius: 2px; width: 100%; margin-top: 0.4rem; transition: background 0.12s; }
   .add-btn:hover { background: rgba(139,74,47,0.05); }
-
+ 
   /* ── MAIN ── */
   main { padding: 2.5rem 3rem; overflow-y: auto; }
   .view { display: none; }
   .view.active { display: block; }
-
+ 
   /* ── PAGE HEADER ── */
   .page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--light); }
   .page-header h1 { font-family: var(--serif); font-size: 2.8rem; font-weight: 300; line-height: 1; letter-spacing: -0.01em; }
   .page-header h1 small { display: block; font-family: var(--sans); font-size: 0.72rem; font-weight: 400; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mid); margin-bottom: 0.4rem; }
   .page-actions { display: flex; gap: 0.7rem; align-items: center; }
-
+ 
   /* ── BUTTONS ── */
   .btn { padding: 0.55rem 1.2rem; font-family: var(--sans); font-size: 0.75rem; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid var(--ink); background: none; color: var(--ink); cursor: pointer; border-radius: 2px; transition: background 0.15s, color 0.15s; }
   .btn:hover { background: var(--ink); color: var(--white); }
@@ -67,14 +67,14 @@
   .btn.accent { background: var(--accent); color: var(--white); border-color: var(--accent); }
   .btn.accent:hover { background: #7a3f27; border-color: #7a3f27; }
   .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-
+ 
   /* ── SEARCH ── */
   .search-row { display: flex; gap: 1rem; margin-bottom: 2rem; align-items: center; flex-wrap: wrap; }
   .search-input { flex: 1; padding: 0.6rem 1rem; background: var(--white); border: 1px solid var(--light); font-family: var(--sans); font-size: 0.85rem; font-weight: 300; color: var(--ink); border-radius: 2px; outline: none; transition: border-color 0.15s; }
   .search-input:focus { border-color: var(--ink); }
   .search-input::placeholder { color: var(--light); }
   select.filter-select { padding: 0.6rem 1rem; background: var(--white); border: 1px solid var(--light); font-family: var(--sans); font-size: 0.8rem; color: var(--mid); border-radius: 2px; outline: none; cursor: pointer; }
-
+ 
   /* ── WORKS GRID ── */
   .works-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.5rem; }
   .work-card { background: var(--white); border: 1px solid var(--panel); cursor: pointer; transition: box-shadow 0.2s, transform 0.2s; overflow: hidden; position: relative; }
@@ -85,12 +85,12 @@
   .work-meta { font-size: 0.72rem; font-weight: 300; color: var(--mid); letter-spacing: 0.03em; }
   .work-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.7rem; }
   .tag { padding: 0.2rem 0.5rem; background: var(--panel); font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mid); border-radius: 1px; }
-
+ 
   /* Visibility badges on cards */
   .visibility-badge { position: absolute; top: 0.6rem; left: 0.6rem; font-size: 0.58rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 1px; }
   .badge-draft { background: var(--ink); color: var(--white); }
   .badge-preview { background: var(--accent); color: var(--white); }
-
+ 
   /* ── TIMELINE ── */
   .timeline-view { max-width: 700px; }
   .timeline-year { display: grid; grid-template-columns: 60px 1fr; gap: 2rem; margin-bottom: 2.5rem; }
@@ -100,7 +100,7 @@
   .timeline-item:hover { border-color: var(--ink); }
   .timeline-text h4 { font-family: var(--serif); font-size: 1rem; font-style: italic; font-weight: 400; margin-bottom: 0.2rem; }
   .timeline-text p { font-size: 0.78rem; color: var(--mid); }
-
+ 
   /* ── DETAIL OVERLAY ── */
   .detail-overlay { display: none; position: fixed; inset: 0; background: rgba(26,24,20,0.5); z-index: 200; align-items: center; justify-content: center; padding: 2rem; }
   .detail-overlay.open { display: flex; }
@@ -108,8 +108,7 @@
   .detail-media { background: var(--ink); display: flex; align-items: center; justify-content: center; min-height: 400px; max-height: 90vh; position: relative; overflow: hidden; }
   .detail-media img { width: 100%; height: 100%; object-fit: contain; display: block; max-height: 90vh; }
   .detail-media video { width: 100%; height: 100%; object-fit: contain; display: block; max-height: 90vh; }
-
-  /* Custom fullscreen overlay */
+ 
   #imgFullscreenOverlay { display:none; position:fixed; inset:0; background:#000; z-index:1000; align-items:center; justify-content:center; }
   #imgFullscreenOverlay.open { display:flex; }
   #imgFullscreenOverlay img { max-width:100vw; max-height:100vh; object-fit:contain; display:block; }
@@ -117,20 +116,21 @@
   #imgFullscreenOverlay .carousel-prev { left:1rem; }
   #imgFullscreenOverlay .carousel-next { right:1rem; }
   #imgFullscreenOverlay .carousel-counter { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%); }
-  #fsCloseBtn { position:fixed; top:1rem; right:1rem; background:rgba(255,255,255,0.15); border:none; color:#fff; width:36px; height:36px; font-size:1.1rem; cursor:pointer; border-radius:50%; display:flex; align-items:center; justify-content:center; }
-  .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.15); border: none; color: var(--white); width: 36px; height: 36px; font-size: 1.1rem; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.15s; z-index: 2; }
-  .carousel-btn:hover { background: rgba(255,255,255,0.35); }
+  #fsCloseBtn { position:fixed; top:1rem; right:1rem; background:rgba(0,0,0,0.55); border:1px solid rgba(255,255,255,0.2); color:#fff; width:40px; height:40px; font-size:1rem; cursor:pointer; border-radius:50%; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); transition:background 0.18s; }
+  #fsCloseBtn:hover { background:rgba(0,0,0,0.82); }
+  .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.42); border: 1px solid rgba(255,255,255,0.18); color: var(--white); width: 40px; height: 40px; font-size: 1.25rem; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.18s, border-color 0.18s; z-index: 2; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+  .carousel-btn:hover { background: rgba(0,0,0,0.72); border-color: rgba(255,255,255,0.4); }
   .carousel-prev { left: 0.75rem; }
   .carousel-next { right: 0.75rem; }
-  .carousel-counter { position: absolute; bottom: 0.75rem; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.4); color: var(--white); font-family: var(--sans); font-size: 0.65rem; letter-spacing: 0.1em; padding: 0.2rem 0.6rem; border-radius: 10px; }
+  .carousel-counter { position: absolute; bottom: 0.75rem; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); color: var(--white); font-family: var(--sans); font-size: 0.65rem; letter-spacing: 0.12em; padding: 0.25rem 0.7rem; border-radius: 10px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
   .detail-info { padding: 2.5rem 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
   .detail-title { font-family: var(--serif); font-size: 2rem; font-weight: 300; font-style: italic; line-height: 1.1; }
   .detail-fields { display: flex; flex-direction: column; gap: 0.8rem; }
   .detail-field label { display: block; font-size: 0.65rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--light); margin-bottom: 0.2rem; }
   .detail-field p { font-size: 0.85rem; color: var(--ink); }
-  .detail-close { position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.15); border: none; color: var(--white); width: 32px; height: 32px; font-size: 1rem; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
-  .detail-close:hover { background: rgba(255,255,255,0.3); }
-
+  .detail-close { position: absolute; top: 1rem; right: 1rem; background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.2); color: var(--white); width: 36px; height: 36px; font-size: 0.9rem; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.18s; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 3; }
+  .detail-close:hover { background: rgba(0,0,0,0.75); }
+ 
   /* ── MODAL ── */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,24,20,0.5); z-index: 300; align-items: center; justify-content: center; padding: 2rem; }
   .modal-overlay.open { display: flex; }
@@ -151,7 +151,7 @@
   .upload-previews { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.7rem; }
   .upload-preview { width: 70px; height: 70px; object-fit: cover; border: 1px solid var(--light); }
   .form-actions { display: flex; justify-content: flex-end; gap: 0.7rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--light); }
-
+ 
   /* ── COLLECTIONS ── */
   .collections-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
   .collection-card { background: var(--white); border: 1px solid var(--panel); overflow: hidden; cursor: pointer; transition: box-shadow 0.2s; position: relative; }
@@ -162,7 +162,7 @@
   .collection-meta { padding: 1.2rem; }
   .collection-meta h3 { font-family: var(--serif); font-size: 1.2rem; font-style: italic; font-weight: 400; }
   .collection-meta p { font-size: 0.75rem; color: var(--mid); margin-top: 0.3rem; }
-
+ 
   /* ── EXHIBITIONS ── */
   .exhibitions-list { display: flex; flex-direction: column; gap: 1.2rem; max-width: 800px; }
   .exhibition-card { background: var(--white); border: 1px solid var(--panel); padding: 1.5rem 2rem; display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: start; cursor: pointer; transition: border-color 0.15s; }
@@ -170,57 +170,57 @@
   .exhibition-card h3 { font-family: var(--serif); font-size: 1.3rem; font-style: italic; font-weight: 400; margin-bottom: 0.4rem; }
   .exhibition-card p { font-size: 0.8rem; color: var(--mid); line-height: 1.6; }
   .exhibition-date { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); white-space: nowrap; }
-
+ 
   /* ── BIO ── */
   .bio-view { max-width: 640px; }
   .bio-view .bio-text { font-family: var(--serif); font-size: 1.2rem; font-weight: 300; line-height: 1.75; color: var(--ink); margin-bottom: 2rem; }
   .bio-view .bio-statement { font-family: var(--serif); font-size: 1rem; font-style: italic; line-height: 1.8; color: var(--mid); padding: 1.5rem 2rem; border-left: 2px solid var(--accent); margin-bottom: 2rem; }
-
+ 
   /* ── STATS ── */
   .stats-bar { display: flex; gap: 2.5rem; margin-bottom: 2.5rem; }
   .stat { display: flex; flex-direction: column; gap: 0.2rem; }
   .stat-num { font-family: var(--serif); font-size: 2rem; font-weight: 300; line-height: 1; }
   .stat-label { font-size: 0.65rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mid); }
-
+ 
   /* ── EMPTY STATE ── */
   .empty-state { text-align: center; padding: 5rem 2rem; color: var(--light); }
   .empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
   .empty-state p { font-family: var(--serif); font-size: 1.1rem; font-style: italic; }
-
+ 
   /* ── ADMIN/PUBLIC ── */
   .admin-only { display: none; }
   body.admin .admin-only { display: block; }
   body.admin .admin-flex { display: flex !important; }
-
+ 
   /* ── AUTH BUTTONS ── */
   .mode-badge { font-size: 0.65rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.3rem 0.7rem; border-radius: 2px; background: var(--panel); color: var(--mid); border: 1px solid var(--light); cursor: pointer; transition: background 0.15s; white-space: nowrap; }
   .mode-badge.admin-mode { background: var(--accent); color: var(--white); border-color: var(--accent); }
-
+ 
   /* ── PREVIEW BANNER ── */
   #previewBanner { display: none; background: var(--accent); color: var(--white); padding: 0.6rem 2rem; font-family: var(--sans); font-size: 0.75rem; letter-spacing: 0.08em; text-align: center; }
   #previewBanner.show { display: block; }
-
+ 
   /* ── SHARE LINK BOX ── */
   .share-box { background: var(--panel); border: 1px solid var(--light); padding: 1rem 1.2rem; margin-top: 1rem; border-radius: 2px; }
   .share-box label { font-size: 0.65rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mid); display: block; margin-bottom: 0.5rem; }
   .share-url { display: flex; gap: 0.5rem; align-items: center; }
   .share-url input { flex: 1; padding: 0.5rem 0.7rem; background: var(--white); border: 1px solid var(--light); font-family: var(--sans); font-size: 0.78rem; color: var(--mid); border-radius: 2px; outline: none; }
   .share-url button { white-space: nowrap; }
-
+ 
   /* ── TOAST ── */
   #toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--white); padding: 0.7rem 1.5rem; font-family: var(--sans); font-size: 0.8rem; letter-spacing: 0.05em; border-radius: 2px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; white-space: nowrap; }
   #toast.show { opacity: 1; }
   #toast.error { background: #a63020; }
-
+ 
   /* ── SPINNER ── */
   .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 0.4rem; }
   @keyframes spin { to { transform: rotate(360deg); } }
-
+ 
   /* ── MOBILE ── */
   .mobile-menu-btn { display: none; background: none; border: 1px solid var(--light); color: var(--ink); width: 36px; height: 36px; font-size: 1.1rem; cursor: pointer; border-radius: 2px; align-items: center; justify-content: center; flex-shrink: 0; }
   .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(26,24,20,0.4); z-index: 150; }
   .sidebar-overlay.open { display: block; }
-
+ 
   @media (max-width: 900px) {
     .shell { grid-template-columns: 1fr; }
     aside { position: fixed; top: 0; left: -280px; width: 260px; height: 100vh; overflow-y: auto; z-index: 160; padding: 5rem 1.5rem 2rem; transition: left 0.25s ease; box-shadow: 4px 0 24px rgba(26,24,20,0.12); }
@@ -235,7 +235,9 @@
     .logo { font-size: 1.3rem; }
     main { padding: 1.5rem 1.2rem 5rem; }
     .detail-panel { grid-template-columns: 1fr; }
-    .detail-media { min-height: 260px; }
+    .detail-media { min-height: 0; height: 56vw; max-height: 56vw; }
+    .detail-overlay { padding: 0; align-items: flex-start; }
+    .detail-panel { max-height: 100vh; height: 100vh; overflow-y: auto; }
     .works-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
     .page-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
     .page-header h1 { font-size: 2.2rem; }
@@ -248,8 +250,11 @@
     .works-grid { grid-template-columns: 1fr; }
     .collections-grid { grid-template-columns: 1fr; }
     .exhibition-card { grid-template-columns: 1fr; gap: 0.5rem; }
+    .detail-media { height: 60vw; max-height: 60vw; }
+    .detail-info { padding: 1.5rem 1.2rem; }
+    .detail-title { font-size: 1.5rem; }
   }
-
+ 
   /* ── PRINT ── */
   @media print {
     body * { visibility: hidden !important; }
@@ -267,17 +272,51 @@
   .print-work-title { font-family: var(--serif); font-size: 10pt; font-style: italic; font-weight: 400; margin-bottom: 4pt; }
   .print-work-meta { font-size: 7.5pt; color: #6b6660; line-height: 1.6; }
   .print-work-notes { font-size: 7pt; color: #8b4a2f; font-style: italic; margin-top: 4pt; }
-
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
+ 
+  /* ── LOUPE MAGNIFIER ── */
+  #loupeLens {
+    display: none;
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.55);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(0,0,0,0.15);
+    pointer-events: none;
+    z-index: 10;
+    overflow: hidden;
+    background-repeat: no-repeat;
+    cursor: none;
+    transition: opacity 0.15s;
+  }
+  .detail-media:hover #loupeLens,
+  .detail-media.loupe-active #loupeLens { display: block; }
+  .detail-media { cursor: crosshair; }
+  #imgFullscreenOverlay { cursor: crosshair; }
+  #imgFullscreenOverlay #fsloupeLens {
+    display: none;
+    position: fixed;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.5);
+    box-shadow: 0 4px 32px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(0,0,0,0.2);
+    pointer-events: none;
+    z-index: 1010;
+    overflow: hidden;
+    background-repeat: no-repeat;
+  }
+  #imgFullscreenOverlay.loupe-active #fsloupeLens { display: block; }
+ 
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--light); border-radius: 3px; }
 </style>
 </head>
 <body>
-
+ 
 <!-- PREVIEW BANNER — shown when accessing via share token -->
 <div id="previewBanner">Preview — this collection has been shared privately and is not yet publicly available</div>
-
+ 
 <div class="shell">
   <header>
     <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
@@ -292,7 +331,7 @@
     <button class="mode-badge admin-only" id="adminLogoutBtn">Sign out</button>
     <button class="mode-badge" id="adminLoginBtn" style="display:none;">Admin</button>
   </header>
-
+ 
   <aside>
     <div class="sidebar-section">
       <h3>Collections</h3>
@@ -311,9 +350,9 @@
       <ul class="sidebar-list" id="sidebarMediums"></ul>
     </div>
   </aside>
-
+ 
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
+ 
   <nav class="mobile-nav" id="mobileNav" style="display:none;">
     <button class="tab-btn active" data-view="works"><span class="nav-icon">◻</span>Works</button>
     <button class="tab-btn" data-view="collections"><span class="nav-icon">⊞</span>Collections</button>
@@ -321,7 +360,7 @@
     <button class="tab-btn" data-view="timeline"><span class="nav-icon">↕</span>Timeline</button>
     <button class="tab-btn" data-view="bio"><span class="nav-icon">◉</span>About</button>
   </nav>
-
+ 
   <main>
     <!-- WORKS -->
     <div class="view active" id="view-works">
@@ -343,7 +382,7 @@
       </div>
       <div class="works-grid" id="worksGrid"></div>
     </div>
-
+ 
     <!-- COLLECTIONS -->
     <div class="view" id="view-collections">
       <div class="page-header">
@@ -354,7 +393,7 @@
       </div>
       <div class="collections-grid" id="collectionsGrid"></div>
     </div>
-
+ 
     <!-- EXHIBITIONS -->
     <div class="view" id="view-exhibitions">
       <div class="page-header">
@@ -365,13 +404,13 @@
       </div>
       <div class="exhibitions-list" id="exhibitionsList"></div>
     </div>
-
+ 
     <!-- TIMELINE -->
     <div class="view" id="view-timeline">
       <div class="page-header"><h1><small>Chronology</small>Timeline</h1></div>
       <div class="timeline-view" id="timelineView"></div>
     </div>
-
+ 
     <!-- BIO -->
     <div class="view" id="view-bio">
       <div class="page-header">
@@ -387,7 +426,7 @@
     </div>
   </main>
 </div>
-
+ 
 <!-- WORK DETAIL OVERLAY -->
 <div class="detail-overlay" id="detailOverlay">
   <div class="detail-panel">
@@ -411,7 +450,7 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- ADD/EDIT WORK MODAL -->
 <div class="modal-overlay" id="workModal">
   <div class="modal">
@@ -457,7 +496,7 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- COLLECTION MODAL -->
 <div class="modal-overlay" id="collectionModal">
   <div class="modal">
@@ -491,7 +530,7 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- EXHIBITION DETAIL OVERLAY -->
 <div class="detail-overlay" id="exhibitionDetailOverlay">
   <div class="detail-panel" style="grid-template-columns:1fr;max-width:700px;">
@@ -512,7 +551,7 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- EXHIBITION EDIT MODAL -->
 <div class="modal-overlay" id="exhibitionModal">
   <div class="modal">
@@ -543,7 +582,7 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- BIO EDIT MODAL -->
 <div class="modal-overlay" id="bioModal">
   <div class="modal">
@@ -558,7 +597,7 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- ADMIN LOGIN MODAL -->
 <div class="modal-overlay" id="loginModal">
   <div class="modal" style="max-width:400px;">
@@ -574,16 +613,16 @@
     </div>
   </div>
 </div>
-
+ 
 <div id="toast"></div>
 <div id="printContactSheet"></div>
 <div id="imgFullscreenOverlay"></div>
-
+ 
 <script>
 // ══════════════════════════════════════════════════════════════
 //  ⚙  CONFIG — REPLACE BEFORE DEPLOYING
 // ══════════════════════════════════════════════════════════════
-
+ 
 const CONFIG = {
   SUPABASE_URL: 'https://wowtdwlpatpqjzlqpqcj.supabase.co',
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indvd3Rkd2xwYXRwcWp6bHFwcWNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MTAzMjcsImV4cCI6MjA5MzM4NjMyN30.EA32PGNEmFMesy-Fq3HtKUbZdZ4aPxRSM6L6wLEoXNk',
@@ -593,11 +632,11 @@ const CONFIG = {
   // Update this after deploying to Netlify
   SITE_URL: 'YOUR_SITE_URL',
 };
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  SUPABASE CLIENT
 // ══════════════════════════════════════════════════════════════
-
+ 
 const sb = {
   headers: () => ({ 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' }),
   authHeaders: () => { const t = sessionStorage.getItem('sb_token'); return { ...sb.headers(), ...(t ? { 'Authorization': `Bearer ${t}` } : {}) }; },
@@ -646,11 +685,11 @@ const sb = {
   async safePatch(table, id, body) { return sb.fetchWithRefresh(() => sb.patch(table, id, body)); },
   async safeDelete(table, id) { return sb.fetchWithRefresh(() => sb.delete(table, id)); }
 };
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  CLOUDINARY
 // ══════════════════════════════════════════════════════════════
-
+ 
 async function uploadToCloudinary(file, onProgress) {
   const fd = new FormData();
   fd.append('file', file);
@@ -665,11 +704,11 @@ async function uploadToCloudinary(file, onProgress) {
     xhr.send(fd);
   });
 }
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════════════════════
-
+ 
 let works=[], collections=[], exhibitions=[], bio={text:'',statement:''};
 let activeFilter='all', activeTagFilter=null, activeMediumFilter=null;
 let editingWorkId=null, editingExhibitionId=null, currentExhibitionId=null;
@@ -678,14 +717,14 @@ let exhibitionSelectedWorks=[];
 let pendingImageUrls=[]; // array of Cloudinary URLs uploaded in current modal session
 let previewToken=null; // set if accessing via ?preview=TOKEN
 let isPreviewMode=false;
-
+ 
 function isAdmin() { return document.body.classList.contains('admin'); }
 function uid() { return Math.random().toString(36).slice(2,9) + Math.random().toString(36).slice(2,9); }
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  TOAST
 // ══════════════════════════════════════════════════════════════
-
+ 
 let toastTimer;
 function toast(msg, isError=false) {
   const el=document.getElementById('toast');
@@ -694,11 +733,11 @@ function toast(msg, isError=false) {
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>{el.className='';},3000);
 }
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  PREVIEW MODE — check URL for ?preview=TOKEN
 // ══════════════════════════════════════════════════════════════
-
+ 
 function checkPreviewMode() {
   const params = new URLSearchParams(window.location.search);
   const token = params.get('preview');
@@ -714,16 +753,16 @@ function checkPreviewMode() {
   renderSidebar();
   renderWorksGrid();
 }
-
+ 
 function generateShareUrl(token) {
   const base = CONFIG.SITE_URL || window.location.origin;
   return `${base}?preview=${token}`;
 }
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  VISIBILITY HELPERS
 // ══════════════════════════════════════════════════════════════
-
+ 
 // What works are visible given current access level
 function visibleWorks() {
   if (isAdmin()) return works; // admin sees all
@@ -738,18 +777,18 @@ function visibleWorks() {
   }
   return works.filter(w => w.visibility === 'published');
 }
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  AUTH
 // ══════════════════════════════════════════════════════════════
-
+ 
 function setAdminMode(on) {
   document.body.classList.toggle('admin', on);
   document.getElementById('adminLoginBtn').style.display = on ? 'none' : '';
   document.getElementById('adminLogoutBtn').style.display = on ? '' : 'none';
   renderAll();
 }
-
+ 
 function checkSession() {
   const token = sessionStorage.getItem('sb_token');
   if (token) {
@@ -761,7 +800,7 @@ function checkSession() {
     document.getElementById('adminLogoutBtn').style.display = 'none';
   }
 }
-
+ 
 document.getElementById('adminLoginBtn').addEventListener('click', () => {
   document.getElementById('loginEmail').value = '';
   document.getElementById('loginPassword').value = '';
@@ -772,7 +811,7 @@ document.getElementById('adminLoginBtn').addEventListener('click', () => {
 document.getElementById('cancelLoginBtn').addEventListener('click', () => document.getElementById('loginModal').classList.remove('open'));
 document.getElementById('loginPassword').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 document.getElementById('doLoginBtn').addEventListener('click', doLogin);
-
+ 
 async function doLogin() {
   const btn=document.getElementById('doLoginBtn');
   const errEl=document.getElementById('loginError');
@@ -794,17 +833,17 @@ async function doLogin() {
     btn.disabled=false;
   }
 }
-
+ 
 document.getElementById('adminLogoutBtn').addEventListener('click', async () => {
   await sb.signOut();
   setAdminMode(false);
   toast('Signed out');
 });
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  DATA LOADING
 // ══════════════════════════════════════════════════════════════
-
+ 
 async function loadAll() {
   try {
     [works, collections, exhibitions] = await Promise.all([
@@ -823,11 +862,11 @@ async function loadAll() {
     toast('Could not load data — check connection', true);
   }
 }
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  PLACEHOLDER IMAGES
 // ══════════════════════════════════════════════════════════════
-
+ 
 const PC = [['#d9d2c7','#b8b0a4'],['#c9cfc4','#a8b0a2'],['#cdc4bb','#a89f96'],['#bfc9cc','#9aadb2'],['#d4c9be','#b0a096'],['#c5c9be','#9fa4a0']];
 function makePlaceholderSrc(id, w=400, h=300) {
   const idx=Math.abs((id||'x').split('').reduce((a,c)=>a+c.charCodeAt(0),0))%PC.length;
@@ -848,20 +887,20 @@ function allImagesFor(w) {
   if (w.image_url) return [w.image_url];
   return [];
 }
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  HELPERS
 // ══════════════════════════════════════════════════════════════
-
+ 
 function getCollection(id) { return collections.find(c=>c.id===id); }
 function getAllTags() { const s=new Set(); visibleWorks().forEach(w=>(w.tags||[]).forEach(t=>s.add(t))); return [...s].sort(); }
 function getAllMediums() { const s=new Set(); visibleWorks().forEach(w=>{if(w.medium)s.add(w.medium.split(' ')[0]);}); return [...s].sort(); }
 function getAllYears() { const s=new Set(); visibleWorks().forEach(w=>{if(w.year)s.add(w.year);}); return [...s].sort((a,b)=>b-a); }
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  SIDEBAR
 // ══════════════════════════════════════════════════════════════
-
+ 
 function renderSidebar() {
   const colList=document.getElementById('sidebarCollections');
   colList.innerHTML='';
@@ -871,12 +910,12 @@ function renderSidebar() {
   allBtn.className=activeFilter==='all'?'active':'';
   allBtn.addEventListener('click',()=>{ activeFilter='all'; activeTagFilter=null; activeMediumFilter=null; renderSidebar(); renderWorksGrid(); window.switchView('works'); });
   allLi.appendChild(allBtn); colList.appendChild(allLi);
-
+ 
   // Only show collections that are visible at current access level
   const visibleCollections = isAdmin() ? collections : collections.filter(c =>
     c.visibility === 'published' || (isPreviewMode && c.share_token === previewToken)
   );
-
+ 
   visibleCollections.forEach(c => {
     const li=document.createElement('li');
     const btn=document.createElement('button');
@@ -885,11 +924,11 @@ function renderSidebar() {
     btn.addEventListener('click',()=>{ activeFilter=c.id; activeTagFilter=null; activeMediumFilter=null; renderSidebar(); renderWorksGrid(); window.switchView('works'); });
     li.appendChild(btn); colList.appendChild(li);
   });
-
+ 
   renderTagList(document.getElementById('tagSearch').value);
   renderSidebarMediums();
 }
-
+ 
 function renderTagList(query) {
   const tagList=document.getElementById('sidebarTags');
   tagList.innerHTML='';
@@ -903,7 +942,7 @@ function renderTagList(query) {
     li.appendChild(btn); tagList.appendChild(li);
   });
 }
-
+ 
 function renderSidebarMediums() {
   const list=document.getElementById('sidebarMediums');
   list.innerHTML='';
@@ -916,13 +955,13 @@ function renderSidebarMediums() {
     li.appendChild(btn); list.appendChild(li);
   });
 }
-
+ 
 document.getElementById('tagSearch').addEventListener('input', function() { renderTagList(this.value); });
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  WORKS GRID
 // ══════════════════════════════════════════════════════════════
-
+ 
 function filterWorks() {
   let ws = visibleWorks();
   if (activeFilter!=='all') ws=ws.filter(w=>(w.collection_ids||[]).includes(activeFilter));
@@ -943,10 +982,10 @@ function filterWorks() {
   });
   return ws;
 }
-
+ 
 function renderWorksGrid() {
   const grid=document.getElementById('worksGrid');
-
+ 
   // Update page heading based on active collection filter
   const subheading=document.getElementById('worksSubheading');
   const worksTitle=document.getElementById('worksTitle');
@@ -969,7 +1008,7 @@ function renderWorksGrid() {
       }
     }
   }
-
+ 
   // Active filter bar
   let bar=document.getElementById('activeFilterBar');
   if(!bar){bar=document.createElement('div');bar.id='activeFilterBar';bar.style.cssText='display:none;align-items:center;gap:0.7rem;margin-bottom:1rem;padding:0.5rem 0.8rem;background:var(--panel);font-size:0.78rem;color:var(--mid);';grid.parentNode.insertBefore(bar,grid);}
@@ -978,7 +1017,7 @@ function renderWorksGrid() {
     bar.innerHTML=`<span>Filtered by — <strong style="color:var(--ink)">${label}</strong></span> <button onclick="activeTagFilter=null;activeMediumFilter=null;renderSidebar();renderWorksGrid();" style="font-size:0.7rem;padding:0.15rem 0.5rem;background:none;border:1px solid var(--light);cursor:pointer;border-radius:2px;color:var(--mid);">✕ Clear</button>`;
     bar.style.display='flex';
   } else { bar.style.display='none'; }
-
+ 
   // Dropdowns
   const yearSel=document.getElementById('filterYear');
   const yrVal=yearSel.value;
@@ -1014,11 +1053,11 @@ function renderWorksGrid() {
     grid.appendChild(card);
   });
 }
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  COLLECTIONS VIEW
 // ══════════════════════════════════════════════════════════════
-
+ 
 function renderCollections() {
   const grid=document.getElementById('collectionsGrid');
   const visibleCols = isAdmin() ? collections : collections.filter(c=>c.visibility==='published');
@@ -1043,16 +1082,16 @@ function renderCollections() {
     grid.appendChild(card);
   });
 }
-
+ 
 function copyShareLink(token) {
   const url=generateShareUrl(token);
   navigator.clipboard.writeText(url).then(()=>toast('Share link copied to clipboard')).catch(()=>{ prompt('Copy this link:', url); });
 }
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  EXHIBITIONS
 // ══════════════════════════════════════════════════════════════
-
+ 
 function renderExhibitions() {
   const list=document.getElementById('exhibitionsList');
   // Filter by visibility based on access level
@@ -1074,11 +1113,11 @@ function renderExhibitions() {
     list.appendChild(card);
   });
 }
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  TIMELINE
 // ══════════════════════════════════════════════════════════════
-
+ 
 function renderTimeline() {
   const container=document.getElementById('timelineView');
   const byYear={};
@@ -1110,18 +1149,18 @@ function renderTimeline() {
     container.appendChild(row);
   });
 }
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  WORK DETAIL
 // ══════════════════════════════════════════════════════════════
-
+ 
 let carouselImages = [];
 let carouselIndex = 0;
-
+ 
 function isVideoUrl(url) {
   return url && (url.includes('/video/upload/') || /\.(mp4|mov|webm|ogg)(\?|$)/i.test(url));
 }
-
+ 
 function renderCarousel() {
   const media = document.getElementById('detailMedia');
   const total = carouselImages.length;
@@ -1131,7 +1170,7 @@ function renderCarousel() {
     ? `<video src="${src}" controls style="width:100%;height:100%;object-fit:contain;display:block;max-height:500px;" playsinline></video>`
     : `<img src="${src}" alt="" id="carouselImg" style="width:100%;height:100%;object-fit:contain;display:block;max-height:500px;">`;
   const fullscreenBtn = !isVid
-    ? `<button id="carouselFullscreen" title="Full screen" style="position:absolute;bottom:0.75rem;right:0.75rem;background:rgba(0,0,0,0.4);border:none;color:var(--white);width:28px;height:28px;border-radius:4px;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;justify-content:center;">⛶</button>`
+    ? `<button id="carouselFullscreen" title="Full screen" style="position:absolute;bottom:0.75rem;right:0.75rem;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.2);color:var(--white);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">⛶</button>`
     : '';
   media.innerHTML = `
     <button class="detail-close" id="detailClose">✕</button>
@@ -1143,6 +1182,8 @@ function renderCarousel() {
       <div class="carousel-counter">${carouselIndex + 1} / ${total}</div>
     ` : ''}
   `;
+  // Re-attach loupe (innerHTML wipe destroys it)
+  if (document._loupeLens) media.appendChild(document._loupeLens);
   if (total > 1) {
     document.getElementById('carouselPrev').addEventListener('click', e => { e.stopPropagation(); carouselIndex = (carouselIndex - 1 + total) % total; renderCarousel(); });
     document.getElementById('carouselNext').addEventListener('click', e => { e.stopPropagation(); carouselIndex = (carouselIndex + 1) % total; renderCarousel(); });
@@ -1154,7 +1195,7 @@ function renderCarousel() {
     });
   }
 }
-
+ 
 function renderFsOverlay() {
   const overlay = document.getElementById('imgFullscreenOverlay');
   const total = carouselImages.filter(u => !isVideoUrl(u)).length;
@@ -1171,6 +1212,8 @@ function renderFsOverlay() {
     ${arrows}
     ${counter}
   `;
+  // Re-attach fullscreen loupe (innerHTML wipe destroys it)
+  if (document._fsloupeLens) overlay.appendChild(document._fsloupeLens);
   overlay.classList.add('open');
   document.getElementById('fsCloseBtn').addEventListener('click', () => overlay.classList.remove('open'));
   if (nonVideoImages.length > 1) {
@@ -1178,7 +1221,106 @@ function renderFsOverlay() {
     document.getElementById('fsNext').addEventListener('click', e => { e.stopPropagation(); overlay.dataset.fsIndex=(fsIndex+1)%nonVideoImages.length; renderFsOverlay(); });
   }
 }
-
+ 
+// ══════════════════════════════════════════════════════════════
+//  LOUPE MAGNIFIER
+// ══════════════════════════════════════════════════════════════
+ 
+(function initLoupe() {
+  const LOUPE_SIZE = 160;
+  const FS_LOUPE_SIZE = 200;
+  const ZOOM = 2.5;
+ 
+  // ── Carousel loupe ──
+  const mediaEl = document.getElementById('detailMedia');
+ 
+  const loupe = document.createElement('div');
+  loupe.id = 'loupeLens';
+  mediaEl.appendChild(loupe);
+  // Store on document so renderCarousel can re-attach after innerHTML wipe
+  document._loupeLens = loupe;
+ 
+  function updateCarouselLoupe(e) {
+    const img = mediaEl.querySelector('#carouselImg');
+    if (!img || !img.complete || !img.naturalWidth) { loupe.style.display = 'none'; return; }
+ 
+    const rect = img.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+ 
+    if (mx < 0 || my < 0 || mx > rect.width || my > rect.height) {
+      loupe.style.display = 'none';
+      return;
+    }
+ 
+    loupe.style.display = 'block';
+ 
+    const mediaRect = mediaEl.getBoundingClientRect();
+    const lx = e.clientX - mediaRect.left - LOUPE_SIZE / 2;
+    const ly = e.clientY - mediaRect.top - LOUPE_SIZE / 2;
+    loupe.style.left = lx + 'px';
+    loupe.style.top = ly + 'px';
+ 
+    const bgW = rect.width * ZOOM;
+    const bgH = rect.height * ZOOM;
+    const bgX = -(mx * ZOOM - LOUPE_SIZE / 2);
+    const bgY = -(my * ZOOM - LOUPE_SIZE / 2);
+ 
+    loupe.style.backgroundImage = `url('${img.src}')`;
+    loupe.style.backgroundSize = `${bgW}px ${bgH}px`;
+    loupe.style.backgroundPosition = `${bgX}px ${bgY}px`;
+  }
+ 
+  mediaEl.addEventListener('mousemove', updateCarouselLoupe);
+  mediaEl.addEventListener('mouseleave', () => { loupe.style.display = 'none'; });
+ 
+  // ── Fullscreen loupe ──
+  const fsOverlay = document.getElementById('imgFullscreenOverlay');
+ 
+  const fsLoupe = document.createElement('div');
+  fsLoupe.id = 'fsloupeLens';
+  fsOverlay.appendChild(fsLoupe);
+  // Store reference so renderFsOverlay can re-attach after innerHTML wipe
+  document._fsloupeLens = fsLoupe;
+ 
+  function updateFsLoupe(e) {
+    const img = fsOverlay.querySelector('img');
+    if (!img || !img.complete || !img.naturalWidth) { fsLoupe.style.display = 'none'; return; }
+ 
+    const rect = img.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+ 
+    if (mx < 0 || my < 0 || mx > rect.width || my > rect.height) {
+      fsLoupe.style.display = 'none';
+      return;
+    }
+ 
+    fsLoupe.style.display = 'block';
+    fsLoupe.style.left = (e.clientX - FS_LOUPE_SIZE / 2) + 'px';
+    fsLoupe.style.top = (e.clientY - FS_LOUPE_SIZE / 2) + 'px';
+ 
+    const bgW = rect.width * ZOOM;
+    const bgH = rect.height * ZOOM;
+    const bgX = -(mx * ZOOM - FS_LOUPE_SIZE / 2);
+    const bgY = -(my * ZOOM - FS_LOUPE_SIZE / 2);
+ 
+    fsLoupe.style.backgroundImage = `url('${img.src}')`;
+    fsLoupe.style.backgroundSize = `${bgW}px ${bgH}px`;
+    fsLoupe.style.backgroundPosition = `${bgX}px ${bgY}px`;
+  }
+ 
+  fsOverlay.addEventListener('mousemove', updateFsLoupe);
+  fsOverlay.addEventListener('mouseleave', () => { fsLoupe.style.display = 'none'; });
+ 
+  // Disable loupe on touch devices
+  if ('ontouchstart' in window) {
+    mediaEl.style.cursor = 'default';
+    fsOverlay.style.cursor = 'default';
+  }
+})();
+ 
+ 
 function openImgFullscreen() {
   const overlay = document.getElementById('imgFullscreenOverlay');
   // Start from the currently viewed carousel image
@@ -1187,12 +1329,12 @@ function openImgFullscreen() {
   overlay.dataset.fsIndex = Math.max(0, nonVideoImages.indexOf(currentSrc));
   renderFsOverlay();
 }
-
+ 
 // Close fullscreen overlay on background click or Escape
 document.getElementById('imgFullscreenOverlay').addEventListener('click', e => {
   if (e.target === document.getElementById('imgFullscreenOverlay')) document.getElementById('imgFullscreenOverlay').classList.remove('open');
 });
-
+ 
 function openDetail(id) {
   const w = works.find(x => x.id === id);
   if (!w) return;
@@ -1216,11 +1358,11 @@ function openDetail(id) {
   document.getElementById('detailNotes').textContent = w.notes || '—';
   document.getElementById('detailOverlay').classList.add('open');
 }
-
+ 
 document.getElementById('detailOverlay').addEventListener('click', e=>{
   if(e.target===document.getElementById('detailOverlay')||e.target.id==='detailClose') document.getElementById('detailOverlay').classList.remove('open');
 });
-
+ 
 // Keyboard navigation for carousel
 document.addEventListener('keydown', e => {
   if (document.getElementById('imgFullscreenOverlay').classList.contains('open')) {
@@ -1244,23 +1386,23 @@ document.getElementById('deleteWorkBtn').addEventListener('click', async()=>{
     renderAll(); toast('Work deleted');
   } catch(e){ toast('Delete failed: '+e.message,true); }
 });
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  ADD / EDIT WORK MODAL
 // ══════════════════════════════════════════════════════════════
-
+ 
 function renderCollectionCheckboxes(selectedIds) {
   const container=document.getElementById('wCollectionsList');
   if(!collections.length){container.innerHTML='<div style="padding:0.5rem 0.8rem;font-size:0.8rem;color:var(--mid);">No collections yet.</div>';return;}
   container.innerHTML=collections.map(c=>`<label style="display:flex;align-items:center;gap:0.6rem;padding:0.4rem 0.8rem;cursor:pointer;font-size:0.82rem;" onmouseover="this.style.background='var(--panel)'" onmouseout="this.style.background=''"><input type="checkbox" value="${c.id}" ${(selectedIds||[]).includes(c.id)?'checked':''} style="accent-color:var(--accent);width:14px;height:14px;"> ${c.name}</label>`).join('');
 }
-
+ 
 function getSelectedCollections() { return Array.from(document.querySelectorAll('#wCollectionsList input[type=checkbox]:checked')).map(cb=>cb.value); }
-
+ 
 // Renders existing image previews with ✕ remove buttons
 // existingUrls is the current saved list; pendingImageUrls holds newly uploaded ones
 let existingImageUrls=[];
-
+ 
 function renderUploadPreviews() {
   const container=document.getElementById('uploadPreviews');
   container.innerHTML='';
@@ -1268,7 +1410,7 @@ function renderUploadPreviews() {
   all.forEach((url,i)=>{
     const wrap=document.createElement('div');
     wrap.style.cssText='position:relative;display:inline-block;margin-right:4px;';
-
+ 
     let mediaEl;
     if(isVideoUrl(url)){
       mediaEl=document.createElement('div');
@@ -1279,7 +1421,7 @@ function renderUploadPreviews() {
       mediaEl.className='upload-preview';
       mediaEl.src=url;
     }
-
+ 
     // Primary star button
     const star=document.createElement('button');
     star.textContent= i===0 ? '★' : '☆';
@@ -1300,7 +1442,7 @@ function renderUploadPreviews() {
         renderUploadPreviews();
       });
     }
-
+ 
     // Remove button
     const removeBtn=document.createElement('button');
     removeBtn.textContent='✕';
@@ -1311,14 +1453,14 @@ function renderUploadPreviews() {
       pendingImageUrls=[];
       renderUploadPreviews();
     });
-
+ 
     wrap.appendChild(mediaEl);
     wrap.appendChild(star);
     wrap.appendChild(removeBtn);
     container.appendChild(wrap);
   });
 }
-
+ 
 function openWorkModal(id) {
   editingWorkId=id||null;
   pendingImageUrls=[];
@@ -1354,15 +1496,15 @@ function openWorkModal(id) {
   renderUploadPreviews();
   document.getElementById('workModal').classList.add('open');
 }
-
+ 
 document.getElementById('addWorkBtn').addEventListener('click',()=>openWorkModal(null));
 document.getElementById('cancelWorkBtn').addEventListener('click',()=>document.getElementById('workModal').classList.remove('open'));
-
+ 
 // Auto-fill year from date picker
 document.getElementById('wDate').addEventListener('change', function() {
   if (this.value) document.getElementById('wYear').value = new Date(this.value).getFullYear();
 });
-
+ 
 document.getElementById('wFile').addEventListener('change', async function() {
   const files=Array.from(this.files);
   if(!files.length) return;
@@ -1383,7 +1525,7 @@ document.getElementById('wFile').addEventListener('change', async function() {
   setTimeout(()=>{progress.style.display='none';},2000);
   this.value='';
 });
-
+ 
 document.getElementById('saveWorkBtn').addEventListener('click', async()=>{
   const title=document.getElementById('wTitle').value.trim();
   if(!title){alert('Please enter a title.');return;}
@@ -1417,11 +1559,11 @@ document.getElementById('saveWorkBtn').addEventListener('click', async()=>{
   } catch(e){ toast('Save failed: '+e.message,true); }
   finally{ btn.textContent='Save Work'; btn.disabled=false; }
 });
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  COLLECTION MODAL
 // ══════════════════════════════════════════════════════════════
-
+ 
 function openCollectionModal(id) {
   editingCollectionId=id||null;
   document.getElementById('collectionModalTitle').textContent=id?'Edit Collection':'New Collection';
@@ -1439,7 +1581,7 @@ function openCollectionModal(id) {
   }
   document.getElementById('collectionModal').classList.add('open');
 }
-
+ 
 function updateCollectionShareBox(c) {
   const box=document.getElementById('cShareBox');
   if(c&&c.visibility==='preview'&&c.share_token){
@@ -1447,7 +1589,7 @@ function updateCollectionShareBox(c) {
     box.style.display='block';
   } else { box.style.display='none'; }
 }
-
+ 
 document.getElementById('cVisibility').addEventListener('change', function() {
   // If switching to preview and editing existing, show share box
   if(editingCollectionId){
@@ -1456,16 +1598,16 @@ document.getElementById('cVisibility').addEventListener('change', function() {
     else document.getElementById('cShareBox').style.display='none';
   }
 });
-
+ 
 document.getElementById('cCopyLinkBtn').addEventListener('click',()=>{
   const url=document.getElementById('cShareUrl').value;
   navigator.clipboard.writeText(url).then(()=>toast('Link copied!')).catch(()=>{ document.getElementById('cShareUrl').select(); document.execCommand('copy'); toast('Link copied!'); });
 });
-
+ 
 document.getElementById('addCollectionBtn').addEventListener('click',()=>openCollectionModal(null));
 document.getElementById('addCollectionBtn2').addEventListener('click',()=>openCollectionModal(null));
 document.getElementById('cancelCollectionBtn').addEventListener('click',()=>document.getElementById('collectionModal').classList.remove('open'));
-
+ 
 document.getElementById('saveCollectionBtn').addEventListener('click', async()=>{
   const name=document.getElementById('cName').value.trim();
   if(!name){alert('Please enter a collection name.');return;}
@@ -1490,11 +1632,11 @@ document.getElementById('saveCollectionBtn').addEventListener('click', async()=>
   } catch(e){ toast('Save failed: '+e.message,true); }
   finally{ btn.textContent='Save Collection'; btn.disabled=false; }
 });
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  EXHIBITION DETAIL
 // ══════════════════════════════════════════════════════════════
-
+ 
 function openExhibitionDetail(id) {
   const ex=exhibitions.find(e=>e.id===id);
   if(!ex) return;
@@ -1520,7 +1662,7 @@ function openExhibitionDetail(id) {
   }
   document.getElementById('exhibitionDetailOverlay').classList.add('open');
 }
-
+ 
 document.getElementById('exDetailClose').addEventListener('click',()=>document.getElementById('exhibitionDetailOverlay').classList.remove('open'));
 document.getElementById('exhibitionDetailOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('exhibitionDetailOverlay')) document.getElementById('exhibitionDetailOverlay').classList.remove('open'); });
 document.getElementById('exDetailEditBtn').addEventListener('click',()=>{ document.getElementById('exhibitionDetailOverlay').classList.remove('open'); openExhibitionModal(currentExhibitionId); });
@@ -1530,11 +1672,11 @@ document.getElementById('exDetailDeleteBtn').addEventListener('click', async()=>
   catch(e){ toast('Delete failed: '+e.message,true); }
 });
 document.getElementById('exDetailPrintBtn').addEventListener('click',()=>printContactSheet(currentExhibitionId));
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  EXHIBITION MODAL
 // ══════════════════════════════════════════════════════════════
-
+ 
 function openExhibitionModal(id) {
   editingExhibitionId=id||null;
   exhibitionSelectedWorks=[];
@@ -1544,24 +1686,24 @@ function openExhibitionModal(id) {
   renderExhibitionWorksList(''); renderSelectedWorks();
   document.getElementById('exhibitionModal').classList.add('open');
 }
-
+ 
 function renderExhibitionWorksList(q) {
   const list=document.getElementById('eWorksList');
   const filtered=works.filter(w=>!exhibitionSelectedWorks.includes(w.id)&&(!q||w.title.toLowerCase().includes(q)));
   list.innerHTML=filtered.map(w=>`<div style="padding:0.5rem 0.8rem;cursor:pointer;font-size:0.82rem;border-bottom:1px solid var(--panel);" onmouseover="this.style.background='var(--panel)'" onmouseout="this.style.background=''" data-wid="${w.id}"><strong style="font-style:italic;">${w.title}</strong> <span style="color:var(--mid);font-size:0.75rem;">${w.year||''}</span></div>`).join('')||'<div style="padding:0.5rem 0.8rem;color:var(--mid);font-size:0.82rem;">No works found</div>';
   list.querySelectorAll('[data-wid]').forEach(el=>{ el.addEventListener('click',()=>{ exhibitionSelectedWorks.push(el.dataset.wid); renderExhibitionWorksList(document.getElementById('eWorkSearch').value.toLowerCase()); renderSelectedWorks(); }); });
 }
-
+ 
 function renderSelectedWorks() {
   const div=document.getElementById('eSelectedWorks');
   div.innerHTML=exhibitionSelectedWorks.map(id=>{ const w=works.find(x=>x.id===id); return w?`<span class="tag" style="cursor:pointer;background:var(--ink);color:var(--white);" data-remove="${id}">${w.title} ✕</span>`:''; }).join('');
   div.querySelectorAll('[data-remove]').forEach(el=>{ el.addEventListener('click',()=>{ exhibitionSelectedWorks=exhibitionSelectedWorks.filter(id=>id!==el.dataset.remove); renderExhibitionWorksList(document.getElementById('eWorkSearch').value.toLowerCase()); renderSelectedWorks(); }); });
 }
-
+ 
 document.getElementById('eWorkSearch').addEventListener('input',function(){ renderExhibitionWorksList(this.value.toLowerCase()); });
 document.getElementById('addExhibitionBtn').addEventListener('click',()=>openExhibitionModal(null));
 document.getElementById('cancelExhibitionBtn').addEventListener('click',()=>document.getElementById('exhibitionModal').classList.remove('open'));
-
+ 
 document.getElementById('saveExhibitionBtn').addEventListener('click', async()=>{
   const name=document.getElementById('eName').value.trim();
   if(!name){alert('Please enter a name.');return;}
@@ -1576,11 +1718,11 @@ document.getElementById('saveExhibitionBtn').addEventListener('click', async()=>
   } catch(e){ toast('Save failed: '+e.message,true); }
   finally{ btn.textContent='Save Exhibition'; btn.disabled=false; }
 });
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  BIO
 // ══════════════════════════════════════════════════════════════
-
+ 
 document.getElementById('editBioBtn').addEventListener('click',()=>{ document.getElementById('editBioText').value=bio.text; document.getElementById('editBioStatement').value=bio.statement; document.getElementById('bioModal').classList.add('open'); });
 document.getElementById('cancelBioBtn').addEventListener('click',()=>document.getElementById('bioModal').classList.remove('open'));
 document.getElementById('saveBioBtn').addEventListener('click', async()=>{
@@ -1595,11 +1737,11 @@ document.getElementById('saveBioBtn').addEventListener('click', async()=>{
     toast('Bio saved');
   } catch(e){ toast('Save failed: '+e.message,true); }
 });
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  PRINT CONTACT SHEET
 // ══════════════════════════════════════════════════════════════
-
+ 
 function printContactSheet(id) {
   const ex=exhibitions.find(e=>e.id===id);
   if(!ex) return;
@@ -1615,11 +1757,11 @@ function printContactSheet(id) {
   sheet.innerHTML=`<div class="print-header"><div style="font-size:7.5pt;letter-spacing:0.15em;text-transform:uppercase;color:#6b6660;margin-bottom:6pt;">Material Poetry — Exhibition Contact Sheet</div><h1>${ex.name}</h1><div class="print-meta">${[ex.place,dateStr].filter(Boolean).join(' · ')}${exWorks.length?' · '+exWorks.length+' work'+(exWorks.length!==1?'s':''):''}</div></div><div class="print-works-grid">${worksHtml}</div>`;
   sheet.style.display='block'; window.print(); sheet.style.display='none';
 }
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  VIEW SWITCHING
 // ══════════════════════════════════════════════════════════════
-
+ 
 window.switchView=function(name){
   const target = document.querySelector(`#view-${name}`);
   if (!target) return;
@@ -1634,32 +1776,33 @@ window.switchView=function(name){
   document.querySelector('aside').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('open');
 };
-
+ 
 document.querySelectorAll('header .tab-btn').forEach(b=>{ b.onclick=()=>window.switchView(b.dataset.view); });
 document.querySelectorAll('#mobileNav .tab-btn').forEach(b=>{ b.onclick=()=>window.switchView(b.dataset.view); });
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  MOBILE
 // ══════════════════════════════════════════════════════════════
-
+ 
 function showMobileNav(){ document.getElementById('mobileNav').style.display=window.innerWidth<=900?'flex':'none'; }
 document.getElementById('mobileMenuBtn').addEventListener('click',()=>{ document.querySelector('aside').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('open'); });
 document.getElementById('sidebarOverlay').addEventListener('click',()=>{ document.querySelector('aside').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('open'); });
 showMobileNav(); window.addEventListener('resize',showMobileNav);
-
+ 
 // ══════════════════════════════════════════════════════════════
 //  RENDER ALL
 // ══════════════════════════════════════════════════════════════
-
+ 
 function renderAll() {
   renderSidebar(); renderWorksGrid(); renderCollections(); renderExhibitions(); renderTimeline();
   document.getElementById('bioText').textContent=bio.text||'';
   document.getElementById('bioStatement').textContent=bio.statement||'';
 }
-
+ 
 // ── INIT ──
 checkSession();
 loadAll();
 </script>
 </body>
 </html>
+ 
