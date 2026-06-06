@@ -273,25 +273,7 @@
   .print-work-meta { font-size: 7.5pt; color: #6b6660; line-height: 1.6; }
   .print-work-notes { font-size: 7pt; color: #8b4a2f; font-style: italic; margin-top: 4pt; }
 
-  /* ── LOUPE MAGNIFIER ── */
-  #loupeLens {
-    display: none;
-    position: absolute;
-    width: 160px;
-    height: 160px;
-    border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.55);
-    box-shadow: 0 4px 24px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(0,0,0,0.15);
-    pointer-events: none;
-    z-index: 10;
-    overflow: hidden;
-    background-repeat: no-repeat;
-    cursor: none;
-    transition: opacity 0.15s;
-  }
-  .detail-media:hover #loupeLens,
-  .detail-media.loupe-active #loupeLens { display: block; }
-  .detail-media { cursor: crosshair; }
+  /* ── LOUPE MAGNIFIER (fullscreen only) ── */
   #imgFullscreenOverlay { cursor: crosshair; }
   #imgFullscreenOverlay #fsloupeLens {
     display: none;
@@ -1182,8 +1164,6 @@ function renderCarousel() {
       <div class="carousel-counter">${carouselIndex + 1} / ${total}</div>
     ` : ''}
   `;
-  // Re-attach loupe (innerHTML wipe destroys it)
-  if (document._loupeLens) media.appendChild(document._loupeLens);
   if (total > 1) {
     document.getElementById('carouselPrev').addEventListener('click', e => { e.stopPropagation(); carouselIndex = (carouselIndex - 1 + total) % total; renderCarousel(); });
     document.getElementById('carouselNext').addEventListener('click', e => { e.stopPropagation(); carouselIndex = (carouselIndex + 1) % total; renderCarousel(); });
@@ -1227,7 +1207,6 @@ function renderFsOverlay() {
 // ══════════════════════════════════════════════════════════════
 
 (function initLoupe() {
-  const LOUPE_SIZE = 160;
   const FS_LOUPE_SIZE = 200;
   const ZOOM = 2.5;
 
@@ -1259,51 +1238,7 @@ function renderFsOverlay() {
     return { left, top, width: rendW, height: rendH };
   }
 
-  // ── Carousel loupe ──
-  const mediaEl = document.getElementById('detailMedia');
-
-  const loupe = document.createElement('div');
-  loupe.id = 'loupeLens';
-  mediaEl.appendChild(loupe);
-  document._loupeLens = loupe;
-
-  function updateCarouselLoupe(e) {
-    const img = mediaEl.querySelector('#carouselImg');
-    const imgRect = getContainedImageRect(img);
-    if (!imgRect) { loupe.style.display = 'none'; return; }
-
-    // Cursor position relative to the actual rendered image content
-    const mx = e.clientX - imgRect.left;
-    const my = e.clientY - imgRect.top;
-
-    // Hide if cursor is in the letterbox/pillarbox area, not over image pixels
-    if (mx < 0 || my < 0 || mx > imgRect.width || my > imgRect.height) {
-      loupe.style.display = 'none';
-      return;
-    }
-
-    loupe.style.display = 'block';
-
-    // Position loupe centred on cursor, in mediaEl-relative coords
-    const mediaRect = mediaEl.getBoundingClientRect();
-    loupe.style.left = (e.clientX - mediaRect.left - LOUPE_SIZE / 2) + 'px';
-    loupe.style.top  = (e.clientY - mediaRect.top  - LOUPE_SIZE / 2) + 'px';
-
-    // Background: the rendered image at ZOOM×, shifted so cursor point centres in lens
-    const bgW = imgRect.width  * ZOOM;
-    const bgH = imgRect.height * ZOOM;
-    const bgX = -(mx * ZOOM - LOUPE_SIZE / 2);
-    const bgY = -(my * ZOOM - LOUPE_SIZE / 2);
-
-    loupe.style.backgroundImage    = `url('${img.src}')`;
-    loupe.style.backgroundSize     = `${bgW}px ${bgH}px`;
-    loupe.style.backgroundPosition = `${bgX}px ${bgY}px`;
-  }
-
-  mediaEl.addEventListener('mousemove', updateCarouselLoupe);
-  mediaEl.addEventListener('mouseleave', () => { loupe.style.display = 'none'; });
-
-  // ── Fullscreen loupe ──
+  // ── Fullscreen loupe only ──
   const fsOverlay = document.getElementById('imgFullscreenOverlay');
 
   const fsLoupe = document.createElement('div');
@@ -1343,7 +1278,6 @@ function renderFsOverlay() {
 
   // Disable loupe on touch devices
   if ('ontouchstart' in window) {
-    mediaEl.style.cursor  = 'default';
     fsOverlay.style.cursor = 'default';
   }
 })();
