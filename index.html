@@ -1070,8 +1070,8 @@ function renderCarousel() {
   const src = carouselImages[carouselIndex] || '';
   const isVid = isVideoUrl(src);
   const mediaEl = isVid
-    ? `<video src="${src}" controls style="width:100%;height:100%;object-fit:contain;display:block;max-height:500px;" playsinline></video>`
-    : `<img src="${src}" alt="" id="carouselImg" style="width:100%;height:100%;object-fit:contain;display:block;max-height:500px;">`;
+    ? `<video src="${src}" controls style="width:100%;height:100%;object-fit:contain;display:block;" playsinline></video>`
+    : `<img src="${src}" alt="" id="carouselImg" style="width:100%;height:100%;object-fit:contain;display:block;">`;
   const fullscreenBtn = !isVid
     ? `<button id="carouselFullscreen" title="Full screen" style="position:absolute;bottom:0.75rem;right:0.75rem;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.2);color:var(--white);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">⛶</button>`
     : '';
