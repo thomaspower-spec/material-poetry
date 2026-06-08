@@ -27,7 +27,7 @@
   body { background: var(--cream); color: var(--ink); font-family: var(--sans); font-weight: 300; min-height: 100vh; }
 
   /* ── LAYOUT ── */
-  .shell { display: grid; grid-template-columns: 220px 1fr; grid-template-rows: auto 1fr; min-height: 100vh; }
+  .shell { display: grid; grid-template-columns: 1fr; grid-template-rows: auto 1fr; min-height: 100vh; }
 
   /* ── HEADER ── */
   header { grid-column: 1 / -1; border-bottom: 1px solid var(--light); padding: 1.5rem 2rem; display: flex; align-items: baseline; gap: 2rem; background: var(--cream); position: sticky; top: 0; z-index: 100; }
@@ -49,7 +49,7 @@
   .add-btn:hover { background: rgba(139,74,47,0.05); }
 
   /* ── MAIN ── */
-  main { padding: 2.5rem 3rem; overflow-y: auto; }
+  main { padding: 1.5rem 2rem; overflow-y: auto; }
   .view { display: none; }
   .view.active { display: block; }
 
@@ -75,24 +75,12 @@
   .search-input::placeholder { color: var(--light); }
   select.filter-select { padding: 0.6rem 1rem; background: var(--white); border: 1px solid var(--light); font-family: var(--sans); font-size: 0.8rem; color: var(--mid); border-radius: 2px; outline: none; cursor: pointer; }
 
-  /* ── WORKS GRID ── */
-  .works-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.5rem; }
-  .work-card { background: var(--white); border: 1px solid var(--panel); cursor: pointer; transition: box-shadow 0.2s, transform 0.2s; overflow: hidden; position: relative; }
-  .work-card:hover { box-shadow: 0 8px 32px rgba(26,24,20,0.1); transform: translateY(-2px); }
-  .work-thumb { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; background: var(--panel); }
-  .work-info { padding: 1rem 1.1rem 1.2rem; }
-  .work-title { font-family: var(--serif); font-size: 1.05rem; font-weight: 400; font-style: italic; margin-bottom: 0.3rem; }
-  .work-meta { font-size: 0.72rem; font-weight: 300; color: var(--mid); letter-spacing: 0.03em; }
-  .work-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.7rem; }
-
-  /* ── GALLERY MODE (large images, no text) ── */
-  .works-grid.gallery-mode { grid-template-columns: repeat(auto-fill, minmax(480px, 1fr)); gap: 0.5rem; }
-  .works-grid.gallery-mode .work-card { border: none; background: transparent; }
-  .works-grid.gallery-mode .work-card:hover { transform: none; box-shadow: none; }
-  .works-grid.gallery-mode .work-card:hover .work-thumb { opacity: 0.88; }
-  .works-grid.gallery-mode .work-thumb { aspect-ratio: 1 / 1; object-fit: cover; transition: opacity 0.2s; }
-  .works-grid.gallery-mode .work-info { display: none; }
-  .works-grid.gallery-mode .visibility-badge { top: 0.4rem; left: 0.4rem; }
+  /* ── WORKS GRID — always gallery mode ── */
+  .works-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(480px, 1fr)); gap: 0.5rem; }
+  .work-card { cursor: pointer; position: relative; background: var(--panel); }
+  .work-card:hover .work-thumb { opacity: 0.88; }
+  .work-thumb { width: 100%; height: auto; display: block; transition: opacity 0.2s; }
+  .work-info { display: none; }
   .tag { padding: 0.2rem 0.5rem; background: var(--panel); font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mid); border-radius: 1px; }
 
   /* Visibility badges on cards */
@@ -237,19 +225,14 @@
     .mobile-menu-btn { display: flex; }
     .header-tabs { display: none; }
     .mobile-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: var(--cream); border-top: 1px solid var(--light); z-index: 100; }
-    .mobile-nav .tab-btn { flex: 1; padding: 0.7rem 0.3rem; font-size: 0.6rem; border-right: 1px solid var(--light); display: flex; flex-direction: column; align-items: center; gap: 0.2rem; }
-    .mobile-nav .tab-btn:last-child { border-right: none; }
-    .mobile-nav .tab-btn .nav-icon { font-size: 1rem; line-height: 1; }
     header { padding: 1rem 1.2rem; gap: 1rem; align-items: center; }
     .logo { font-size: 1.3rem; }
-    main { padding: 1.5rem 1.2rem 5rem; }
+    main { padding: 1rem 0.5rem 5rem; }
     .detail-panel { grid-template-columns: 1fr; }
     .detail-media { min-height: 0; height: 56vw; max-height: 56vw; }
     .detail-overlay { padding: 0; align-items: flex-start; }
     .detail-panel { max-height: 100vh; height: 100vh; overflow-y: auto; }
-    .works-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-    .page-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
-    .page-header h1 { font-size: 2.2rem; }
+    .works-grid { grid-template-columns: 1fr 1fr; gap: 0.3rem; }
     .modal-overlay { padding: 0; align-items: flex-end; }
     .modal { max-height: 92vh; border-radius: 0; padding: 1.8rem 1.5rem; }
     .form-grid { grid-template-columns: 1fr; }
@@ -328,37 +311,17 @@
 
 <div class="shell">
   <header>
-    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+    <button class="mobile-menu-btn" id="mobileMenuBtn" style="display:none;">☰</button>
     <div class="logo">Material <em>Poetry</em></div>
     <nav class="header-tabs">
       <button class="tab-btn active" data-view="works">Works</button>
       <button class="tab-btn" data-view="collections">Collections</button>
       <button class="tab-btn" data-view="exhibitions" style="display:none;">Exhibitions</button>
-      <button class="tab-btn" data-view="timeline">Timeline</button>
       <button class="tab-btn" data-view="bio">About</button>
     </nav>
     <button class="mode-badge admin-only" id="adminLogoutBtn">Sign out</button>
     <button class="mode-badge" id="adminLoginBtn" style="display:none;">Admin</button>
   </header>
-
-  <aside>
-    <div class="sidebar-section">
-      <h3>Collections</h3>
-      <ul class="sidebar-list" id="sidebarCollections">
-        <li><button class="active" data-filter="all">All Works</button></li>
-      </ul>
-      <button class="add-btn admin-only" id="addCollectionBtn">+ New Collection</button>
-    </div>
-    <div class="sidebar-section">
-      <h3>Tags</h3>
-      <input type="text" id="tagSearch" placeholder="Filter tags…" style="width:100%;padding:0.35rem 0.6rem;background:var(--white);border:1px solid var(--light);font-family:var(--sans);font-size:0.75rem;color:var(--ink);border-radius:2px;outline:none;margin-bottom:0.5rem;">
-      <ul class="sidebar-list" id="sidebarTags"></ul>
-    </div>
-    <div class="sidebar-section">
-      <h3>Medium</h3>
-      <ul class="sidebar-list" id="sidebarMediums"></ul>
-    </div>
-  </aside>
 
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -366,29 +329,14 @@
     <button class="tab-btn active" data-view="works"><span class="nav-icon">◻</span>Works</button>
     <button class="tab-btn" data-view="collections"><span class="nav-icon">⊞</span>Collections</button>
     <button class="tab-btn" data-view="exhibitions" style="display:none;"><span class="nav-icon">◈</span>Exhibitions</button>
-    <button class="tab-btn" data-view="timeline"><span class="nav-icon">↕</span>Timeline</button>
     <button class="tab-btn" data-view="bio"><span class="nav-icon">◉</span>About</button>
   </nav>
 
   <main>
     <!-- WORKS -->
     <div class="view active" id="view-works">
-      <div class="page-header">
-        <h1 id="worksHeading"><small id="worksSubheading">Portfolio</small><span id="worksTitle">All Works</span></h1>
-        <div class="page-actions">
-          <button class="btn" id="galleryToggleBtn" title="Toggle gallery view">⊞ Gallery</button>
-          <button class="btn primary admin-only" id="addWorkBtn">+ Add Work</button>
-        </div>
-      </div>
-      <p id="worksCollectionDesc" style="display:none;font-size:0.95rem;line-height:1.7;color:var(--mid);margin-bottom:2rem;max-width:640px;"></p>
-      <div class="stats-bar admin-only">
-        <div class="stat"><span class="stat-num" id="statWorks">—</span><span class="stat-label">Works</span></div>
-        <div class="stat"><span class="stat-num" id="statCollections">—</span><span class="stat-label">Collections</span></div>
-      </div>
-      <div class="search-row">
-        <input class="search-input" type="text" id="searchWorks" placeholder="Search works…">
-        <select class="filter-select" id="filterYear"><option value="">All Years</option></select>
-        <select class="filter-select" id="filterMedium"><option value="">All Media</option></select>
+      <div class="page-actions" style="display:flex;justify-content:flex-end;padding:1rem 0 1.5rem;">
+        <button class="btn primary admin-only" id="addWorkBtn">+ Add Work</button>
       </div>
       <div class="works-grid" id="worksGrid"></div>
     </div>
@@ -727,7 +675,7 @@ let exhibitionSelectedWorks=[];
 let pendingImageUrls=[]; // array of Cloudinary URLs uploaded in current modal session
 let previewToken=null; // set if accessing via ?preview=TOKEN
 let isPreviewMode=false;
-let galleryMode = localStorage.getItem('mp_gallery_mode') === 'true';
+let galleryMode = false; // kept for compatibility but always true now
 
 function isAdmin() { return document.body.classList.contains('admin'); }
 function uid() { return Math.random().toString(36).slice(2,9) + Math.random().toString(36).slice(2,9); }
@@ -761,7 +709,6 @@ function checkPreviewMode() {
   document.getElementById('previewBanner').classList.add('show');
   // Filter to this collection
   activeFilter = col.id;
-  renderSidebar();
   renderWorksGrid();
 }
 
@@ -996,77 +943,18 @@ function filterWorks() {
 
 function renderWorksGrid() {
   const grid=document.getElementById('worksGrid');
-  // Apply / remove gallery mode
-  grid.classList.toggle('gallery-mode', galleryMode);
-  const toggleBtn = document.getElementById('galleryToggleBtn');
-  if (toggleBtn) {
-    toggleBtn.classList.toggle('primary', galleryMode);
-    toggleBtn.textContent = galleryMode ? '⊟ Details' : '⊞ Gallery';
-  }
+  // Always gallery mode — large images, natural proportions
+  grid.classList.add('gallery-mode');
 
-  // Update page heading based on active collection filter
-  const subheading=document.getElementById('worksSubheading');
-  const worksTitle=document.getElementById('worksTitle');
-  const collectionDesc=document.getElementById('worksCollectionDesc');
-  if(activeFilter==='all'){
-    subheading.textContent='Portfolio';
-    worksTitle.textContent='All Works';
-    collectionDesc.style.display='none';
-    collectionDesc.textContent='';
-  } else {
-    const col=getCollection(activeFilter);
-    if(col){
-      subheading.textContent='Collection';
-      worksTitle.textContent=col.name;
-      if(col.description){
-        collectionDesc.textContent=col.description;
-        collectionDesc.style.display='block';
-      } else {
-        collectionDesc.style.display='none';
-      }
-    }
-  }
-
-  // Active filter bar
-  let bar=document.getElementById('activeFilterBar');
-  if(!bar){bar=document.createElement('div');bar.id='activeFilterBar';bar.style.cssText='display:none;align-items:center;gap:0.7rem;margin-bottom:1rem;padding:0.5rem 0.8rem;background:var(--panel);font-size:0.78rem;color:var(--mid);';grid.parentNode.insertBefore(bar,grid);}
-  if(activeTagFilter||activeMediumFilter){
-    const label=activeTagFilter?`Tag: ${activeTagFilter}`:`Medium: ${activeMediumFilter}`;
-    bar.innerHTML=`<span>Filtered by — <strong style="color:var(--ink)">${label}</strong></span> <button onclick="activeTagFilter=null;activeMediumFilter=null;renderSidebar();renderWorksGrid();" style="font-size:0.7rem;padding:0.15rem 0.5rem;background:none;border:1px solid var(--light);cursor:pointer;border-radius:2px;color:var(--mid);">✕ Clear</button>`;
-    bar.style.display='flex';
-  } else { bar.style.display='none'; }
-
-  // Dropdowns
-  const yearSel=document.getElementById('filterYear');
-  const yrVal=yearSel.value;
-  yearSel.innerHTML='<option value="">All Years</option>';
-  getAllYears().forEach(y=>yearSel.innerHTML+=`<option value="${y}"${String(y)===yrVal?' selected':''}>${y}</option>`);
-  const medSel=document.getElementById('filterMedium');
-  const medVal=medSel.value;
-  medSel.innerHTML='<option value="">All Media</option>';
-  getAllMediums().forEach(m=>medSel.innerHTML+=`<option value="${m}"${m===medVal?' selected':''}>${m}</option>`);
-  if(isAdmin()){
-    document.getElementById('statWorks').textContent=visibleWorks().length;
-    document.getElementById('statCollections').textContent=collections.filter(c=>isAdmin()||c.visibility==='published').length;
-  }
-  const filtered=filterWorks();
-  if(!filtered.length){ grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◻</div><p>No works found.</p></div>`; return; }
+  const ws = visibleWorks().slice(); // already sorted by date desc from DB query
+  if(!ws.length){ grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◻</div><p>No works yet.</p></div>`; return; }
   grid.innerHTML='';
-  filtered.forEach(w=>{
+  ws.forEach(w=>{
     const card=document.createElement('div');
     card.className='work-card';
-    const colNames=(w.collection_ids||[]).map(id=>getCollection(id)).filter(Boolean).map(c=>c.name);
-    // Visibility badge (admin only)
     let badge='';
     if(isAdmin()&&w.visibility!=='published') badge=`<span class="visibility-badge badge-${w.visibility}">${w.visibility}</span>`;
-    card.innerHTML=`
-      ${badge}
-      <img class="work-thumb" src="${thumbFor(w)}" alt="${w.title}">
-      <div class="work-info">
-        <div class="work-title">${w.title}</div>
-        <div class="work-meta">${w.year||''}${w.medium?' · '+w.medium:''}${colNames.length?' · '+colNames.join(', '):''}</div>
-        ${(w.tags||[]).length?`<div class="work-tags">${w.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`:''}
-      </div>`;
+    card.innerHTML=`${badge}<img class="work-thumb" src="${thumbFor(w)}" alt="${w.title}">`;
     card.addEventListener('click',()=>openDetail(w.id));
     grid.appendChild(card);
   });
@@ -1096,7 +984,7 @@ function renderCollections() {
     }
     const editBtn=isAdmin()?`<button class="btn" style="font-size:0.72rem;padding:0.3rem 0.8rem;margin-top:0.7rem;" onclick="event.stopPropagation();openCollectionModal('${c.id}')">Edit collection</button>`:'';
     card.innerHTML=`<div style="position:relative;">${adminControls}<div class="collection-strip">${thumbs}${empties}</div></div><div class="collection-meta"><h3>${c.name}</h3><p>${cWorks.length} work${cWorks.length!==1?'s':''}${c.description?' — '+c.description:''}</p>${editBtn}</div>`;
-    card.addEventListener('click',()=>{ activeFilter=c.id; renderSidebar(); renderWorksGrid(); window.switchView('works'); });
+    card.addEventListener('click',()=>{ activeFilter=c.id; renderWorksGrid(); window.switchView('works'); });
     grid.appendChild(card);
   });
 }
@@ -1789,10 +1677,7 @@ window.switchView=function(name){
   if(name==='works') renderWorksGrid();
   if(name==='collections') renderCollections();
   if(name==='exhibitions') renderExhibitions();
-  if(name==='timeline') renderTimeline();
   document.querySelectorAll('#mobileNav .tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
-  document.querySelector('aside').classList.remove('open');
-  document.getElementById('sidebarOverlay').classList.remove('open');
 };
 
 document.querySelectorAll('header .tab-btn').forEach(b=>{ b.onclick=()=>window.switchView(b.dataset.view); });
@@ -1803,8 +1688,7 @@ document.querySelectorAll('#mobileNav .tab-btn').forEach(b=>{ b.onclick=()=>wind
 // ══════════════════════════════════════════════════════════════
 
 function showMobileNav(){ document.getElementById('mobileNav').style.display=window.innerWidth<=900?'flex':'none'; }
-document.getElementById('mobileMenuBtn').addEventListener('click',()=>{ document.querySelector('aside').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('open'); });
-document.getElementById('sidebarOverlay').addEventListener('click',()=>{ document.querySelector('aside').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('open'); });
+document.getElementById('sidebarOverlay').addEventListener('click',()=>{});
 showMobileNav(); window.addEventListener('resize',showMobileNav);
 
 // ══════════════════════════════════════════════════════════════
@@ -1812,17 +1696,10 @@ showMobileNav(); window.addEventListener('resize',showMobileNav);
 // ══════════════════════════════════════════════════════════════
 
 function renderAll() {
-  renderSidebar(); renderWorksGrid(); renderCollections(); renderExhibitions(); renderTimeline();
+  renderWorksGrid(); renderCollections(); renderExhibitions();
   document.getElementById('bioText').textContent=bio.text||'';
   document.getElementById('bioStatement').textContent=bio.statement||'';
 }
-
-// ── GALLERY MODE TOGGLE ──
-document.getElementById('galleryToggleBtn').addEventListener('click', () => {
-  galleryMode = !galleryMode;
-  localStorage.setItem('mp_gallery_mode', galleryMode);
-  renderWorksGrid();
-});
 
 // ── INIT ──
 checkSession();
