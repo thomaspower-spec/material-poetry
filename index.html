@@ -1508,7 +1508,6 @@ document.getElementById('cCopyLinkBtn').addEventListener('click',()=>{
   navigator.clipboard.writeText(url).then(()=>toast('Link copied!')).catch(()=>{ document.getElementById('cShareUrl').select(); document.execCommand('copy'); toast('Link copied!'); });
 });
 
-document.getElementById('addCollectionBtn').addEventListener('click',()=>openCollectionModal(null));
 document.getElementById('addCollectionBtn2').addEventListener('click',()=>openCollectionModal(null));
 document.getElementById('cancelCollectionBtn').addEventListener('click',()=>document.getElementById('collectionModal').classList.remove('open'));
 
