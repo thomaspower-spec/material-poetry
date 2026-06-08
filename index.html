@@ -1133,7 +1133,34 @@ function renderFsOverlay() {
 (function initLoupe() {
   const LOUPE_SIZE = 160;
   const FS_LOUPE_SIZE = 200;
-  const ZOOM = 2.5;
+
+  // Calculate the actual rendered bounds of the image pixels within an
+  // object-fit:contain img element — excludes letterbox/pillarbox areas
+  function getContainedImageRect(img) {
+    const containerRect = img.getBoundingClientRect();
+    const containerW = containerRect.width;
+    const containerH = containerRect.height;
+    const naturalW = img.naturalWidth;
+    const naturalH = img.naturalHeight;
+    const containerRatio = containerW / containerH;
+    const imageRatio = naturalW / naturalH;
+    let renderedW, renderedH;
+    if (imageRatio > containerRatio) {
+      renderedW = containerW;
+      renderedH = containerW / imageRatio;
+    } else {
+      renderedH = containerH;
+      renderedW = containerH * imageRatio;
+    }
+    const offsetX = (containerW - renderedW) / 2;
+    const offsetY = (containerH - renderedH) / 2;
+    return {
+      left: containerRect.left + offsetX,
+      top: containerRect.top + offsetY,
+      width: renderedW,
+      height: renderedH
+    };
+  }
 
   // ── Carousel loupe ──
   const mediaEl = document.getElementById('detailMedia');
@@ -1141,18 +1168,17 @@ function renderFsOverlay() {
   const loupe = document.createElement('div');
   loupe.id = 'loupeLens';
   mediaEl.appendChild(loupe);
-  // Store on document so renderCarousel can re-attach after innerHTML wipe
   document._loupeLens = loupe;
 
   function updateCarouselLoupe(e) {
     const img = mediaEl.querySelector('#carouselImg');
     if (!img || !img.complete || !img.naturalWidth) { loupe.style.display = 'none'; return; }
 
-    const rect = img.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
+    const imgRect = getContainedImageRect(img);
+    const mx = e.clientX - imgRect.left;
+    const my = e.clientY - imgRect.top;
 
-    if (mx < 0 || my < 0 || mx > rect.width || my > rect.height) {
+    if (mx < 0 || my < 0 || mx > imgRect.width || my > imgRect.height) {
       loupe.style.display = 'none';
       return;
     }
@@ -1160,15 +1186,15 @@ function renderFsOverlay() {
     loupe.style.display = 'block';
 
     const mediaRect = mediaEl.getBoundingClientRect();
-    const lx = e.clientX - mediaRect.left - LOUPE_SIZE / 2;
-    const ly = e.clientY - mediaRect.top - LOUPE_SIZE / 2;
-    loupe.style.left = lx + 'px';
-    loupe.style.top = ly + 'px';
+    loupe.style.left = (e.clientX - mediaRect.left - LOUPE_SIZE / 2) + 'px';
+    loupe.style.top = (e.clientY - mediaRect.top - LOUPE_SIZE / 2) + 'px';
 
-    const bgW = rect.width * ZOOM;
-    const bgH = rect.height * ZOOM;
-    const bgX = -(mx * ZOOM - LOUPE_SIZE / 2);
-    const bgY = -(my * ZOOM - LOUPE_SIZE / 2);
+    // Zoom to show image at 1:1 native pixels
+    const zoom = img.naturalWidth / imgRect.width;
+    const bgW = imgRect.width * zoom;
+    const bgH = imgRect.height * zoom;
+    const bgX = -(mx * zoom - LOUPE_SIZE / 2);
+    const bgY = -(my * zoom - LOUPE_SIZE / 2);
 
     loupe.style.backgroundImage = `url('${img.src}')`;
     loupe.style.backgroundSize = `${bgW}px ${bgH}px`;
@@ -1184,18 +1210,17 @@ function renderFsOverlay() {
   const fsLoupe = document.createElement('div');
   fsLoupe.id = 'fsloupeLens';
   fsOverlay.appendChild(fsLoupe);
-  // Store reference so renderFsOverlay can re-attach after innerHTML wipe
   document._fsloupeLens = fsLoupe;
 
   function updateFsLoupe(e) {
     const img = fsOverlay.querySelector('img');
     if (!img || !img.complete || !img.naturalWidth) { fsLoupe.style.display = 'none'; return; }
 
-    const rect = img.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
+    const imgRect = getContainedImageRect(img);
+    const mx = e.clientX - imgRect.left;
+    const my = e.clientY - imgRect.top;
 
-    if (mx < 0 || my < 0 || mx > rect.width || my > rect.height) {
+    if (mx < 0 || my < 0 || mx > imgRect.width || my > imgRect.height) {
       fsLoupe.style.display = 'none';
       return;
     }
@@ -1204,10 +1229,11 @@ function renderFsOverlay() {
     fsLoupe.style.left = (e.clientX - FS_LOUPE_SIZE / 2) + 'px';
     fsLoupe.style.top = (e.clientY - FS_LOUPE_SIZE / 2) + 'px';
 
-    const bgW = rect.width * ZOOM;
-    const bgH = rect.height * ZOOM;
-    const bgX = -(mx * ZOOM - FS_LOUPE_SIZE / 2);
-    const bgY = -(my * ZOOM - FS_LOUPE_SIZE / 2);
+    const zoom = img.naturalWidth / imgRect.width;
+    const bgW = imgRect.width * zoom;
+    const bgH = imgRect.height * zoom;
+    const bgX = -(mx * zoom - FS_LOUPE_SIZE / 2);
+    const bgY = -(my * zoom - FS_LOUPE_SIZE / 2);
 
     fsLoupe.style.backgroundImage = `url('${img.src}')`;
     fsLoupe.style.backgroundSize = `${bgW}px ${bgH}px`;
