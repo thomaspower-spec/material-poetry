@@ -102,9 +102,9 @@
   .detail-overlay { display: none; position: fixed; inset: 0; background: var(--cream); z-index: 200; align-items: stretch; justify-content: stretch; }
   .detail-overlay.open { display: flex; }
   .detail-panel { background: var(--cream); width: 100%; max-width: none; max-height: none; height: 100vh; overflow-y: auto; display: grid; grid-template-columns: 1fr 360px; }
-  .detail-media { background: var(--ink); display: flex; align-items: center; justify-content: center; min-height: 0; height: 100vh; position: relative; overflow: hidden; }
-  .detail-media img { width: 100%; height: 100%; object-fit: contain; display: block; max-height: 100vh; }
-  .detail-media video { width: 100%; height: 100%; object-fit: contain; display: block; max-height: 100vh; }
+  .detail-media { background: var(--cream); display: flex; align-items: center; justify-content: center; min-height: 0; height: 100vh; position: relative; overflow: hidden; }
+  .detail-media img { width: 100%; height: 100%; object-fit: contain; display: block; max-height: 100vh; padding: 2rem; }
+  .detail-media video { width: 100%; height: 100%; object-fit: contain; display: block; max-height: 100vh; padding: 2rem; }
 
   #imgFullscreenOverlay { display:none; position:fixed; inset:0; background:#000; z-index:1000; align-items:center; justify-content:center; }
   #imgFullscreenOverlay.open { display:flex; }
