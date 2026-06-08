@@ -486,6 +486,7 @@
     </div>
     <div class="form-actions">
       <button class="btn" id="cancelCollectionBtn">Cancel</button>
+      <button class="btn" id="deleteCollectionBtn" style="display:none;color:var(--accent);border-color:var(--accent);">Delete</button>
       <button class="btn accent" id="saveCollectionBtn">Save Collection</button>
     </div>
   </div>
@@ -1008,7 +1009,7 @@ function renderCollections() {
       const shareBtn=c.visibility==='preview'&&c.share_token?`<button style="position:absolute;top:0.5rem;right:0.5rem;background:var(--accent);color:var(--white);border:none;cursor:pointer;font-size:0.58rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.5rem;border-radius:1px;" onclick="event.stopPropagation();copyShareLink('${c.share_token}')">Copy link</button>`:'';
       adminControls=badge+shareBtn;
     }
-    const editBtn=isAdmin()?`<button class="btn" style="font-size:0.72rem;padding:0.3rem 0.8rem;margin-top:0.7rem;" onclick="event.stopPropagation();openCollectionModal('${c.id}')">Edit collection</button>`:'';
+    const editBtn=isAdmin()?`<button class="btn" style="font-size:0.72rem;padding:0.3rem 0.8rem;margin-top:0.7rem;" onclick="event.stopPropagation();openCollectionModal('${c.id}')">Edit</button>`:'';
     card.innerHTML=`<div style="position:relative;">${adminControls}<div class="collection-strip">${thumbs}${empties}</div></div><div class="collection-meta"><h3>${c.name}</h3><p>${cWorks.length} work${cWorks.length!==1?'s':''}${c.description?' — '+c.description:''}</p>${editBtn}</div>`;
     card.addEventListener('click',()=>{ activeFilter=c.id; renderWorksGrid(); window.switchView('works'); });
     grid.appendChild(card);
@@ -1018,6 +1019,19 @@ function renderCollections() {
 function copyShareLink(token) {
   const url=generateShareUrl(token);
   navigator.clipboard.writeText(url).then(()=>toast('Share link copied to clipboard')).catch(()=>{ prompt('Copy this link:', url); });
+}
+
+async function deleteCollection(id) {
+  const col = collections.find(c => c.id === id);
+  if (!col) return;
+  if (!confirm(`Delete collection "${col.name}"? The works in it won't be deleted.`)) return;
+  try {
+    await sb.safeDelete('collections', id);
+    collections = collections.filter(c => c.id !== id);
+    if (activeFilter === id) activeFilter = 'all';
+    renderAll();
+    toast('Collection deleted');
+  } catch(e) { toast('Delete failed: ' + e.message, true); }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1525,6 +1539,7 @@ document.getElementById('saveWorkBtn').addEventListener('click', async()=>{
 function openCollectionModal(id) {
   editingCollectionId=id||null;
   document.getElementById('collectionModalTitle').textContent=id?'Edit Collection':'New Collection';
+  document.getElementById('deleteCollectionBtn').style.display=id?'':'none';
   if(id){
     const c=collections.find(x=>x.id===id);
     document.getElementById('cName').value=c.name;
@@ -1560,6 +1575,20 @@ document.getElementById('cVisibility').addEventListener('change', function() {
 document.getElementById('cCopyLinkBtn').addEventListener('click',()=>{
   const url=document.getElementById('cShareUrl').value;
   navigator.clipboard.writeText(url).then(()=>toast('Link copied!')).catch(()=>{ document.getElementById('cShareUrl').select(); document.execCommand('copy'); toast('Link copied!'); });
+});
+
+document.getElementById('deleteCollectionBtn').addEventListener('click', async () => {
+  const col = collections.find(c => c.id === editingCollectionId);
+  if (!col) return;
+  if (!confirm(`Delete collection "${col.name}"? The works in it won't be deleted.`)) return;
+  try {
+    await sb.safeDelete('collections', editingCollectionId);
+    collections = collections.filter(c => c.id !== editingCollectionId);
+    if (activeFilter === editingCollectionId) activeFilter = 'all';
+    document.getElementById('collectionModal').classList.remove('open');
+    renderAll();
+    toast('Collection deleted');
+  } catch(e) { toast('Delete failed: ' + e.message, true); }
 });
 
 document.getElementById('addCollectionBtn2').addEventListener('click',()=>openCollectionModal(null));
