@@ -84,6 +84,15 @@
   .work-title { font-family: var(--serif); font-size: 1.05rem; font-weight: 400; font-style: italic; margin-bottom: 0.3rem; }
   .work-meta { font-size: 0.72rem; font-weight: 300; color: var(--mid); letter-spacing: 0.03em; }
   .work-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.7rem; }
+
+  /* ── GALLERY MODE (large images, no text) ── */
+  .works-grid.gallery-mode { grid-template-columns: repeat(auto-fill, minmax(480px, 1fr)); gap: 0.5rem; }
+  .works-grid.gallery-mode .work-card { border: none; background: transparent; }
+  .works-grid.gallery-mode .work-card:hover { transform: none; box-shadow: none; }
+  .works-grid.gallery-mode .work-card:hover .work-thumb { opacity: 0.88; }
+  .works-grid.gallery-mode .work-thumb { aspect-ratio: 1 / 1; object-fit: cover; transition: opacity 0.2s; }
+  .works-grid.gallery-mode .work-info { display: none; }
+  .works-grid.gallery-mode .visibility-badge { top: 0.4rem; left: 0.4rem; }
   .tag { padding: 0.2rem 0.5rem; background: var(--panel); font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mid); border-radius: 1px; }
 
   /* Visibility badges on cards */
@@ -273,7 +282,25 @@
   .print-work-meta { font-size: 7.5pt; color: #6b6660; line-height: 1.6; }
   .print-work-notes { font-size: 7pt; color: #8b4a2f; font-style: italic; margin-top: 4pt; }
 
-  /* ── LOUPE MAGNIFIER (fullscreen only) ── */
+  /* ── LOUPE MAGNIFIER ── */
+  #loupeLens {
+    display: none;
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.55);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(0,0,0,0.15);
+    pointer-events: none;
+    z-index: 10;
+    overflow: hidden;
+    background-repeat: no-repeat;
+    cursor: none;
+    transition: opacity 0.15s;
+  }
+  .detail-media:hover #loupeLens,
+  .detail-media.loupe-active #loupeLens { display: block; }
+  .detail-media { cursor: crosshair; }
   #imgFullscreenOverlay { cursor: crosshair; }
   #imgFullscreenOverlay #fsloupeLens {
     display: none;
@@ -349,6 +376,7 @@
       <div class="page-header">
         <h1 id="worksHeading"><small id="worksSubheading">Portfolio</small><span id="worksTitle">All Works</span></h1>
         <div class="page-actions">
+          <button class="btn" id="galleryToggleBtn" title="Toggle gallery view">⊞ Gallery</button>
           <button class="btn primary admin-only" id="addWorkBtn">+ Add Work</button>
         </div>
       </div>
@@ -699,6 +727,7 @@ let exhibitionSelectedWorks=[];
 let pendingImageUrls=[]; // array of Cloudinary URLs uploaded in current modal session
 let previewToken=null; // set if accessing via ?preview=TOKEN
 let isPreviewMode=false;
+let galleryMode = localStorage.getItem('mp_gallery_mode') === 'true';
 
 function isAdmin() { return document.body.classList.contains('admin'); }
 function uid() { return Math.random().toString(36).slice(2,9) + Math.random().toString(36).slice(2,9); }
@@ -967,6 +996,13 @@ function filterWorks() {
 
 function renderWorksGrid() {
   const grid=document.getElementById('worksGrid');
+  // Apply / remove gallery mode
+  grid.classList.toggle('gallery-mode', galleryMode);
+  const toggleBtn = document.getElementById('galleryToggleBtn');
+  if (toggleBtn) {
+    toggleBtn.classList.toggle('primary', galleryMode);
+    toggleBtn.textContent = galleryMode ? '⊟ Details' : '⊞ Gallery';
+  }
 
   // Update page heading based on active collection filter
   const subheading=document.getElementById('worksSubheading');
@@ -1164,6 +1200,8 @@ function renderCarousel() {
       <div class="carousel-counter">${carouselIndex + 1} / ${total}</div>
     ` : ''}
   `;
+  // Re-attach loupe (innerHTML wipe destroys it)
+  if (document._loupeLens) media.appendChild(document._loupeLens);
   if (total > 1) {
     document.getElementById('carouselPrev').addEventListener('click', e => { e.stopPropagation(); carouselIndex = (carouselIndex - 1 + total) % total; renderCarousel(); });
     document.getElementById('carouselNext').addEventListener('click', e => { e.stopPropagation(); carouselIndex = (carouselIndex + 1) % total; renderCarousel(); });
@@ -1207,69 +1245,86 @@ function renderFsOverlay() {
 // ══════════════════════════════════════════════════════════════
 
 (function initLoupe() {
+  const LOUPE_SIZE = 160;
   const FS_LOUPE_SIZE = 200;
   const ZOOM = 2.5;
 
-  // Given an <img> element using object-fit:contain, calculate the actual
-  // rendered image rect (the content, not the element box, which may have
-  // letterbox/pillarbox padding). Returns {left, top, width, height} in
-  // viewport coordinates, or null if image isn't loaded yet.
-  function getContainedImageRect(img) {
-    if (!img || !img.complete || !img.naturalWidth) return null;
-    const elRect = img.getBoundingClientRect();
-    const elW = elRect.width;
-    const elH = elRect.height;
-    const natW = img.naturalWidth;
-    const natH = img.naturalHeight;
-    const imgAspect = natW / natH;
-    const elAspect = elW / elH;
-    let rendW, rendH;
-    if (imgAspect > elAspect) {
-      // Image is wider relative to box — letterboxed top/bottom
-      rendW = elW;
-      rendH = elW / imgAspect;
-    } else {
-      // Image is taller relative to box — pillarboxed left/right
-      rendH = elH;
-      rendW = elH * imgAspect;
+  // ── Carousel loupe ──
+  const mediaEl = document.getElementById('detailMedia');
+
+  const loupe = document.createElement('div');
+  loupe.id = 'loupeLens';
+  mediaEl.appendChild(loupe);
+  // Store on document so renderCarousel can re-attach after innerHTML wipe
+  document._loupeLens = loupe;
+
+  function updateCarouselLoupe(e) {
+    const img = mediaEl.querySelector('#carouselImg');
+    if (!img || !img.complete || !img.naturalWidth) { loupe.style.display = 'none'; return; }
+
+    const rect = img.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    if (mx < 0 || my < 0 || mx > rect.width || my > rect.height) {
+      loupe.style.display = 'none';
+      return;
     }
-    const left = elRect.left + (elW - rendW) / 2;
-    const top  = elRect.top  + (elH - rendH) / 2;
-    return { left, top, width: rendW, height: rendH };
+
+    loupe.style.display = 'block';
+
+    const mediaRect = mediaEl.getBoundingClientRect();
+    const lx = e.clientX - mediaRect.left - LOUPE_SIZE / 2;
+    const ly = e.clientY - mediaRect.top - LOUPE_SIZE / 2;
+    loupe.style.left = lx + 'px';
+    loupe.style.top = ly + 'px';
+
+    const bgW = rect.width * ZOOM;
+    const bgH = rect.height * ZOOM;
+    const bgX = -(mx * ZOOM - LOUPE_SIZE / 2);
+    const bgY = -(my * ZOOM - LOUPE_SIZE / 2);
+
+    loupe.style.backgroundImage = `url('${img.src}')`;
+    loupe.style.backgroundSize = `${bgW}px ${bgH}px`;
+    loupe.style.backgroundPosition = `${bgX}px ${bgY}px`;
   }
 
-  // ── Fullscreen loupe only ──
+  mediaEl.addEventListener('mousemove', updateCarouselLoupe);
+  mediaEl.addEventListener('mouseleave', () => { loupe.style.display = 'none'; });
+
+  // ── Fullscreen loupe ──
   const fsOverlay = document.getElementById('imgFullscreenOverlay');
 
   const fsLoupe = document.createElement('div');
   fsLoupe.id = 'fsloupeLens';
   fsOverlay.appendChild(fsLoupe);
+  // Store reference so renderFsOverlay can re-attach after innerHTML wipe
   document._fsloupeLens = fsLoupe;
 
   function updateFsLoupe(e) {
     const img = fsOverlay.querySelector('img');
-    const imgRect = getContainedImageRect(img);
-    if (!imgRect) { fsLoupe.style.display = 'none'; return; }
+    if (!img || !img.complete || !img.naturalWidth) { fsLoupe.style.display = 'none'; return; }
 
-    const mx = e.clientX - imgRect.left;
-    const my = e.clientY - imgRect.top;
+    const rect = img.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
 
-    if (mx < 0 || my < 0 || mx > imgRect.width || my > imgRect.height) {
+    if (mx < 0 || my < 0 || mx > rect.width || my > rect.height) {
       fsLoupe.style.display = 'none';
       return;
     }
 
     fsLoupe.style.display = 'block';
     fsLoupe.style.left = (e.clientX - FS_LOUPE_SIZE / 2) + 'px';
-    fsLoupe.style.top  = (e.clientY - FS_LOUPE_SIZE / 2) + 'px';
+    fsLoupe.style.top = (e.clientY - FS_LOUPE_SIZE / 2) + 'px';
 
-    const bgW = imgRect.width  * ZOOM;
-    const bgH = imgRect.height * ZOOM;
+    const bgW = rect.width * ZOOM;
+    const bgH = rect.height * ZOOM;
     const bgX = -(mx * ZOOM - FS_LOUPE_SIZE / 2);
     const bgY = -(my * ZOOM - FS_LOUPE_SIZE / 2);
 
-    fsLoupe.style.backgroundImage    = `url('${img.src}')`;
-    fsLoupe.style.backgroundSize     = `${bgW}px ${bgH}px`;
+    fsLoupe.style.backgroundImage = `url('${img.src}')`;
+    fsLoupe.style.backgroundSize = `${bgW}px ${bgH}px`;
     fsLoupe.style.backgroundPosition = `${bgX}px ${bgY}px`;
   }
 
@@ -1278,6 +1333,7 @@ function renderFsOverlay() {
 
   // Disable loupe on touch devices
   if ('ontouchstart' in window) {
+    mediaEl.style.cursor = 'default';
     fsOverlay.style.cursor = 'default';
   }
 })();
@@ -1760,6 +1816,13 @@ function renderAll() {
   document.getElementById('bioText').textContent=bio.text||'';
   document.getElementById('bioStatement').textContent=bio.statement||'';
 }
+
+// ── GALLERY MODE TOGGLE ──
+document.getElementById('galleryToggleBtn').addEventListener('click', () => {
+  galleryMode = !galleryMode;
+  localStorage.setItem('mp_gallery_mode', galleryMode);
+  renderWorksGrid();
+});
 
 // ── INIT ──
 checkSession();
