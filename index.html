@@ -946,6 +946,22 @@ function renderWorksGrid() {
   let ws = visibleWorks();
   if (activeFilter !== 'all') ws = ws.filter(w => (w.collection_ids || []).includes(activeFilter));
 
+  // Show/hide collection heading
+  let heading = document.getElementById('collectionHeading');
+  if (!heading) {
+    heading = document.createElement('h2');
+    heading.id = 'collectionHeading';
+    heading.style.cssText = 'font-family:var(--serif);font-size:1.6rem;font-weight:300;font-style:italic;margin-bottom:1.2rem;color:var(--ink);';
+    grid.parentNode.insertBefore(heading, grid);
+  }
+  if (activeFilter !== 'all') {
+    const col = getCollection(activeFilter);
+    heading.textContent = col ? col.name : '';
+    heading.style.display = 'block';
+  } else {
+    heading.style.display = 'none';
+  }
+
   if(!ws.length){ grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◻</div><p>No works yet.</p></div>`; return; }
   grid.innerHTML='';
   ws.forEach(w=>{
