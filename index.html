@@ -941,10 +941,11 @@ function filterWorks() {
 
 function renderWorksGrid() {
   const grid=document.getElementById('worksGrid');
-  // Always gallery mode — large images, natural proportions
   grid.classList.add('gallery-mode');
 
-  const ws = visibleWorks().slice(); // already sorted by date desc from DB query
+  let ws = visibleWorks();
+  if (activeFilter !== 'all') ws = ws.filter(w => (w.collection_ids || []).includes(activeFilter));
+
   if(!ws.length){ grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◻</div><p>No works yet.</p></div>`; return; }
   grid.innerHTML='';
   ws.forEach(w=>{
@@ -1691,9 +1692,10 @@ function printContactSheet(id) {
 //  VIEW SWITCHING
 // ══════════════════════════════════════════════════════════════
 
-window.switchView=function(name){
+window.switchView=function(name, resetFilter=false){
   const target = document.querySelector(`#view-${name}`);
   if (!target) return;
+  if (resetFilter) activeFilter = 'all';
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   target.classList.add('active');
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
@@ -1703,8 +1705,8 @@ window.switchView=function(name){
   document.querySelectorAll('#mobileNav .tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
 };
 
-document.querySelectorAll('header .tab-btn').forEach(b=>{ b.onclick=()=>window.switchView(b.dataset.view); });
-document.querySelectorAll('#mobileNav .tab-btn').forEach(b=>{ b.onclick=()=>window.switchView(b.dataset.view); });
+document.querySelectorAll('header .tab-btn').forEach(b=>{ b.onclick=()=>window.switchView(b.dataset.view, b.dataset.view==='works'); });
+document.querySelectorAll('#mobileNav .tab-btn').forEach(b=>{ b.onclick=()=>window.switchView(b.dataset.view, b.dataset.view==='works'); });
 
 // ══════════════════════════════════════════════════════════════
 //  MOBILE
