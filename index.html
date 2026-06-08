@@ -75,9 +75,9 @@
   .search-input::placeholder { color: var(--light); }
   select.filter-select { padding: 0.6rem 1rem; background: var(--white); border: 1px solid var(--light); font-family: var(--sans); font-size: 0.8rem; color: var(--mid); border-radius: 2px; outline: none; cursor: pointer; }
 
-  /* ── WORKS GRID — always gallery mode ── */
-  .works-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(480px, 1fr)); gap: 0.5rem; }
-  .work-card { cursor: pointer; position: relative; background: var(--panel); }
+  /* ── WORKS GRID — masonry via CSS columns ── */
+  .works-grid { columns: 3; column-gap: 0.5rem; }
+  .work-card { break-inside: avoid; cursor: pointer; position: relative; background: var(--panel); margin-bottom: 0.5rem; display: block; }
   .work-card:hover .work-thumb { opacity: 0.88; }
   .work-thumb { width: 100%; height: auto; display: block; transition: opacity 0.2s; }
   .work-info { display: none; }
@@ -232,14 +232,14 @@
     .detail-panel { grid-template-columns: 1fr; grid-template-rows: 60vh 1fr; }
     .detail-media { height: 60vh; max-height: 60vh; }
     .detail-overlay { padding: 0; align-items: flex-start; }
-    .works-grid { grid-template-columns: 1fr 1fr; gap: 0.3rem; }
+    .works-grid { columns: 2; column-gap: 0.3rem; }
     .modal-overlay { padding: 0; align-items: flex-end; }
     .modal { max-height: 92vh; border-radius: 0; padding: 1.8rem 1.5rem; }
     .form-grid { grid-template-columns: 1fr; }
     .form-full { grid-column: 1; }
   }
   @media (max-width: 600px) {
-    .works-grid { grid-template-columns: 1fr; }
+    .works-grid { columns: 1; }
     .collections-grid { grid-template-columns: 1fr; }
     .exhibition-card { grid-template-columns: 1fr; gap: 0.5rem; }
     .detail-media { height: 60vw; max-height: 60vw; }
@@ -941,7 +941,6 @@ function filterWorks() {
 
 function renderWorksGrid() {
   const grid=document.getElementById('worksGrid');
-  grid.classList.add('gallery-mode');
 
   let ws = visibleWorks();
   if (activeFilter !== 'all') ws = ws.filter(w => (w.collection_ids || []).includes(activeFilter));
