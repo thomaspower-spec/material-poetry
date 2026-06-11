@@ -591,8 +591,7 @@ const CONFIG = {
   CLOUDINARY_CLOUD_NAME: 'dgimf8yud',
   CLOUDINARY_UPLOAD_PRESET: 'material-poetry',
   // The public URL of this site — used to generate preview share links
-  // Update this after deploying to Netlify
-  SITE_URL: 'YOUR_SITE_URL',
+  SITE_URL: 'https://material-poetry.netlify.app',
 };
 
 // ══════════════════════════════════════════════════════════════
@@ -1121,7 +1120,7 @@ function renderCarousel() {
     ? `<button id="carouselFullscreen" title="Full screen" style="position:absolute;bottom:0.75rem;right:0.75rem;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.2);color:var(--white);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">⛶</button>`
     : '';
   const loupeBtn = (!isVid && !('ontouchstart' in window))
-    ? `<button id="carouselLoupeBtn" title="${loupeEnabled ? 'Disable loupe' : 'Enable loupe'}" style="position:absolute;bottom:0.75rem;left:0.75rem;background:${loupeEnabled ? 'rgba(139,74,47,0.75)' : 'rgba(0,0,0,0.45)'};border:1px solid ${loupeEnabled ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)'};color:var(--white);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">🔍</button>`
+    ? `<button id="carouselLoupeBtn" title="${loupeEnabled ? 'Disable loupe' : 'Enable loupe'}" style="position:absolute;bottom:0.75rem;right:3.5rem;background:${loupeEnabled ? 'rgba(139,74,47,0.75)' : 'rgba(0,0,0,0.45)'};border:1px solid ${loupeEnabled ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)'};color:var(--white);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">🔍</button>`
     : '';
   media.innerHTML = `
     <button class="detail-close" id="detailClose">✕</button>
