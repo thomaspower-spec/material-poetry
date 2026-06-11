@@ -27,7 +27,7 @@
   body { background: var(--cream); color: var(--ink); font-family: var(--sans); font-weight: 300; min-height: 100vh; }
 
   /* ── LAYOUT ── */
-  .shell { display: grid; grid-template-columns: 1fr; grid-template-rows: auto 1fr; min-height: 100vh; }
+  .shell { display: grid; grid-template-columns: 220px 1fr; grid-template-rows: auto 1fr; min-height: 100vh; }
 
   /* ── HEADER ── */
   header { grid-column: 1 / -1; border-bottom: 1px solid var(--light); padding: 1.5rem 2rem; display: flex; align-items: baseline; gap: 2rem; background: var(--cream); position: sticky; top: 0; z-index: 100; }
@@ -49,7 +49,7 @@
   .add-btn:hover { background: rgba(139,74,47,0.05); }
 
   /* ── MAIN ── */
-  main { padding: 1.5rem 2rem; overflow-y: auto; }
+  main { padding: 2.5rem 3rem; overflow-y: auto; }
   .view { display: none; }
   .view.active { display: block; }
 
@@ -75,13 +75,15 @@
   .search-input::placeholder { color: var(--light); }
   select.filter-select { padding: 0.6rem 1rem; background: var(--white); border: 1px solid var(--light); font-family: var(--sans); font-size: 0.8rem; color: var(--mid); border-radius: 2px; outline: none; cursor: pointer; }
 
-  /* ── WORKS GRID — masonry via manual columns ── */
-  .works-grid { display: flex; gap: 0.5rem; align-items: flex-start; }
-  .works-col { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
-  .work-card { break-inside: avoid; cursor: pointer; position: relative; background: var(--panel); display: block; }
-  .work-card:hover .work-thumb { opacity: 0.88; }
-  .work-thumb { width: 100%; height: auto; display: block; transition: opacity 0.2s; }
-  .work-info { display: none; }
+  /* ── WORKS GRID ── */
+  .works-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.5rem; }
+  .work-card { background: var(--white); border: 1px solid var(--panel); cursor: pointer; transition: box-shadow 0.2s, transform 0.2s; overflow: hidden; position: relative; }
+  .work-card:hover { box-shadow: 0 8px 32px rgba(26,24,20,0.1); transform: translateY(-2px); }
+  .work-thumb { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; background: var(--panel); }
+  .work-info { padding: 1rem 1.1rem 1.2rem; }
+  .work-title { font-family: var(--serif); font-size: 1.05rem; font-weight: 400; font-style: italic; margin-bottom: 0.3rem; }
+  .work-meta { font-size: 0.72rem; font-weight: 300; color: var(--mid); letter-spacing: 0.03em; }
+  .work-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.7rem; }
   .tag { padding: 0.2rem 0.5rem; background: var(--panel); font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mid); border-radius: 1px; }
 
   /* Visibility badges on cards */
@@ -100,12 +102,12 @@
   .timeline-text p { font-size: 0.78rem; color: var(--mid); }
 
   /* ── DETAIL OVERLAY ── */
-  .detail-overlay { display: none; position: fixed; inset: 0; background: var(--cream); z-index: 200; }
-  .detail-overlay.open { display: block; }
-  .detail-panel { width: 100%; height: 100vh; display: grid; grid-template-columns: 1fr 360px; overflow: hidden; }
-  .detail-media { background: var(--cream); display: flex; align-items: center; justify-content: center; height: 100vh; position: relative; overflow: hidden; padding: 2rem; }
-  .detail-media img { width: 100%; height: 100%; object-fit: contain; display: block; }
-  .detail-media video { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .detail-overlay { display: none; position: fixed; inset: 0; background: rgba(26,24,20,0.5); z-index: 200; align-items: center; justify-content: center; padding: 2rem; }
+  .detail-overlay.open { display: flex; }
+  .detail-panel { background: var(--cream); width: 100%; max-width: 900px; max-height: 90vh; overflow-y: auto; display: grid; grid-template-columns: 1fr 320px; }
+  .detail-media { background: var(--ink); display: flex; align-items: center; justify-content: center; min-height: 400px; max-height: 90vh; position: relative; overflow: hidden; }
+  .detail-media img { width: 100%; height: 100%; object-fit: contain; display: block; max-height: 90vh; }
+  .detail-media video { width: 100%; height: 100%; object-fit: contain; display: block; max-height: 90vh; }
 
   #imgFullscreenOverlay { display:none; position:fixed; inset:0; background:#000; z-index:1000; align-items:center; justify-content:center; }
   #imgFullscreenOverlay.open { display:flex; }
@@ -121,14 +123,13 @@
   .carousel-prev { left: 0.75rem; }
   .carousel-next { right: 0.75rem; }
   .carousel-counter { position: absolute; bottom: 0.75rem; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); color: var(--white); font-family: var(--sans); font-size: 0.65rem; letter-spacing: 0.12em; padding: 0.25rem 0.7rem; border-radius: 10px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
-  .detail-info { padding: 2.5rem 2rem; display: flex; flex-direction: column; gap: 1.5rem; height: 100vh; overflow-y: auto; border-left: 1px solid var(--light); }
+  .detail-info { padding: 2.5rem 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
   .detail-title { font-family: var(--serif); font-size: 2rem; font-weight: 300; font-style: italic; line-height: 1.1; }
   .detail-fields { display: flex; flex-direction: column; gap: 0.8rem; }
-  .detail-field label { display: none; }
-  .detail-field.admin-field label { display: block; font-size: 0.65rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--light); margin-bottom: 0.2rem; }
+  .detail-field label { display: block; font-size: 0.65rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--light); margin-bottom: 0.2rem; }
   .detail-field p { font-size: 0.85rem; color: var(--ink); }
-  .detail-close { position: fixed; top: 1rem; right: 1rem; background: rgba(0,0,0,0.25); border: 1px solid rgba(0,0,0,0.15); color: var(--ink); width: 36px; height: 36px; font-size: 0.9rem; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.18s; z-index: 210; }
-  .detail-close:hover { background: rgba(0,0,0,0.15); }
+  .detail-close { position: absolute; top: 1rem; right: 1rem; background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.2); color: var(--white); width: 36px; height: 36px; font-size: 0.9rem; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.18s; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 3; }
+  .detail-close:hover { background: rgba(0,0,0,0.75); }
 
   /* ── MODAL ── */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,24,20,0.5); z-index: 300; align-items: center; justify-content: center; padding: 2rem; }
@@ -227,21 +228,26 @@
     .mobile-menu-btn { display: flex; }
     .header-tabs { display: none; }
     .mobile-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: var(--cream); border-top: 1px solid var(--light); z-index: 100; }
+    .mobile-nav .tab-btn { flex: 1; padding: 0.7rem 0.3rem; font-size: 0.6rem; border-right: 1px solid var(--light); display: flex; flex-direction: column; align-items: center; gap: 0.2rem; }
+    .mobile-nav .tab-btn:last-child { border-right: none; }
+    .mobile-nav .tab-btn .nav-icon { font-size: 1rem; line-height: 1; }
     header { padding: 1rem 1.2rem; gap: 1rem; align-items: center; }
     .logo { font-size: 1.3rem; }
-    main { padding: 1rem 0.5rem 5rem; }
-    .detail-panel { grid-template-columns: 1fr; grid-template-rows: 60vh 1fr; }
-    .detail-media { height: 60vh; max-height: 60vh; }
+    main { padding: 1.5rem 1.2rem 5rem; }
+    .detail-panel { grid-template-columns: 1fr; }
+    .detail-media { min-height: 0; height: 56vw; max-height: 56vw; }
     .detail-overlay { padding: 0; align-items: flex-start; }
-    .works-grid { gap: 0.3rem; }
-    .works-grid .works-col:nth-child(3) { display: none; }
+    .detail-panel { max-height: 100vh; height: 100vh; overflow-y: auto; }
+    .works-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .page-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .page-header h1 { font-size: 2.2rem; }
     .modal-overlay { padding: 0; align-items: flex-end; }
     .modal { max-height: 92vh; border-radius: 0; padding: 1.8rem 1.5rem; }
     .form-grid { grid-template-columns: 1fr; }
     .form-full { grid-column: 1; }
   }
   @media (max-width: 600px) {
-    .works-grid .works-col:nth-child(2), .works-grid .works-col:nth-child(3) { display: none; }
+    .works-grid { grid-template-columns: 1fr; }
     .collections-grid { grid-template-columns: 1fr; }
     .exhibition-card { grid-template-columns: 1fr; gap: 0.5rem; }
     .detail-media { height: 60vw; max-height: 60vw; }
@@ -283,10 +289,11 @@
     cursor: none;
     transition: opacity 0.15s;
   }
-  .detail-media:hover #loupeLens,
   .detail-media.loupe-active #loupeLens { display: block; }
-  .detail-media { cursor: crosshair; }
-  #imgFullscreenOverlay { cursor: crosshair; }
+  .detail-media { cursor: default; }
+  .detail-media.loupe-active { cursor: crosshair; }
+  #imgFullscreenOverlay { cursor: default; }
+  #imgFullscreenOverlay.loupe-active { cursor: crosshair; }
   #imgFullscreenOverlay #fsloupeLens {
     display: none;
     position: fixed;
@@ -313,17 +320,37 @@
 
 <div class="shell">
   <header>
-    <button class="mobile-menu-btn" id="mobileMenuBtn" style="display:none;">☰</button>
+    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
     <div class="logo">Material <em>Poetry</em></div>
     <nav class="header-tabs">
       <button class="tab-btn active" data-view="works">Works</button>
       <button class="tab-btn" data-view="collections">Collections</button>
       <button class="tab-btn" data-view="exhibitions" style="display:none;">Exhibitions</button>
+      <button class="tab-btn" data-view="timeline">Timeline</button>
       <button class="tab-btn" data-view="bio">About</button>
     </nav>
     <button class="mode-badge admin-only" id="adminLogoutBtn">Sign out</button>
     <button class="mode-badge" id="adminLoginBtn" style="display:none;">Admin</button>
   </header>
+
+  <aside>
+    <div class="sidebar-section">
+      <h3>Collections</h3>
+      <ul class="sidebar-list" id="sidebarCollections">
+        <li><button class="active" data-filter="all">All Works</button></li>
+      </ul>
+      <button class="add-btn admin-only" id="addCollectionBtn">+ New Collection</button>
+    </div>
+    <div class="sidebar-section">
+      <h3>Tags</h3>
+      <input type="text" id="tagSearch" placeholder="Filter tags…" style="width:100%;padding:0.35rem 0.6rem;background:var(--white);border:1px solid var(--light);font-family:var(--sans);font-size:0.75rem;color:var(--ink);border-radius:2px;outline:none;margin-bottom:0.5rem;">
+      <ul class="sidebar-list" id="sidebarTags"></ul>
+    </div>
+    <div class="sidebar-section">
+      <h3>Medium</h3>
+      <ul class="sidebar-list" id="sidebarMediums"></ul>
+    </div>
+  </aside>
 
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -331,14 +358,28 @@
     <button class="tab-btn active" data-view="works"><span class="nav-icon">◻</span>Works</button>
     <button class="tab-btn" data-view="collections"><span class="nav-icon">⊞</span>Collections</button>
     <button class="tab-btn" data-view="exhibitions" style="display:none;"><span class="nav-icon">◈</span>Exhibitions</button>
+    <button class="tab-btn" data-view="timeline"><span class="nav-icon">↕</span>Timeline</button>
     <button class="tab-btn" data-view="bio"><span class="nav-icon">◉</span>About</button>
   </nav>
 
   <main>
     <!-- WORKS -->
     <div class="view active" id="view-works">
-      <div class="page-actions" style="display:flex;justify-content:flex-end;padding:1rem 0 1.5rem;">
-        <button class="btn primary admin-only" id="addWorkBtn">+ Add Work</button>
+      <div class="page-header">
+        <h1 id="worksHeading"><small id="worksSubheading">Portfolio</small><span id="worksTitle">All Works</span></h1>
+        <div class="page-actions">
+          <button class="btn primary admin-only" id="addWorkBtn">+ Add Work</button>
+        </div>
+      </div>
+      <p id="worksCollectionDesc" style="display:none;font-size:0.95rem;line-height:1.7;color:var(--mid);margin-bottom:2rem;max-width:640px;"></p>
+      <div class="stats-bar admin-only">
+        <div class="stat"><span class="stat-num" id="statWorks">—</span><span class="stat-label">Works</span></div>
+        <div class="stat"><span class="stat-num" id="statCollections">—</span><span class="stat-label">Collections</span></div>
+      </div>
+      <div class="search-row">
+        <input class="search-input" type="text" id="searchWorks" placeholder="Search works…">
+        <select class="filter-select" id="filterYear"><option value="">All Years</option></select>
+        <select class="filter-select" id="filterMedium"><option value="">All Media</option></select>
       </div>
       <div class="works-grid" id="worksGrid"></div>
     </div>
@@ -400,8 +441,8 @@
         <div class="detail-field"><label>Dimensions</label><p id="detailDimensions">—</p></div>
         <div class="detail-field"><label>Collection</label><p id="detailCollection">—</p></div>
         <div class="detail-field"><label>Tags</label><p id="detailTags">—</p></div>
-        <div class="detail-field admin-only admin-field"><label>Visibility</label><p id="detailVisibility">—</p></div>
-        <div class="detail-field admin-only admin-field"><label>Private Notes</label><p id="detailNotes" style="color:var(--mid);font-style:italic;">—</p></div>
+        <div class="detail-field admin-only"><label>Visibility</label><p id="detailVisibility">—</p></div>
+        <div class="detail-field admin-only"><label>Private Notes</label><p id="detailNotes" style="color:var(--mid);font-style:italic;">—</p></div>
       </div>
       <div class="page-actions" style="margin-top:auto;padding-top:1rem;justify-content:flex-start;">
         <button class="btn admin-only" id="editWorkBtn">Edit</button>
@@ -486,7 +527,6 @@
     </div>
     <div class="form-actions">
       <button class="btn" id="cancelCollectionBtn">Cancel</button>
-      <button class="btn" id="deleteCollectionBtn" style="display:none;color:var(--accent);border-color:var(--accent);">Delete</button>
       <button class="btn accent" id="saveCollectionBtn">Save Collection</button>
     </div>
   </div>
@@ -678,7 +718,6 @@ let exhibitionSelectedWorks=[];
 let pendingImageUrls=[]; // array of Cloudinary URLs uploaded in current modal session
 let previewToken=null; // set if accessing via ?preview=TOKEN
 let isPreviewMode=false;
-let galleryMode = false; // kept for compatibility but always true now
 
 function isAdmin() { return document.body.classList.contains('admin'); }
 function uid() { return Math.random().toString(36).slice(2,9) + Math.random().toString(36).slice(2,9); }
@@ -712,6 +751,7 @@ function checkPreviewMode() {
   document.getElementById('previewBanner').classList.add('show');
   // Filter to this collection
   activeFilter = col.id;
+  renderSidebar();
   renderWorksGrid();
 }
 
@@ -917,6 +957,8 @@ function renderSidebarMediums() {
   });
 }
 
+document.getElementById('tagSearch').addEventListener('input', function() { renderTagList(this.value); });
+
 // ══════════════════════════════════════════════════════════════
 //  WORKS GRID
 // ══════════════════════════════════════════════════════════════
@@ -945,45 +987,71 @@ function filterWorks() {
 function renderWorksGrid() {
   const grid=document.getElementById('worksGrid');
 
-  let ws = visibleWorks();
-  if (activeFilter !== 'all') ws = ws.filter(w => (w.collection_ids || []).includes(activeFilter));
-
-  // Show/hide collection heading
-  let heading = document.getElementById('collectionHeading');
-  if (!heading) {
-    heading = document.createElement('h2');
-    heading.id = 'collectionHeading';
-    heading.style.cssText = 'font-family:var(--serif);font-size:1.6rem;font-weight:300;font-style:italic;margin-bottom:1.2rem;color:var(--ink);';
-    grid.parentNode.insertBefore(heading, grid);
-  }
-  if (activeFilter !== 'all') {
-    const col = getCollection(activeFilter);
-    heading.textContent = col ? col.name : '';
-    heading.style.display = 'block';
+  // Update page heading based on active collection filter
+  const subheading=document.getElementById('worksSubheading');
+  const worksTitle=document.getElementById('worksTitle');
+  const collectionDesc=document.getElementById('worksCollectionDesc');
+  if(activeFilter==='all'){
+    subheading.textContent='Portfolio';
+    worksTitle.textContent='All Works';
+    collectionDesc.style.display='none';
+    collectionDesc.textContent='';
   } else {
-    heading.style.display = 'none';
+    const col=getCollection(activeFilter);
+    if(col){
+      subheading.textContent='Collection';
+      worksTitle.textContent=col.name;
+      if(col.description){
+        collectionDesc.textContent=col.description;
+        collectionDesc.style.display='block';
+      } else {
+        collectionDesc.style.display='none';
+      }
+    }
   }
 
-  if(!ws.length){ grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◻</div><p>No works yet.</p></div>`; return; }
+  // Active filter bar
+  let bar=document.getElementById('activeFilterBar');
+  if(!bar){bar=document.createElement('div');bar.id='activeFilterBar';bar.style.cssText='display:none;align-items:center;gap:0.7rem;margin-bottom:1rem;padding:0.5rem 0.8rem;background:var(--panel);font-size:0.78rem;color:var(--mid);';grid.parentNode.insertBefore(bar,grid);}
+  if(activeTagFilter||activeMediumFilter){
+    const label=activeTagFilter?`Tag: ${activeTagFilter}`:`Medium: ${activeMediumFilter}`;
+    bar.innerHTML=`<span>Filtered by — <strong style="color:var(--ink)">${label}</strong></span> <button onclick="activeTagFilter=null;activeMediumFilter=null;renderSidebar();renderWorksGrid();" style="font-size:0.7rem;padding:0.15rem 0.5rem;background:none;border:1px solid var(--light);cursor:pointer;border-radius:2px;color:var(--mid);">✕ Clear</button>`;
+    bar.style.display='flex';
+  } else { bar.style.display='none'; }
+
+  // Dropdowns
+  const yearSel=document.getElementById('filterYear');
+  const yrVal=yearSel.value;
+  yearSel.innerHTML='<option value="">All Years</option>';
+  getAllYears().forEach(y=>yearSel.innerHTML+=`<option value="${y}"${String(y)===yrVal?' selected':''}>${y}</option>`);
+  const medSel=document.getElementById('filterMedium');
+  const medVal=medSel.value;
+  medSel.innerHTML='<option value="">All Media</option>';
+  getAllMediums().forEach(m=>medSel.innerHTML+=`<option value="${m}"${m===medVal?' selected':''}>${m}</option>`);
+  if(isAdmin()){
+    document.getElementById('statWorks').textContent=visibleWorks().length;
+    document.getElementById('statCollections').textContent=collections.filter(c=>isAdmin()||c.visibility==='published').length;
+  }
+  const filtered=filterWorks();
+  if(!filtered.length){ grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◻</div><p>No works found.</p></div>`; return; }
   grid.innerHTML='';
-
-  // Create 3 column divs
-  const numCols = 3;
-  const cols = Array.from({length: numCols}, () => {
-    const col = document.createElement('div');
-    col.className = 'works-col';
-    grid.appendChild(col);
-    return col;
-  });
-
-  ws.forEach((w, i) => {
-    const card = document.createElement('div');
-    card.className = 'work-card';
-    let badge = '';
-    if(isAdmin() && w.visibility !== 'published') badge = `<span class="visibility-badge badge-${w.visibility}">${w.visibility}</span>`;
-    card.innerHTML = `${badge}<img class="work-thumb" src="${thumbFor(w)}" alt="${w.title}">`;
-    card.addEventListener('click', () => openDetail(w.id));
-    cols[i % numCols].appendChild(card);
+  filtered.forEach(w=>{
+    const card=document.createElement('div');
+    card.className='work-card';
+    const colNames=(w.collection_ids||[]).map(id=>getCollection(id)).filter(Boolean).map(c=>c.name);
+    // Visibility badge (admin only)
+    let badge='';
+    if(isAdmin()&&w.visibility!=='published') badge=`<span class="visibility-badge badge-${w.visibility}">${w.visibility}</span>`;
+    card.innerHTML=`
+      ${badge}
+      <img class="work-thumb" src="${thumbFor(w)}" alt="${w.title}">
+      <div class="work-info">
+        <div class="work-title">${w.title}</div>
+        <div class="work-meta">${w.year||''}${w.medium?' · '+w.medium:''}${colNames.length?' · '+colNames.join(', '):''}</div>
+        ${(w.tags||[]).length?`<div class="work-tags">${w.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`:''}
+      </div>`;
+    card.addEventListener('click',()=>openDetail(w.id));
+    grid.appendChild(card);
   });
 }
 
@@ -1009,9 +1077,9 @@ function renderCollections() {
       const shareBtn=c.visibility==='preview'&&c.share_token?`<button style="position:absolute;top:0.5rem;right:0.5rem;background:var(--accent);color:var(--white);border:none;cursor:pointer;font-size:0.58rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.5rem;border-radius:1px;" onclick="event.stopPropagation();copyShareLink('${c.share_token}')">Copy link</button>`:'';
       adminControls=badge+shareBtn;
     }
-    const editBtn=isAdmin()?`<button class="btn" style="font-size:0.72rem;padding:0.3rem 0.8rem;margin-top:0.7rem;" onclick="event.stopPropagation();openCollectionModal('${c.id}')">Edit</button>`:'';
+    const editBtn=isAdmin()?`<button class="btn" style="font-size:0.72rem;padding:0.3rem 0.8rem;margin-top:0.7rem;" onclick="event.stopPropagation();openCollectionModal('${c.id}')">Edit collection</button>`:'';
     card.innerHTML=`<div style="position:relative;">${adminControls}<div class="collection-strip">${thumbs}${empties}</div></div><div class="collection-meta"><h3>${c.name}</h3><p>${cWorks.length} work${cWorks.length!==1?'s':''}${c.description?' — '+c.description:''}</p>${editBtn}</div>`;
-    card.addEventListener('click',()=>{ activeFilter=c.id; renderWorksGrid(); window.switchView('works'); });
+    card.addEventListener('click',()=>{ activeFilter=c.id; renderSidebar(); renderWorksGrid(); window.switchView('works'); });
     grid.appendChild(card);
   });
 }
@@ -1019,19 +1087,6 @@ function renderCollections() {
 function copyShareLink(token) {
   const url=generateShareUrl(token);
   navigator.clipboard.writeText(url).then(()=>toast('Share link copied to clipboard')).catch(()=>{ prompt('Copy this link:', url); });
-}
-
-async function deleteCollection(id) {
-  const col = collections.find(c => c.id === id);
-  if (!col) return;
-  if (!confirm(`Delete collection "${col.name}"? The works in it won't be deleted.`)) return;
-  try {
-    await sb.safeDelete('collections', id);
-    collections = collections.filter(c => c.id !== id);
-    if (activeFilter === id) activeFilter = 'all';
-    renderAll();
-    toast('Collection deleted');
-  } catch(e) { toast('Delete failed: ' + e.message, true); }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1102,6 +1157,7 @@ function renderTimeline() {
 
 let carouselImages = [];
 let carouselIndex = 0;
+let loupeEnabled = false; // off by default; persists across carousel slides
 
 function isVideoUrl(url) {
   return url && (url.includes('/video/upload/') || /\.(mp4|mov|webm|ogg)(\?|$)/i.test(url));
@@ -1113,21 +1169,28 @@ function renderCarousel() {
   const src = carouselImages[carouselIndex] || '';
   const isVid = isVideoUrl(src);
   const mediaEl = isVid
-    ? `<video src="${src}" controls style="width:100%;height:100%;object-fit:contain;display:block;" playsinline></video>`
-    : `<img src="${src}" alt="" id="carouselImg" style="width:100%;height:100%;object-fit:contain;display:block;">`;
+    ? `<video src="${src}" controls style="width:100%;height:100%;object-fit:contain;display:block;max-height:500px;" playsinline></video>`
+    : `<img src="${src}" alt="" id="carouselImg" style="width:100%;height:100%;object-fit:contain;display:block;max-height:500px;">`;
   const fullscreenBtn = !isVid
     ? `<button id="carouselFullscreen" title="Full screen" style="position:absolute;bottom:0.75rem;right:0.75rem;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.2);color:var(--white);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">⛶</button>`
+    : '';
+  // Loupe toggle button (images only, not touch devices)
+  const loupeBtn = (!isVid && !('ontouchstart' in window))
+    ? `<button id="carouselLoupeBtn" title="${loupeEnabled ? 'Disable loupe' : 'Enable loupe'}" style="position:absolute;bottom:0.75rem;left:0.75rem;background:${loupeEnabled ? 'rgba(139,74,47,0.75)' : 'rgba(0,0,0,0.45)'};border:1px solid ${loupeEnabled ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)'};color:var(--white);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">🔍</button>`
     : '';
   media.innerHTML = `
     <button class="detail-close" id="detailClose">✕</button>
     ${mediaEl}
     ${fullscreenBtn}
+    ${loupeBtn}
     ${total > 1 ? `
       <button class="carousel-btn carousel-prev" id="carouselPrev">‹</button>
       <button class="carousel-btn carousel-next" id="carouselNext">›</button>
       <div class="carousel-counter">${carouselIndex + 1} / ${total}</div>
     ` : ''}
   `;
+  // Apply loupe-active class based on current state
+  media.classList.toggle('loupe-active', loupeEnabled);
   // Re-attach loupe (innerHTML wipe destroys it)
   if (document._loupeLens) media.appendChild(document._loupeLens);
   if (total > 1) {
@@ -1138,6 +1201,14 @@ function renderCarousel() {
     document.getElementById('carouselFullscreen').addEventListener('click', e => {
       e.stopPropagation();
       openImgFullscreen();
+    });
+  }
+  const loupeBtnEl = document.getElementById('carouselLoupeBtn');
+  if (loupeBtnEl) {
+    loupeBtnEl.addEventListener('click', e => {
+      e.stopPropagation();
+      loupeEnabled = !loupeEnabled;
+      renderCarousel();
     });
   }
 }
@@ -1152,12 +1223,18 @@ function renderFsOverlay() {
   const arrows = nonVideoImages.length > 1 ? `
     <button class="carousel-btn carousel-prev" id="fsPrev">‹</button>
     <button class="carousel-btn carousel-next" id="fsNext">›</button>` : '';
+  const fsLoupeBtn = !('ontouchstart' in window)
+    ? `<button id="fsLoupeBtn" title="${loupeEnabled ? 'Disable loupe' : 'Enable loupe'}" style="position:fixed;bottom:1.5rem;left:1.5rem;background:${loupeEnabled ? 'rgba(139,74,47,0.75)' : 'rgba(0,0,0,0.45)'};border:1px solid ${loupeEnabled ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)'};color:var(--white);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">🔍</button>`
+    : '';
   overlay.innerHTML = `
     <button id="fsCloseBtn">✕</button>
     <img src="${src}" alt="">
     ${arrows}
     ${counter}
+    ${fsLoupeBtn}
   `;
+  // Apply loupe-active class based on current state
+  overlay.classList.toggle('loupe-active', loupeEnabled);
   // Re-attach fullscreen loupe (innerHTML wipe destroys it)
   if (document._fsloupeLens) overlay.appendChild(document._fsloupeLens);
   overlay.classList.add('open');
@@ -1165,6 +1242,14 @@ function renderFsOverlay() {
   if (nonVideoImages.length > 1) {
     document.getElementById('fsPrev').addEventListener('click', e => { e.stopPropagation(); overlay.dataset.fsIndex=(fsIndex-1+nonVideoImages.length)%nonVideoImages.length; renderFsOverlay(); });
     document.getElementById('fsNext').addEventListener('click', e => { e.stopPropagation(); overlay.dataset.fsIndex=(fsIndex+1)%nonVideoImages.length; renderFsOverlay(); });
+  }
+  const fsLoupeBtnEl = document.getElementById('fsLoupeBtn');
+  if (fsLoupeBtnEl) {
+    fsLoupeBtnEl.addEventListener('click', e => {
+      e.stopPropagation();
+      loupeEnabled = !loupeEnabled;
+      renderFsOverlay();
+    });
   }
 }
 
@@ -1175,34 +1260,7 @@ function renderFsOverlay() {
 (function initLoupe() {
   const LOUPE_SIZE = 160;
   const FS_LOUPE_SIZE = 200;
-
-  // Calculate the actual rendered bounds of the image pixels within an
-  // object-fit:contain img element — excludes letterbox/pillarbox areas
-  function getContainedImageRect(img) {
-    const containerRect = img.getBoundingClientRect();
-    const containerW = containerRect.width;
-    const containerH = containerRect.height;
-    const naturalW = img.naturalWidth;
-    const naturalH = img.naturalHeight;
-    const containerRatio = containerW / containerH;
-    const imageRatio = naturalW / naturalH;
-    let renderedW, renderedH;
-    if (imageRatio > containerRatio) {
-      renderedW = containerW;
-      renderedH = containerW / imageRatio;
-    } else {
-      renderedH = containerH;
-      renderedW = containerH * imageRatio;
-    }
-    const offsetX = (containerW - renderedW) / 2;
-    const offsetY = (containerH - renderedH) / 2;
-    return {
-      left: containerRect.left + offsetX,
-      top: containerRect.top + offsetY,
-      width: renderedW,
-      height: renderedH
-    };
-  }
+  const ZOOM = 2.5;
 
   // ── Carousel loupe ──
   const mediaEl = document.getElementById('detailMedia');
@@ -1210,17 +1268,19 @@ function renderFsOverlay() {
   const loupe = document.createElement('div');
   loupe.id = 'loupeLens';
   mediaEl.appendChild(loupe);
+  // Store on document so renderCarousel can re-attach after innerHTML wipe
   document._loupeLens = loupe;
 
   function updateCarouselLoupe(e) {
+    if (!loupeEnabled) { loupe.style.display = 'none'; return; }
     const img = mediaEl.querySelector('#carouselImg');
     if (!img || !img.complete || !img.naturalWidth) { loupe.style.display = 'none'; return; }
 
-    const imgRect = getContainedImageRect(img);
-    const mx = e.clientX - imgRect.left;
-    const my = e.clientY - imgRect.top;
+    const rect = img.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
 
-    if (mx < 0 || my < 0 || mx > imgRect.width || my > imgRect.height) {
+    if (mx < 0 || my < 0 || mx > rect.width || my > rect.height) {
       loupe.style.display = 'none';
       return;
     }
@@ -1228,15 +1288,15 @@ function renderFsOverlay() {
     loupe.style.display = 'block';
 
     const mediaRect = mediaEl.getBoundingClientRect();
-    loupe.style.left = (e.clientX - mediaRect.left - LOUPE_SIZE / 2) + 'px';
-    loupe.style.top = (e.clientY - mediaRect.top - LOUPE_SIZE / 2) + 'px';
+    const lx = e.clientX - mediaRect.left - LOUPE_SIZE / 2;
+    const ly = e.clientY - mediaRect.top - LOUPE_SIZE / 2;
+    loupe.style.left = lx + 'px';
+    loupe.style.top = ly + 'px';
 
-    // Zoom to show image at 1:1 native pixels
-    const zoom = img.naturalWidth / imgRect.width;
-    const bgW = imgRect.width * zoom;
-    const bgH = imgRect.height * zoom;
-    const bgX = -(mx * zoom - LOUPE_SIZE / 2);
-    const bgY = -(my * zoom - LOUPE_SIZE / 2);
+    const bgW = rect.width * ZOOM;
+    const bgH = rect.height * ZOOM;
+    const bgX = -(mx * ZOOM - LOUPE_SIZE / 2);
+    const bgY = -(my * ZOOM - LOUPE_SIZE / 2);
 
     loupe.style.backgroundImage = `url('${img.src}')`;
     loupe.style.backgroundSize = `${bgW}px ${bgH}px`;
@@ -1252,17 +1312,19 @@ function renderFsOverlay() {
   const fsLoupe = document.createElement('div');
   fsLoupe.id = 'fsloupeLens';
   fsOverlay.appendChild(fsLoupe);
+  // Store reference so renderFsOverlay can re-attach after innerHTML wipe
   document._fsloupeLens = fsLoupe;
 
   function updateFsLoupe(e) {
+    if (!loupeEnabled) { fsLoupe.style.display = 'none'; return; }
     const img = fsOverlay.querySelector('img');
     if (!img || !img.complete || !img.naturalWidth) { fsLoupe.style.display = 'none'; return; }
 
-    const imgRect = getContainedImageRect(img);
-    const mx = e.clientX - imgRect.left;
-    const my = e.clientY - imgRect.top;
+    const rect = img.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
 
-    if (mx < 0 || my < 0 || mx > imgRect.width || my > imgRect.height) {
+    if (mx < 0 || my < 0 || mx > rect.width || my > rect.height) {
       fsLoupe.style.display = 'none';
       return;
     }
@@ -1271,11 +1333,10 @@ function renderFsOverlay() {
     fsLoupe.style.left = (e.clientX - FS_LOUPE_SIZE / 2) + 'px';
     fsLoupe.style.top = (e.clientY - FS_LOUPE_SIZE / 2) + 'px';
 
-    const zoom = img.naturalWidth / imgRect.width;
-    const bgW = imgRect.width * zoom;
-    const bgH = imgRect.height * zoom;
-    const bgX = -(mx * zoom - FS_LOUPE_SIZE / 2);
-    const bgY = -(my * zoom - FS_LOUPE_SIZE / 2);
+    const bgW = rect.width * ZOOM;
+    const bgH = rect.height * ZOOM;
+    const bgX = -(mx * ZOOM - FS_LOUPE_SIZE / 2);
+    const bgY = -(my * ZOOM - FS_LOUPE_SIZE / 2);
 
     fsLoupe.style.backgroundImage = `url('${img.src}')`;
     fsLoupe.style.backgroundSize = `${bgW}px ${bgH}px`;
@@ -1332,7 +1393,10 @@ function openDetail(id) {
 }
 
 document.getElementById('detailOverlay').addEventListener('click', e=>{
-  if(e.target===document.getElementById('detailOverlay')||e.target.id==='detailClose') document.getElementById('detailOverlay').classList.remove('open');
+  if(e.target===document.getElementById('detailOverlay')||e.target.id==='detailClose') {
+    document.getElementById('detailOverlay').classList.remove('open');
+    loupeEnabled = false;
+  }
 });
 
 // Keyboard navigation for carousel
@@ -1346,7 +1410,7 @@ document.addEventListener('keydown', e => {
   if (!document.getElementById('detailOverlay').classList.contains('open')) return;
   if (e.key === 'ArrowLeft' && carouselImages.length > 1) { carouselIndex = (carouselIndex - 1 + carouselImages.length) % carouselImages.length; renderCarousel(); }
   if (e.key === 'ArrowRight' && carouselImages.length > 1) { carouselIndex = (carouselIndex + 1) % carouselImages.length; renderCarousel(); }
-  if (e.key === 'Escape') document.getElementById('detailOverlay').classList.remove('open');
+  if (e.key === 'Escape') { document.getElementById('detailOverlay').classList.remove('open'); loupeEnabled = false; }
 });
 document.getElementById('editWorkBtn').addEventListener('click',()=>{ document.getElementById('detailOverlay').classList.remove('open'); openWorkModal(editingWorkId); });
 document.getElementById('deleteWorkBtn').addEventListener('click', async()=>{
@@ -1539,7 +1603,6 @@ document.getElementById('saveWorkBtn').addEventListener('click', async()=>{
 function openCollectionModal(id) {
   editingCollectionId=id||null;
   document.getElementById('collectionModalTitle').textContent=id?'Edit Collection':'New Collection';
-  document.getElementById('deleteCollectionBtn').style.display=id?'':'none';
   if(id){
     const c=collections.find(x=>x.id===id);
     document.getElementById('cName').value=c.name;
@@ -1577,20 +1640,7 @@ document.getElementById('cCopyLinkBtn').addEventListener('click',()=>{
   navigator.clipboard.writeText(url).then(()=>toast('Link copied!')).catch(()=>{ document.getElementById('cShareUrl').select(); document.execCommand('copy'); toast('Link copied!'); });
 });
 
-document.getElementById('deleteCollectionBtn').addEventListener('click', async () => {
-  const col = collections.find(c => c.id === editingCollectionId);
-  if (!col) return;
-  if (!confirm(`Delete collection "${col.name}"? The works in it won't be deleted.`)) return;
-  try {
-    await sb.safeDelete('collections', editingCollectionId);
-    collections = collections.filter(c => c.id !== editingCollectionId);
-    if (activeFilter === editingCollectionId) activeFilter = 'all';
-    document.getElementById('collectionModal').classList.remove('open');
-    renderAll();
-    toast('Collection deleted');
-  } catch(e) { toast('Delete failed: ' + e.message, true); }
-});
-
+document.getElementById('addCollectionBtn').addEventListener('click',()=>openCollectionModal(null));
 document.getElementById('addCollectionBtn2').addEventListener('click',()=>openCollectionModal(null));
 document.getElementById('cancelCollectionBtn').addEventListener('click',()=>document.getElementById('collectionModal').classList.remove('open'));
 
@@ -1748,28 +1798,31 @@ function printContactSheet(id) {
 //  VIEW SWITCHING
 // ══════════════════════════════════════════════════════════════
 
-window.switchView=function(name, resetFilter=false){
+window.switchView=function(name){
   const target = document.querySelector(`#view-${name}`);
   if (!target) return;
-  if (resetFilter) activeFilter = 'all';
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   target.classList.add('active');
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
   if(name==='works') renderWorksGrid();
   if(name==='collections') renderCollections();
   if(name==='exhibitions') renderExhibitions();
+  if(name==='timeline') renderTimeline();
   document.querySelectorAll('#mobileNav .tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
+  document.querySelector('aside').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
 };
 
-document.querySelectorAll('header .tab-btn').forEach(b=>{ b.onclick=()=>window.switchView(b.dataset.view, b.dataset.view==='works'); });
-document.querySelectorAll('#mobileNav .tab-btn').forEach(b=>{ b.onclick=()=>window.switchView(b.dataset.view, b.dataset.view==='works'); });
+document.querySelectorAll('header .tab-btn').forEach(b=>{ b.onclick=()=>window.switchView(b.dataset.view); });
+document.querySelectorAll('#mobileNav .tab-btn').forEach(b=>{ b.onclick=()=>window.switchView(b.dataset.view); });
 
 // ══════════════════════════════════════════════════════════════
 //  MOBILE
 // ══════════════════════════════════════════════════════════════
 
 function showMobileNav(){ document.getElementById('mobileNav').style.display=window.innerWidth<=900?'flex':'none'; }
-document.getElementById('sidebarOverlay').addEventListener('click',()=>{});
+document.getElementById('mobileMenuBtn').addEventListener('click',()=>{ document.querySelector('aside').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('open'); });
+document.getElementById('sidebarOverlay').addEventListener('click',()=>{ document.querySelector('aside').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('open'); });
 showMobileNav(); window.addEventListener('resize',showMobileNav);
 
 // ══════════════════════════════════════════════════════════════
@@ -1777,7 +1830,7 @@ showMobileNav(); window.addEventListener('resize',showMobileNav);
 // ══════════════════════════════════════════════════════════════
 
 function renderAll() {
-  renderWorksGrid(); renderCollections(); renderExhibitions();
+  renderSidebar(); renderWorksGrid(); renderCollections(); renderExhibitions(); renderTimeline();
   document.getElementById('bioText').textContent=bio.text||'';
   document.getElementById('bioStatement').textContent=bio.statement||'';
 }
