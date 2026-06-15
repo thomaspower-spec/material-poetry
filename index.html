@@ -176,10 +176,6 @@
   .bio-view .bio-statement { font-family: var(--serif); font-size: 1rem; font-style: italic; line-height: 1.8; color: var(--mid); padding: 1.5rem 2rem; border-left: 2px solid var(--accent); margin-bottom: 2rem; }
   .bio-image-panel { display: flex; flex-direction: column; gap: 1rem; }
   .bio-image-primary { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; background: var(--panel); border-radius: 2px; }
-  .bio-image-thumbnails { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-  .bio-image-thumb { width: 50px; height: 70px; object-fit: cover; background: var(--panel); border-radius: 1px; cursor: pointer; border: 2px solid transparent; transition: border-color 0.15s, opacity 0.15s; }
-  .bio-image-thumb:hover { opacity: 0.8; }
-  .bio-image-thumb.active { border-color: var(--accent); }
 
   /* ── STATS ── */
   .stats-bar { display: flex; gap: 2.5rem; margin-bottom: 2.5rem; }
@@ -394,7 +390,6 @@
         </div>
         <div class="bio-image-panel" id="bioImagePanel" style="display:none;">
           <img class="bio-image-primary" id="bioImagePrimary" alt="">
-          <div class="bio-image-thumbnails" id="bioImageThumbnails"></div>
         </div>
       </div>
     </div>
@@ -1819,24 +1814,6 @@ function renderBioImages() {
   }
   panel.style.display = 'flex';
   document.getElementById('bioImagePrimary').src = allImages[0];
-  const thumbsDiv = document.getElementById('bioImageThumbnails');
-  thumbsDiv.innerHTML = '';
-  allImages.forEach((url, i) => {
-    const thumb = document.createElement('img');
-    thumb.className = `bio-image-thumb ${i === 0 ? 'active' : ''}`;
-    thumb.src = url;
-    thumb.addEventListener('click', () => {
-      document.querySelectorAll('.bio-image-thumb').forEach(t => t.classList.remove('active'));
-      thumb.classList.add('active');
-      document.getElementById('bioImagePrimary').src = url;
-      // Move to primary
-      const all = [...allImages];
-      all.splice(i, 1);
-      all.unshift(url);
-      bio.image_urls = all;
-    });
-    thumbsDiv.appendChild(thumb);
-  });
 }
 
 document.getElementById('editBioBtn').addEventListener('click', () => {
