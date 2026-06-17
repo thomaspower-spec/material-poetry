@@ -149,6 +149,8 @@
   .upload-zone input[type="file"] { display: none; }
   .upload-previews { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.7rem; }
   .upload-preview { width: 70px; height: 70px; object-fit: cover; border: 1px solid var(--light); }
+  .upload-drop-target { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+  #uploadPreviews > div:active { cursor: grabbing; }
   .form-actions { display: flex; justify-content: flex-end; gap: 0.7rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--light); }
 
   /* ── COLLECTIONS ── */
@@ -306,6 +308,23 @@
   }
   #imgFullscreenOverlay.loupe-active #fsloupeLens { display: block; }
 
+  /* ── IMAGE SET GRID OVERLAY ── */
+  #imgGridOverlay { display:none; position:fixed; inset:0; background:#000; z-index:1050; overflow-y:auto; padding:4.5rem 2rem 3rem; }
+  #imgGridOverlay.open { display:block; }
+  .grid-overlay-header { position:fixed; top:0; left:0; right:0; display:flex; align-items:center; justify-content:space-between; padding:1.2rem 2rem; background:linear-gradient(to bottom, rgba(0,0,0,0.7), transparent); z-index:2; }
+  .grid-overlay-title { color:rgba(255,255,255,0.85); font-family:var(--sans); font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase; }
+  .grid-overlay-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:0.6rem; max-width:1400px; margin:0 auto; }
+  .grid-overlay-item { position:relative; aspect-ratio:1; overflow:hidden; cursor:pointer; background:#111; border:2px solid transparent; transition:border-color 0.15s, opacity 0.15s; }
+  .grid-overlay-item:hover { opacity:0.85; }
+  .grid-overlay-item.is-current { border-color: var(--accent); }
+  .grid-overlay-item img, .grid-overlay-item video { width:100%; height:100%; object-fit:cover; display:block; }
+  .grid-overlay-item .grid-item-num { position:absolute; bottom:0.3rem; right:0.4rem; color:rgba(255,255,255,0.85); font-family:var(--sans); font-size:0.62rem; background:rgba(0,0,0,0.55); padding:0.1rem 0.4rem; border-radius:1px; }
+  .grid-overlay-item .grid-item-play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.85); font-size:1.4rem; }
+  @media (max-width: 600px) {
+    #imgGridOverlay { padding:4rem 1rem 2rem; }
+    .grid-overlay-grid { grid-template-columns:repeat(auto-fill, minmax(110px, 1fr)); gap:0.4rem; }
+  }
+
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--light); border-radius: 3px; }
 </style>
@@ -456,6 +475,7 @@
           <p>Images: JPG, PNG, WebP — Video: MP4, MOV — multiple files allowed</p>
         </label>
         <div class="upload-previews" id="uploadPreviews"></div>
+        <p id="uploadPreviewsHint" style="display:none;font-size:0.7rem;color:var(--light);margin-top:0.5rem;">Drag thumbnails to reorder · ★ sets the primary image · <button type="button" id="viewAllFromModalBtn" style="background:none;border:none;color:var(--accent);font-size:0.7rem;cursor:pointer;padding:0;text-decoration:underline;">view all full screen</button></p>
         <div id="uploadProgress" style="display:none;font-size:0.78rem;color:var(--mid);margin-top:0.4rem;"></div>
       </div>
     </div>
@@ -597,6 +617,7 @@
 <div id="toast"></div>
 <div id="printContactSheet"></div>
 <div id="imgFullscreenOverlay"></div>
+<div id="imgGridOverlay"></div>
 
 <script>
 // ══════════════════════════════════════════════════════════════
@@ -1148,7 +1169,7 @@ function renderCarousel() {
     ${total > 1 ? `
       <button class="carousel-btn carousel-prev" id="carouselPrev">‹</button>
       <button class="carousel-btn carousel-next" id="carouselNext">›</button>
-      <div class="carousel-counter">${carouselIndex + 1} / ${total}</div>
+      <button class="carousel-counter" id="carouselCounterBtn" title="View all images" style="border:none;cursor:pointer;display:flex;align-items:center;gap:0.35rem;">${carouselIndex + 1} / ${total} <span style="font-size:0.85rem;">⊞</span></button>
     ` : ''}
   `;
   // Apply loupe-active class based on current state
@@ -1158,6 +1179,7 @@ function renderCarousel() {
   if (total > 1) {
     document.getElementById('carouselPrev').addEventListener('click', e => { e.stopPropagation(); carouselIndex = (carouselIndex - 1 + total) % total; renderCarousel(); });
     document.getElementById('carouselNext').addEventListener('click', e => { e.stopPropagation(); carouselIndex = (carouselIndex + 1) % total; renderCarousel(); });
+    document.getElementById('carouselCounterBtn').addEventListener('click', e => { e.stopPropagation(); openImgGridOverlay(); });
   }
   if (!isVid) {
     document.getElementById('carouselFullscreen').addEventListener('click', e => {
@@ -1181,7 +1203,7 @@ function renderFsOverlay() {
   const nonVideoImages = carouselImages.filter(u => !isVideoUrl(u));
   const fsIndex = overlay.dataset.fsIndex = parseInt(overlay.dataset.fsIndex)||0;
   const src = nonVideoImages[fsIndex] || '';
-  const counter = nonVideoImages.length > 1 ? `<div class="carousel-counter">${fsIndex+1} / ${nonVideoImages.length}</div>` : '';
+  const counter = nonVideoImages.length > 1 ? `<button class="carousel-counter" id="fsCounterBtn" title="View all images" style="border:none;cursor:pointer;display:flex;align-items:center;gap:0.35rem;">${fsIndex+1} / ${nonVideoImages.length} <span style="font-size:0.85rem;">⊞</span></button>` : '';
   const arrows = nonVideoImages.length > 1 ? `
     <button class="carousel-btn carousel-prev" id="fsPrev">‹</button>
     <button class="carousel-btn carousel-next" id="fsNext">›</button>` : '';
@@ -1204,6 +1226,7 @@ function renderFsOverlay() {
   if (nonVideoImages.length > 1) {
     document.getElementById('fsPrev').addEventListener('click', e => { e.stopPropagation(); overlay.dataset.fsIndex=(fsIndex-1+nonVideoImages.length)%nonVideoImages.length; renderFsOverlay(); });
     document.getElementById('fsNext').addEventListener('click', e => { e.stopPropagation(); overlay.dataset.fsIndex=(fsIndex+1)%nonVideoImages.length; renderFsOverlay(); });
+    document.getElementById('fsCounterBtn').addEventListener('click', e => { e.stopPropagation(); openImgGridOverlay(); });
   }
   const fsLoupeBtnEl = document.getElementById('fsLoupeBtn');
   if (fsLoupeBtnEl) {
@@ -1356,6 +1379,77 @@ document.getElementById('imgFullscreenOverlay').addEventListener('click', e => {
   if (e.target === document.getElementById('imgFullscreenOverlay')) document.getElementById('imgFullscreenOverlay').classList.remove('open');
 });
 
+// ══════════════════════════════════════════════════════════════
+//  IMAGE SET — "VIEW ALL" GRID OVERLAY
+// ══════════════════════════════════════════════════════════════
+// Source can be the public/admin work carousel (carouselImages) or the
+// upload list inside the edit modal (existingImageUrls + pendingImageUrls).
+// gridOverlaySource tracks which one is currently being browsed.
+let gridOverlaySource = 'carousel'; // 'carousel' | 'upload'
+
+function openImgGridOverlay(source) {
+  gridOverlaySource = source || 'carousel';
+  renderImgGridOverlay();
+  document.getElementById('imgGridOverlay').classList.add('open');
+}
+
+function closeImgGridOverlay() {
+  document.getElementById('imgGridOverlay').classList.remove('open');
+}
+
+function renderImgGridOverlay() {
+  const overlay = document.getElementById('imgGridOverlay');
+  const fromUpload = gridOverlaySource === 'upload';
+  const list = fromUpload ? [...existingImageUrls, ...pendingImageUrls] : carouselImages;
+  const currentSrc = fromUpload ? null : carouselImages[carouselIndex];
+  const title = fromUpload
+    ? `${list.length} image${list.length!==1?'s':''} in this work — click to jump`
+    : `${list.length} image${list.length!==1?'s':''}`;
+
+  const itemsHtml = list.map((url, i) => {
+    const isVid = isVideoUrl(url);
+    const mediaHtml = isVid
+      ? `<video src="${url}" muted playsinline></video><span class="grid-item-play">▶</span>`
+      : `<img src="${url}" alt="" loading="lazy">`;
+    const isCurrent = !fromUpload && url === currentSrc;
+    return `<div class="grid-overlay-item${isCurrent?' is-current':''}" data-idx="${i}">${mediaHtml}<span class="grid-item-num">${i+1}</span></div>`;
+  }).join('');
+
+  overlay.innerHTML = `
+    <div class="grid-overlay-header">
+      <span class="grid-overlay-title">${title}</span>
+      <button id="gridOverlayClose" style="background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.2);color:#fff;width:36px;height:36px;font-size:1rem;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">✕</button>
+    </div>
+    <div class="grid-overlay-grid">${itemsHtml}</div>
+  `;
+
+  document.getElementById('gridOverlayClose').addEventListener('click', closeImgGridOverlay);
+  overlay.querySelectorAll('.grid-overlay-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.idx, 10);
+      if (fromUpload) {
+        // Just close — the thumbnail strip in the modal already shows this image;
+        // grid view here is for quick visual scanning of a large set, not selection.
+        closeImgGridOverlay();
+      } else {
+        carouselIndex = idx;
+        closeImgGridOverlay();
+        renderCarousel();
+      }
+    });
+  });
+}
+
+document.getElementById('imgGridOverlay').addEventListener('click', e => {
+  if (e.target.id === 'imgGridOverlay') closeImgGridOverlay();
+});
+
+document.addEventListener('keydown', e => {
+  if (document.getElementById('imgGridOverlay').classList.contains('open') && e.key === 'Escape') {
+    closeImgGridOverlay();
+  }
+});
+
 function openDetail(id) {
   const w = works.find(x => x.id === id);
   if (!w) return;
@@ -1427,13 +1521,56 @@ function getSelectedCollections() { return Array.from(document.querySelectorAll(
 // existingUrls is the current saved list; pendingImageUrls holds newly uploaded ones
 let existingImageUrls=[];
 
+let dragFromIndex=null;
+
+function reorderUploadList(fromIndex, toIndex) {
+  const all=[...existingImageUrls,...pendingImageUrls];
+  if(fromIndex===toIndex || fromIndex<0 || toIndex<0 || fromIndex>=all.length || toIndex>=all.length) return;
+  const [moved]=all.splice(fromIndex,1);
+  all.splice(toIndex,0,moved);
+  // Flatten into existingImageUrls (same pattern used by the star "set primary" handler)
+  existingImageUrls=all;
+  pendingImageUrls=[];
+  renderUploadPreviews();
+}
+
 function renderUploadPreviews() {
   const container=document.getElementById('uploadPreviews');
   container.innerHTML='';
   const all=[...existingImageUrls,...pendingImageUrls];
+  const hint=document.getElementById('uploadPreviewsHint');
+  hint.style.display = all.length>1 ? 'block' : 'none';
   all.forEach((url,i)=>{
     const wrap=document.createElement('div');
-    wrap.style.cssText='position:relative;display:inline-block;margin-right:4px;';
+    wrap.style.cssText='position:relative;display:inline-block;margin-right:4px;cursor:grab;';
+    wrap.draggable=true;
+    wrap.dataset.idx=i;
+
+    wrap.addEventListener('dragstart', e=>{
+      dragFromIndex=i;
+      wrap.style.opacity='0.4';
+      e.dataTransfer.effectAllowed='move';
+      // Firefox requires data to be set for drag to initiate
+      e.dataTransfer.setData('text/plain', String(i));
+    });
+    wrap.addEventListener('dragend', ()=>{
+      wrap.style.opacity='1';
+      dragFromIndex=null;
+      container.querySelectorAll('.upload-drop-target').forEach(el=>el.classList.remove('upload-drop-target'));
+    });
+    wrap.addEventListener('dragover', e=>{
+      e.preventDefault();
+      e.dataTransfer.dropEffect='move';
+      if(dragFromIndex===null || dragFromIndex===i) return;
+      wrap.classList.add('upload-drop-target');
+    });
+    wrap.addEventListener('dragleave', ()=>{ wrap.classList.remove('upload-drop-target'); });
+    wrap.addEventListener('drop', e=>{
+      e.preventDefault();
+      wrap.classList.remove('upload-drop-target');
+      if(dragFromIndex===null) return;
+      reorderUploadList(dragFromIndex, i);
+    });
 
     let mediaEl;
     if(isVideoUrl(url)){
@@ -1522,6 +1659,7 @@ function openWorkModal(id) {
 }
 
 document.getElementById('addWorkBtn').addEventListener('click',()=>openWorkModal(null));
+document.getElementById('viewAllFromModalBtn').addEventListener('click', e => { e.preventDefault(); openImgGridOverlay('upload'); });
 document.getElementById('cancelWorkBtn').addEventListener('click',()=>document.getElementById('workModal').classList.remove('open'));
 
 // Auto-fill year from date picker
