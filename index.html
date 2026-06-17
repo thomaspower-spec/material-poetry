@@ -1226,7 +1226,7 @@ function renderFsOverlay() {
   if (nonVideoImages.length > 1) {
     document.getElementById('fsPrev').addEventListener('click', e => { e.stopPropagation(); overlay.dataset.fsIndex=(fsIndex-1+nonVideoImages.length)%nonVideoImages.length; renderFsOverlay(); });
     document.getElementById('fsNext').addEventListener('click', e => { e.stopPropagation(); overlay.dataset.fsIndex=(fsIndex+1)%nonVideoImages.length; renderFsOverlay(); });
-    document.getElementById('fsCounterBtn').addEventListener('click', e => { e.stopPropagation(); openImgGridOverlay(); });
+    document.getElementById('fsCounterBtn').addEventListener('click', e => { e.stopPropagation(); openImgGridOverlay('fullscreen'); });
   }
   const fsLoupeBtnEl = document.getElementById('fsLoupeBtn');
   if (fsLoupeBtnEl) {
@@ -1385,7 +1385,7 @@ document.getElementById('imgFullscreenOverlay').addEventListener('click', e => {
 // Source can be the public/admin work carousel (carouselImages) or the
 // upload list inside the edit modal (existingImageUrls + pendingImageUrls).
 // gridOverlaySource tracks which one is currently being browsed.
-let gridOverlaySource = 'carousel'; // 'carousel' | 'upload'
+let gridOverlaySource = 'carousel'; // 'carousel' | 'upload' | 'fullscreen'
 
 function openImgGridOverlay(source) {
   gridOverlaySource = source || 'carousel';
@@ -1400,8 +1400,16 @@ function closeImgGridOverlay() {
 function renderImgGridOverlay() {
   const overlay = document.getElementById('imgGridOverlay');
   const fromUpload = gridOverlaySource === 'upload';
+  const fromFullscreen = gridOverlaySource === 'fullscreen';
   const list = fromUpload ? [...existingImageUrls, ...pendingImageUrls] : carouselImages;
-  const currentSrc = fromUpload ? null : carouselImages[carouselIndex];
+  let currentSrc = null;
+  if (fromFullscreen) {
+    const nonVideoImages = carouselImages.filter(u => !isVideoUrl(u));
+    const fsIdx = parseInt(document.getElementById('imgFullscreenOverlay').dataset.fsIndex) || 0;
+    currentSrc = nonVideoImages[fsIdx];
+  } else if (!fromUpload) {
+    currentSrc = carouselImages[carouselIndex];
+  }
   const title = fromUpload
     ? `${list.length} image${list.length!==1?'s':''} in this work — click to jump`
     : `${list.length} image${list.length!==1?'s':''}`;
@@ -1433,6 +1441,18 @@ function renderImgGridOverlay() {
     const idx = parseInt(item.dataset.idx, 10);
     if (fromUpload) {
       closeImgGridOverlay();
+    } else if (fromFullscreen) {
+      // Selecting from the grid while in fullscreen should update the fullscreen
+      // view itself (which tracks its own index over non-video images only),
+      // not just the carousel underneath it.
+      const nonVideoImages = carouselImages.filter(u => !isVideoUrl(u));
+      const fsOverlay = document.getElementById('imgFullscreenOverlay');
+      const newFsIdx = nonVideoImages.indexOf(list[idx]);
+      fsOverlay.dataset.fsIndex = Math.max(0, newFsIdx);
+      carouselIndex = idx;
+      closeImgGridOverlay();
+      renderFsOverlay();
+      renderCarousel(); // keep the carousel underneath in sync for when fullscreen is closed
     } else {
       carouselIndex = idx;
       closeImgGridOverlay();
