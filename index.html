@@ -255,18 +255,18 @@
   }
 
   /* ── PRINT ── */
+  @page { size: A4; margin: 0; }
   @media print {
-    body * { visibility: hidden !important; }
-    #printContactSheet, #printContactSheet * { visibility: visible !important; }
-    #printContactSheet { position: fixed; inset: 0; background: white; padding: 0; margin: 0; }
+    .shell, #toast, #imgFullscreenOverlay, #imgGridOverlay, #previewBanner { display: none !important; }
+    #printContactSheet { display: block !important; }
   }
   #printContactSheet { display: none; font-family: var(--sans); color: #1a1814; background: white; }
   .print-header { padding: 1.4cm 2cm 0.6cm; border-bottom: 2px solid #1a1814; }
   .print-header h1 { font-family: var(--serif); font-size: 20pt; font-weight: 300; font-style: italic; margin-bottom: 4pt; }
   .print-header .print-meta { font-size: 9pt; color: #6b6660; letter-spacing: 0.08em; }
   .print-works-grid { padding: 0.6cm 2cm; display: flex; flex-direction: column; gap: 0.45cm; }
-  .print-work-item { display: grid; grid-template-columns: 3fr 1fr; gap: 14pt; page-break-inside: avoid; align-items: stretch; height: 5.7cm; }
-  .print-work-thumb { width: 100%; height: 100%; object-fit: cover; background: #f0ece5; display: block; }
+  .print-work-item { display: grid; grid-template-columns: 3fr 1fr; grid-template-rows: 5.7cm; gap: 14pt; page-break-inside: avoid; }
+  .print-work-thumb { width: 100%; height: 100%; min-height: 0; object-fit: cover; background: #f0ece5; display: block; }
   .print-work-info { padding: 4pt 0; display: flex; flex-direction: column; justify-content: flex-start; }
   .print-work-title { font-family: var(--serif); font-size: 13pt; font-style: italic; font-weight: 400; margin-bottom: 6pt; }
   .print-work-meta { font-size: 9pt; color: #6b6660; line-height: 1.7; }
