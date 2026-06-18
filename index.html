@@ -318,7 +318,6 @@
   .grid-overlay-item:hover { opacity:0.85; }
   .grid-overlay-item.is-current { border-color: var(--accent); }
   .grid-overlay-item img, .grid-overlay-item video { width:100%; height:100%; object-fit:cover; display:block; }
-  .grid-overlay-item .grid-item-num { position:absolute; bottom:0.3rem; right:0.4rem; color:rgba(255,255,255,0.85); font-family:var(--sans); font-size:0.62rem; background:rgba(0,0,0,0.55); padding:0.1rem 0.4rem; border-radius:1px; }
   .grid-overlay-item .grid-item-play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.85); font-size:1.4rem; }
   @media (max-width: 600px) {
     #imgGridOverlay { padding:4rem 1rem 2rem; }
@@ -534,7 +533,7 @@
       </div>
       <div id="exDetailWorks" style="display:flex;flex-direction:column;gap:0.7rem;max-height:55vh;overflow-y:auto;margin-bottom:1.5rem;"></div>
       <div style="display:flex;gap:0.7rem;flex-wrap:wrap;border-top:1px solid var(--light);padding-top:1.2rem;">
-        <button class="btn" id="exDetailPrintBtn">⎙ Print Contact Sheet</button>
+        <button class="btn admin-only" id="exDetailPrintBtn">⎙ Print Contact Sheet</button>
         <button class="btn admin-only" id="exDetailEditBtn">Edit</button>
         <button class="btn admin-only" style="color:var(--accent);border-color:var(--accent);" id="exDetailDeleteBtn">Delete</button>
       </div>
@@ -990,15 +989,19 @@ function renderWorksGrid() {
   // Show/hide collection heading
   let heading = document.getElementById('collectionHeading');
   if (!heading) {
-    heading = document.createElement('h2');
+    heading = document.createElement('div');
     heading.id = 'collectionHeading';
-    heading.style.cssText = 'font-family:var(--serif);font-size:1.6rem;font-weight:300;font-style:italic;margin-bottom:1.2rem;color:var(--ink);';
+    heading.style.cssText = 'display:flex;align-items:baseline;justify-content:space-between;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap;';
     grid.parentNode.insertBefore(heading, grid);
   }
   if (activeFilter !== 'all') {
     const col = getCollection(activeFilter);
-    heading.textContent = col ? col.name : '';
-    heading.style.display = 'block';
+    const canPrint = col && (isAdmin() || (isPreviewMode && col.share_token === previewToken));
+    const printBtn = canPrint
+      ? `<button class="btn" style="font-size:0.7rem;padding:0.35rem 0.9rem;" onclick="printContactSheetForCollection('${col.id}')">⎙ Print Contact Sheet</button>`
+      : '';
+    heading.innerHTML = `<h2 style="font-family:var(--serif);font-size:1.6rem;font-weight:300;font-style:italic;color:var(--ink);">${col ? col.name : ''}</h2>${printBtn}`;
+    heading.style.display = 'flex';
   } else {
     heading.style.display = 'none';
   }
@@ -1049,7 +1052,8 @@ function renderCollections() {
       adminControls=badge+shareBtn;
     }
     const editBtn=isAdmin()?`<button class="btn" style="font-size:0.72rem;padding:0.3rem 0.8rem;margin-top:0.7rem;" onclick="event.stopPropagation();openCollectionModal('${c.id}')">Edit</button>`:'';
-    card.innerHTML=`<div style="position:relative;">${adminControls}<div class="collection-strip">${thumbs}${empties}</div></div><div class="collection-meta"><h3>${c.name}</h3><p>${cWorks.length} work${cWorks.length!==1?'s':''}${c.description?' — '+c.description:''}</p>${editBtn}</div>`;
+    const printBtn=isAdmin()?`<button class="btn" style="font-size:0.72rem;padding:0.3rem 0.8rem;margin-top:0.7rem;margin-left:0.5rem;" onclick="event.stopPropagation();printContactSheetForCollection('${c.id}')">⎙ Print</button>`:'';
+    card.innerHTML=`<div style="position:relative;">${adminControls}<div class="collection-strip">${thumbs}${empties}</div></div><div class="collection-meta"><h3>${c.name}</h3><p>${cWorks.length} work${cWorks.length!==1?'s':''}${c.description?' — '+c.description:''}</p>${editBtn}${printBtn}</div>`;
     card.addEventListener('click',()=>{ activeFilter=c.id; renderWorksGrid(); window.switchView('works'); });
     grid.appendChild(card);
   });
@@ -1420,7 +1424,7 @@ function renderImgGridOverlay() {
       ? `<video src="${url}" muted playsinline></video><span class="grid-item-play">▶</span>`
       : `<img src="${url}" alt="">`;
     const isCurrent = !fromUpload && url === currentSrc;
-    return `<div class="grid-overlay-item${isCurrent?' is-current':''}" data-idx="${i}">${mediaHtml}<span class="grid-item-num">${i+1}</span></div>`;
+    return `<div class="grid-overlay-item${isCurrent?' is-current':''}" data-idx="${i}">${mediaHtml}</div>`;
   }).join('');
 
   overlay.innerHTML = `
@@ -2039,6 +2043,18 @@ function printContactSheet(id) {
   }).join('');
   const sheet=document.getElementById('printContactSheet');
   sheet.innerHTML=`<div class="print-header"><div style="font-size:7.5pt;letter-spacing:0.15em;text-transform:uppercase;color:#6b6660;margin-bottom:6pt;">Material Poetry — Exhibition Contact Sheet</div><h1>${ex.name}</h1><div class="print-meta">${[ex.place,dateStr].filter(Boolean).join(' · ')}${exWorks.length?' · '+exWorks.length+' work'+(exWorks.length!==1?'s':''):''}</div></div><div class="print-works-grid">${worksHtml}</div>`;
+  sheet.style.display='block'; window.print(); sheet.style.display='none';
+}
+
+function printContactSheetForCollection(id) {
+  const c=collections.find(x=>x.id===id);
+  if(!c) return;
+  const cWorks=visibleWorks().filter(w=>(w.collection_ids||[]).includes(c.id));
+  const worksHtml=cWorks.map((w,i)=>{
+    return `<div class="print-work-item"><img class="print-work-thumb" src="${thumbFor(w,180,136)}" alt="${w.title}"><div class="print-work-info"><div class="print-work-title">${i+1}. ${w.title}</div><div class="print-work-meta">${w.year?`<strong>${w.year}</strong>`:''} ${w.medium?`<br>${w.medium}`:''} ${w.dimensions?`<br>${w.dimensions}`:''}</div>${w.notes&&isAdmin()?`<div class="print-work-notes">${w.notes}</div>`:''}</div></div>`;
+  }).join('');
+  const sheet=document.getElementById('printContactSheet');
+  sheet.innerHTML=`<div class="print-header"><div style="font-size:7.5pt;letter-spacing:0.15em;text-transform:uppercase;color:#6b6660;margin-bottom:6pt;">Material Poetry — Collection Contact Sheet</div><h1>${c.name}</h1><div class="print-meta">${[c.description,cWorks.length?cWorks.length+' work'+(cWorks.length!==1?'s':''):''].filter(Boolean).join(' · ')}</div></div><div class="print-works-grid">${worksHtml}</div>`;
   sheet.style.display='block'; window.print(); sheet.style.display='none';
 }
 
