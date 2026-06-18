@@ -255,16 +255,16 @@
   }
 
   /* ── PRINT ── */
-  @page { size: A4; margin: 0; }
+  @page { size: A4; margin: 1cm; }
   @media print {
     .shell, #toast, #imgFullscreenOverlay, #imgGridOverlay, #previewBanner { display: none !important; }
     #printContactSheet { display: block !important; }
   }
   #printContactSheet { display: none; font-family: var(--sans); color: #1a1814; background: white; }
-  .print-header { padding: 1.4cm 2cm 0.6cm; border-bottom: 2px solid #1a1814; }
+  .print-header { padding: 0 1cm 0.4cm; border-bottom: 2px solid #1a1814; }
   .print-header h1 { font-family: var(--serif); font-size: 20pt; font-weight: 300; font-style: italic; margin-bottom: 4pt; }
   .print-header .print-meta { font-size: 9pt; color: #6b6660; letter-spacing: 0.08em; }
-  .print-works-grid { padding: 0.6cm 2cm; display: block; }
+  .print-works-grid { padding: 0.3cm 1cm; display: block; }
   .print-work-item + .print-work-item { margin-top: 0.45cm; }
   .print-work-item { display: table; width: 100%; table-layout: fixed; page-break-inside: avoid; break-inside: avoid-page; }
   .print-work-thumb-cell { display: table-cell; width: 72%; height: 5.7cm; overflow: hidden; }
