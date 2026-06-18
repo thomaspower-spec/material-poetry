@@ -266,9 +266,10 @@
   .print-header .print-meta { font-size: 9pt; color: #6b6660; letter-spacing: 0.08em; }
   .print-works-grid { padding: 0.6cm 2cm; display: block; }
   .print-work-item + .print-work-item { margin-top: 0.45cm; }
-  .print-work-item { display: block; page-break-inside: avoid; break-inside: avoid-page; overflow: hidden; height: 5.7cm; }
-  .print-work-thumb { float: left; width: 72%; height: 5.7cm; margin-right: 4%; object-fit: cover; background: #f0ece5; display: block; }
-  .print-work-info { float: right; width: 24%; height: 5.7cm; padding: 4pt 0; box-sizing: border-box; }
+  .print-work-item { display: table; width: 100%; table-layout: fixed; page-break-inside: avoid; break-inside: avoid-page; }
+  .print-work-thumb-cell { display: table-cell; width: 72%; height: 5.7cm; overflow: hidden; }
+  .print-work-thumb { display: block; width: 100%; height: 100%; object-fit: cover; background: #f0ece5; }
+  .print-work-info { display: table-cell; width: 28%; height: 5.7cm; padding: 4pt 0 4pt 14pt; vertical-align: top; box-sizing: border-box; }
   .print-work-title { font-family: var(--serif); font-size: 13pt; font-style: italic; font-weight: 400; margin-bottom: 6pt; }
   .print-work-meta { font-size: 9pt; color: #6b6660; line-height: 1.7; }
 
@@ -2030,6 +2031,27 @@ document.getElementById('saveBioBtn').addEventListener('click', async () => {
 //  PRINT CONTACT SHEET
 // ══════════════════════════════════════════════════════════════
 
+function waitForImagesThenPrint(sheet) {
+  const imgs = Array.from(sheet.querySelectorAll('img'));
+  const pending = imgs.filter(img => !img.complete);
+  if (!pending.length) {
+    // Still defer one frame so layout has settled even when everything was already cached
+    requestAnimationFrame(() => requestAnimationFrame(() => { window.print(); sheet.style.display = 'none'; }));
+    return;
+  }
+  let remaining = pending.length;
+  const done = () => {
+    remaining--;
+    if (remaining <= 0) {
+      requestAnimationFrame(() => requestAnimationFrame(() => { window.print(); sheet.style.display = 'none'; }));
+    }
+  };
+  pending.forEach(img => {
+    img.addEventListener('load', done, { once: true });
+    img.addEventListener('error', done, { once: true }); // don't hang forever on a broken image
+  });
+}
+
 function printContactSheet(id) {
   const ex=exhibitions.find(e=>e.id===id);
   if(!ex) return;
@@ -2039,11 +2061,12 @@ function printContactSheet(id) {
   const dateStr=start?(end&&end!==start?`${start} – ${end}`:start):'';
   const worksHtml=exWorks.map((w,i)=>{
     const colNames=(w.collection_ids||[]).map(cid=>{const c=getCollection(cid);return c?c.name:null;}).filter(Boolean);
-    return `<div class="print-work-item"><img class="print-work-thumb" src="${thumbFor(w,600,460)}" alt="${w.title}"><div class="print-work-info"><div class="print-work-title">${i+1}. ${w.title}</div><div class="print-work-meta">${w.year?`<strong>${w.year}</strong>`:''} ${w.medium?`<br>${w.medium}`:''} ${w.dimensions?`<br>${w.dimensions}`:''} ${colNames.length?`<br><em>${colNames.join(', ')}</em>`:''}</div></div></div>`;
+    return `<div class="print-work-item"><div class="print-work-thumb-cell"><img class="print-work-thumb" src="${thumbFor(w,600,460)}" alt="${w.title}"></div><div class="print-work-info"><div class="print-work-title">${i+1}. ${w.title}</div><div class="print-work-meta">${w.year?`<strong>${w.year}</strong>`:''} ${w.medium?`<br>${w.medium}`:''} ${w.dimensions?`<br>${w.dimensions}`:''} ${colNames.length?`<br><em>${colNames.join(', ')}</em>`:''}</div></div></div>`;
   }).join('');
   const sheet=document.getElementById('printContactSheet');
   sheet.innerHTML=`<div class="print-header"><div style="font-size:7.5pt;letter-spacing:0.15em;text-transform:uppercase;color:#6b6660;margin-bottom:6pt;">Material Poetry — Exhibition Contact Sheet</div><h1>${ex.name}</h1><div class="print-meta">${[ex.place,dateStr].filter(Boolean).join(' · ')}${exWorks.length?' · '+exWorks.length+' work'+(exWorks.length!==1?'s':''):''}</div></div><div class="print-works-grid">${worksHtml}</div>`;
-  sheet.style.display='block'; window.print(); sheet.style.display='none';
+  sheet.style.display='block';
+  waitForImagesThenPrint(sheet);
 }
 
 function printContactSheetForCollection(id) {
@@ -2051,11 +2074,12 @@ function printContactSheetForCollection(id) {
   if(!c) return;
   const cWorks=visibleWorks().filter(w=>(w.collection_ids||[]).includes(c.id));
   const worksHtml=cWorks.map((w,i)=>{
-    return `<div class="print-work-item"><img class="print-work-thumb" src="${thumbFor(w,600,460)}" alt="${w.title}"><div class="print-work-info"><div class="print-work-title">${i+1}. ${w.title}</div><div class="print-work-meta">${w.year?`<strong>${w.year}</strong>`:''} ${w.medium?`<br>${w.medium}`:''} ${w.dimensions?`<br>${w.dimensions}`:''}</div></div></div>`;
+    return `<div class="print-work-item"><div class="print-work-thumb-cell"><img class="print-work-thumb" src="${thumbFor(w,600,460)}" alt="${w.title}"></div><div class="print-work-info"><div class="print-work-title">${i+1}. ${w.title}</div><div class="print-work-meta">${w.year?`<strong>${w.year}</strong>`:''} ${w.medium?`<br>${w.medium}`:''} ${w.dimensions?`<br>${w.dimensions}`:''}</div></div></div>`;
   }).join('');
   const sheet=document.getElementById('printContactSheet');
   sheet.innerHTML=`<div class="print-header"><div style="font-size:7.5pt;letter-spacing:0.15em;text-transform:uppercase;color:#6b6660;margin-bottom:6pt;">Material Poetry — Collection Contact Sheet</div><h1>${c.name}</h1><div class="print-meta">${[c.description,cWorks.length?cWorks.length+' work'+(cWorks.length!==1?'s':''):''].filter(Boolean).join(' · ')}</div></div><div class="print-works-grid">${worksHtml}</div>`;
-  sheet.style.display='block'; window.print(); sheet.style.display='none';
+  sheet.style.display='block';
+  waitForImagesThenPrint(sheet);
 }
 
 // ══════════════════════════════════════════════════════════════
