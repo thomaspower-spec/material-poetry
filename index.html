@@ -1208,7 +1208,7 @@ function renderFsOverlay() {
     <button class="carousel-btn carousel-prev" id="fsPrev">‹</button>
     <button class="carousel-btn carousel-next" id="fsNext">›</button>` : '';
   const fsLoupeBtn = !('ontouchstart' in window)
-    ? `<button id="fsLoupeBtn" title="${loupeEnabled ? 'Disable loupe' : 'Enable loupe'}" style="position:fixed;bottom:1.5rem;left:1.5rem;background:${loupeEnabled ? 'rgba(139,74,47,0.75)' : 'rgba(0,0,0,0.45)'};border:1px solid ${loupeEnabled ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)'};color:var(--white);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">🔍</button>`
+    ? `<button id="fsLoupeBtn" title="${loupeEnabled ? 'Disable loupe' : 'Enable loupe'}" style="position:fixed;bottom:1.5rem;right:1.5rem;background:${loupeEnabled ? 'rgba(139,74,47,0.75)' : 'rgba(0,0,0,0.45)'};border:1px solid ${loupeEnabled ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)'};color:var(--white);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">🔍</button>`
     : '';
   overlay.innerHTML = `
     <button id="fsCloseBtn">✕</button>
