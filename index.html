@@ -4,9 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Material Poetry — Cerlin</title>
-
-
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -39,15 +37,6 @@
   .tab-btn.active { background: var(--ink); color: var(--white); }
   .tab-btn:hover:not(.active) { background: var(--panel); color: var(--ink); }
 
-  /* ── SIDEBAR ── */
-  aside { border-right: 1px solid var(--light); padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 2rem; background: var(--cream); }
-  .sidebar-section h3 { font-family: var(--sans); font-size: 0.65rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--light); margin-bottom: 0.8rem; }
-  .sidebar-list { list-style: none; display: flex; flex-direction: column; gap: 0.2rem; }
-  .sidebar-list li button { display: block; width: 100%; text-align: left; padding: 0.4rem 0.7rem; font-family: var(--sans); font-size: 0.82rem; font-weight: 300; color: var(--mid); background: none; border: none; cursor: pointer; border-radius: 2px; transition: background 0.12s, color 0.12s; }
-  .sidebar-list li button:hover, .sidebar-list li button.active { background: var(--panel); color: var(--ink); }
-  .add-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.7rem; font-family: var(--sans); font-size: 0.78rem; font-weight: 400; letter-spacing: 0.05em; color: var(--accent); background: none; border: 1px dashed var(--accent); cursor: pointer; border-radius: 2px; width: 100%; margin-top: 0.4rem; transition: background 0.12s; }
-  .add-btn:hover { background: rgba(139,74,47,0.05); }
-
   /* ── MAIN ── */
   main { padding: 1.5rem 2rem; overflow-y: auto; }
   .view { display: none; }
@@ -68,11 +57,6 @@
   .btn.accent:hover { background: #7a3f27; border-color: #7a3f27; }
   .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
-  /* ── SEARCH ── */
-  .search-row { display: flex; gap: 1rem; margin-bottom: 2rem; align-items: center; flex-wrap: wrap; }
-  .search-input { flex: 1; padding: 0.6rem 1rem; background: var(--white); border: 1px solid var(--light); font-family: var(--sans); font-size: 0.85rem; font-weight: 300; color: var(--ink); border-radius: 2px; outline: none; transition: border-color 0.15s; }
-  .search-input:focus { border-color: var(--ink); }
-  .search-input::placeholder { color: var(--light); }
   select.filter-select { padding: 0.6rem 1rem; background: var(--white); border: 1px solid var(--light); font-family: var(--sans); font-size: 0.8rem; color: var(--mid); border-radius: 2px; outline: none; cursor: pointer; }
 
   /* ── WORKS GRID — masonry via manual columns ── */
@@ -179,12 +163,6 @@
   .bio-image-panel { display: flex; flex-direction: column; gap: 1rem; }
   .bio-image-primary { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; background: var(--panel); border-radius: 2px; }
 
-  /* ── STATS ── */
-  .stats-bar { display: flex; gap: 2.5rem; margin-bottom: 2.5rem; }
-  .stat { display: flex; flex-direction: column; gap: 0.2rem; }
-  .stat-num { font-family: var(--serif); font-size: 2rem; font-weight: 300; line-height: 1; }
-  .stat-label { font-size: 0.65rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mid); }
-
   /* ── EMPTY STATE ── */
   .empty-state { text-align: center; padding: 5rem 2rem; color: var(--light); }
   .empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
@@ -220,15 +198,8 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* ── MOBILE ── */
-  .mobile-menu-btn { display: none; background: none; border: 1px solid var(--light); color: var(--ink); width: 36px; height: 36px; font-size: 1.1rem; cursor: pointer; border-radius: 2px; align-items: center; justify-content: center; flex-shrink: 0; }
-  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(26,24,20,0.4); z-index: 150; }
-  .sidebar-overlay.open { display: block; }
-
   @media (max-width: 900px) {
     .shell { grid-template-columns: 1fr; }
-    aside { position: fixed; top: 0; left: -280px; width: 260px; height: 100vh; overflow-y: auto; z-index: 160; padding: 5rem 1.5rem 2rem; transition: left 0.25s ease; box-shadow: 4px 0 24px rgba(26,24,20,0.12); }
-    aside.open { left: 0; }
-    .mobile-menu-btn { display: flex; }
     .header-tabs { display: none; }
     .mobile-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: var(--cream); border-top: 1px solid var(--light); z-index: 100; }
     header { padding: 1rem 1.2rem; gap: 1rem; align-items: center; }
@@ -336,7 +307,6 @@
 
 <div class="shell">
   <header>
-    <button class="mobile-menu-btn" id="mobileMenuBtn" style="display:none;">☰</button>
     <div class="logo">Material <em>Poetry</em></div>
     <nav class="header-tabs">
       <button class="tab-btn active" data-view="works">Works</button>
@@ -348,8 +318,6 @@
     <button class="mode-badge" id="adminLoginBtn" style="display:none;">Admin</button>
   </header>
 
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
   <nav class="mobile-nav" id="mobileNav" style="display:none;">
     <button class="tab-btn active" data-view="works"><span class="nav-icon">◻</span>Works</button>
     <button class="tab-btn" data-view="collections"><span class="nav-icon">⊞</span>Collections</button>
@@ -360,7 +328,8 @@
   <main>
     <!-- WORKS -->
     <div class="view active" id="view-works">
-      <div class="page-actions" style="display:flex;justify-content:flex-end;padding:1rem 0 1.5rem;">
+      <div class="page-actions" style="display:flex;justify-content:flex-end;align-items:center;gap:0.7rem;padding:1rem 0 1.5rem;" id="worksActions">
+        <span id="collectionActions" style="display:none;gap:0.7rem;align-items:center;"></span>
         <button class="btn primary admin-only" id="addWorkBtn">+ Add Work</button>
       </div>
       <div class="works-grid" id="worksGrid"></div>
@@ -535,6 +504,7 @@
       <div id="exDetailWorks" style="display:flex;flex-direction:column;gap:0.7rem;max-height:55vh;overflow-y:auto;margin-bottom:1.5rem;"></div>
       <div style="display:flex;gap:0.7rem;flex-wrap:wrap;border-top:1px solid var(--light);padding-top:1.2rem;">
         <button class="btn admin-only" id="exDetailPrintBtn">⎙ Print Contact Sheet</button>
+        <button class="btn admin-only" id="exDetailExportBtn">⬇ Export Zip</button>
         <button class="btn admin-only" id="exDetailEditBtn">Edit</button>
         <button class="btn admin-only" style="color:var(--accent);border-color:var(--accent);" id="exDetailDeleteBtn">Delete</button>
       </div>
@@ -625,11 +595,11 @@
 // ══════════════════════════════════════════════════════════════
 
 const CONFIG = {
+  
   SUPABASE_URL: 'https://wowtdwlpatpqjzlqpqcj.supabase.co',
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indvd3Rkd2xwYXRwcWp6bHFwcWNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MTAzMjcsImV4cCI6MjA5MzM4NjMyN30.EA32PGNEmFMesy-Fq3HtKUbZdZ4aPxRSM6L6wLEoXNk',
   CLOUDINARY_CLOUD_NAME: 'dgimf8yud',
   CLOUDINARY_UPLOAD_PRESET: 'material-poetry',
-  // The public URL of this site — used to generate preview share links
   SITE_URL: 'https://material-poetry.netlify.app',
 };
 
@@ -714,10 +684,9 @@ let activeFilter='all', activeTagFilter=null, activeMediumFilter=null;
 let editingWorkId=null, editingExhibitionId=null, currentExhibitionId=null;
 let editingCollectionId=null;
 let exhibitionSelectedWorks=[];
-let pendingImageUrls=[]; // array of Cloudinary URLs uploaded in current modal session
-let previewToken=null; // set if accessing via ?preview=TOKEN
+let pendingImageUrls=[];
+let previewToken=null;
 let isPreviewMode=false;
-let galleryMode = false; // kept for compatibility but always true now
 
 function isAdmin() { return document.body.classList.contains('admin'); }
 function uid() { return Math.random().toString(36).slice(2,9) + Math.random().toString(36).slice(2,9); }
@@ -892,7 +861,7 @@ function allImagesFor(w) {
 // Falls back to the original URL unchanged if it's not a Cloudinary URL.
 function cloudinaryPrintUrl(url) {
   if (!url) return url;
-  return url.replace(/\/upload\/(?!w_)/, '/upload/w_900,q_55,f_auto/');
+  return url.replace(/\/upload\/(?!w_)/, '/upload/w_500,q_50,f_auto/');
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -905,88 +874,8 @@ function getAllMediums() { const s=new Set(); visibleWorks().forEach(w=>{if(w.me
 function getAllYears() { const s=new Set(); visibleWorks().forEach(w=>{if(w.year)s.add(w.year);}); return [...s].sort((a,b)=>b-a); }
 
 // ══════════════════════════════════════════════════════════════
-//  SIDEBAR
-// ══════════════════════════════════════════════════════════════
-
-function renderSidebar() {
-  const colList=document.getElementById('sidebarCollections');
-  colList.innerHTML='';
-  const allLi=document.createElement('li');
-  const allBtn=document.createElement('button');
-  allBtn.textContent='All Works';
-  allBtn.className=activeFilter==='all'?'active':'';
-  allBtn.addEventListener('click',()=>{ activeFilter='all'; activeTagFilter=null; activeMediumFilter=null; renderSidebar(); renderWorksGrid(); window.switchView('works'); });
-  allLi.appendChild(allBtn); colList.appendChild(allLi);
-
-  // Only show collections that are visible at current access level
-  const visibleCollections = isAdmin() ? collections : collections.filter(c =>
-    c.visibility === 'published' || (isPreviewMode && c.share_token === previewToken)
-  );
-
-  visibleCollections.forEach(c => {
-    const li=document.createElement('li');
-    const btn=document.createElement('button');
-    btn.textContent=c.name;
-    btn.className=activeFilter===c.id?'active':'';
-    btn.addEventListener('click',()=>{ activeFilter=c.id; activeTagFilter=null; activeMediumFilter=null; renderSidebar(); renderWorksGrid(); window.switchView('works'); });
-    li.appendChild(btn); colList.appendChild(li);
-  });
-
-  renderTagList(document.getElementById('tagSearch').value);
-  renderSidebarMediums();
-}
-
-function renderTagList(query) {
-  const tagList=document.getElementById('sidebarTags');
-  tagList.innerHTML='';
-  getAllTags().filter(t=>!query||t.toLowerCase().includes(query.toLowerCase())).forEach(t=>{
-    const li=document.createElement('li');
-    const btn=document.createElement('button');
-    const count=visibleWorks().filter(w=>(w.tags||[]).includes(t)).length;
-    btn.innerHTML=`${t} <span style="color:var(--light);font-size:0.7rem;">${count}</span>`;
-    btn.className=activeTagFilter===t?'active':'';
-    btn.addEventListener('click',()=>{ activeTagFilter=activeTagFilter===t?null:t; activeMediumFilter=null; renderTagList(query); renderSidebarMediums(); window.switchView('works'); });
-    li.appendChild(btn); tagList.appendChild(li);
-  });
-}
-
-function renderSidebarMediums() {
-  const list=document.getElementById('sidebarMediums');
-  list.innerHTML='';
-  getAllMediums().forEach(m=>{
-    const li=document.createElement('li');
-    const btn=document.createElement('button');
-    btn.textContent=m;
-    btn.className=activeMediumFilter===m?'active':'';
-    btn.addEventListener('click',()=>{ activeMediumFilter=activeMediumFilter===m?null:m; activeTagFilter=null; renderSidebarMediums(); renderTagList(document.getElementById('tagSearch').value); window.switchView('works'); });
-    li.appendChild(btn); list.appendChild(li);
-  });
-}
-
-// ══════════════════════════════════════════════════════════════
 //  WORKS GRID
 // ══════════════════════════════════════════════════════════════
-
-function filterWorks() {
-  let ws = visibleWorks();
-  if (activeFilter!=='all') ws=ws.filter(w=>(w.collection_ids||[]).includes(activeFilter));
-  const q=document.getElementById('searchWorks').value.toLowerCase();
-  if(q) ws=ws.filter(w=>w.title.toLowerCase().includes(q)||(w.tags||[]).join(' ').includes(q)||(w.medium||'').toLowerCase().includes(q));
-  const yr=document.getElementById('filterYear').value;
-  if(yr) ws=ws.filter(w=>String(w.year)===yr);
-  const med=document.getElementById('filterMedium').value;
-  if(med) ws=ws.filter(w=>(w.medium||'').startsWith(med));
-  if(activeTagFilter) ws=ws.filter(w=>(w.tags||[]).includes(activeTagFilter));
-  if(activeMediumFilter) ws=ws.filter(w=>(w.medium||'').startsWith(activeMediumFilter));
-  ws.sort((a,b)=>{
-    // Sort by full date if available, otherwise by year, then title
-    if(a.work_date&&b.work_date) return b.work_date.localeCompare(a.work_date);
-    if(a.work_date&&!b.work_date) return String(b.year||0).localeCompare(a.work_date.slice(0,4))>=0?1:-1;
-    if(!a.work_date&&b.work_date) return a.work_date?1:(b.year||0)-(a.year||0);
-    return (b.year||0)-(a.year||0)||a.title.localeCompare(b.title);
-  });
-  return ws;
-}
 
 function renderWorksGrid() {
   const grid=document.getElementById('worksGrid');
@@ -994,7 +883,7 @@ function renderWorksGrid() {
   let ws = visibleWorks();
   if (activeFilter !== 'all') ws = ws.filter(w => (w.collection_ids || []).includes(activeFilter));
 
-  // Show/hide collection heading
+  // Show/hide collection heading and action buttons
   let heading = document.getElementById('collectionHeading');
   if (!heading) {
     heading = document.createElement('div');
@@ -1002,16 +891,27 @@ function renderWorksGrid() {
     heading.style.cssText = 'display:flex;align-items:baseline;justify-content:space-between;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap;';
     grid.parentNode.insertBefore(heading, grid);
   }
+  const colActions = document.getElementById('collectionActions');
   if (activeFilter !== 'all') {
     const col = getCollection(activeFilter);
-    const canPrint = col && (isAdmin() || (isPreviewMode && col.share_token === previewToken));
-    const printBtn = canPrint
-      ? `<button class="btn" style="font-size:0.7rem;padding:0.35rem 0.9rem;" onclick="printContactSheetForCollection('${col.id}')">⎙ Print Contact Sheet</button>`
-      : '';
-    heading.innerHTML = `<h2 style="font-family:var(--serif);font-size:1.6rem;font-weight:300;font-style:italic;color:var(--ink);">${col ? col.name : ''}</h2>${printBtn}`;
+    heading.innerHTML = `<h2 style="font-family:var(--serif);font-size:1.6rem;font-weight:300;font-style:italic;color:var(--ink);">${col ? col.name : ''}</h2>`;
     heading.style.display = 'flex';
+    // Collection action buttons — admin only
+    if (isAdmin() && col) {
+      colActions.innerHTML = `
+        <button class="btn" onclick="printContactSheetForCollection('${col.id}')">⎙ Print</button>
+        <button class="btn" onclick="showExportChooser('worksExportChooser','worksExportTrigger',(q)=>exportZip('collection','${col.id}',q))" id="worksExportTrigger">⬇ Export Zip</button>
+        <button class="btn" onclick="openCollectionModal('${col.id}')">Edit</button>
+      `;
+      colActions.style.display = 'flex';
+    } else {
+      colActions.innerHTML = '';
+      colActions.style.display = 'none';
+    }
   } else {
     heading.style.display = 'none';
+    colActions.innerHTML = '';
+    colActions.style.display = 'none';
   }
 
   if(!ws.length){ grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◻</div><p>No works yet.</p></div>`; return; }
@@ -1059,9 +959,7 @@ function renderCollections() {
       const shareBtn=c.visibility==='preview'&&c.share_token?`<button style="position:absolute;top:0.5rem;right:0.5rem;background:var(--accent);color:var(--white);border:none;cursor:pointer;font-size:0.58rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.5rem;border-radius:1px;" onclick="event.stopPropagation();copyShareLink('${c.share_token}')">Copy link</button>`:'';
       adminControls=badge+shareBtn;
     }
-    const editBtn=isAdmin()?`<button class="btn" style="font-size:0.72rem;padding:0.3rem 0.8rem;margin-top:0.7rem;" onclick="event.stopPropagation();openCollectionModal('${c.id}')">Edit</button>`:'';
-    const printBtn=isAdmin()?`<button class="btn" style="font-size:0.72rem;padding:0.3rem 0.8rem;margin-top:0.7rem;margin-left:0.5rem;" onclick="event.stopPropagation();printContactSheetForCollection('${c.id}')">⎙ Print</button>`:'';
-    card.innerHTML=`<div style="position:relative;">${adminControls}<div class="collection-strip">${thumbs}${empties}</div></div><div class="collection-meta"><h3>${c.name}</h3><p>${cWorks.length} work${cWorks.length!==1?'s':''}${c.description?' — '+c.description:''}</p>${editBtn}${printBtn}</div>`;
+    card.innerHTML=`<div style="position:relative;">${adminControls}<div class="collection-strip">${thumbs}${empties}</div></div><div class="collection-meta"><h3>${c.name}</h3><p>${cWorks.length} work${cWorks.length!==1?'s':''}${c.description?' — '+c.description:''}</p></div>`;
     card.addEventListener('click',()=>{ activeFilter=c.id; renderWorksGrid(); window.switchView('works'); });
     grid.appendChild(card);
   });
@@ -1083,6 +981,123 @@ async function deleteCollection(id) {
     renderAll();
     toast('Collection deleted');
   } catch(e) { toast('Delete failed: ' + e.message, true); }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  EXPORT SIZE CHOOSER
+// ══════════════════════════════════════════════════════════════
+
+// Injects a two-button size choice inline below the triggering button,
+// then calls exportZip with the chosen quality when one is picked.
+function showExportChooser(chooserId, triggerBtnId, exportFn) {
+  // Remove any other open choosers first
+  document.querySelectorAll('.export-chooser').forEach(el => el.remove());
+  const triggerBtn = document.getElementById(triggerBtnId);
+  const chooser = document.createElement('div');
+  chooser.id = chooserId;
+  chooser.className = 'export-chooser';
+  chooser.style.cssText = 'display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;padding:0.6rem 0.8rem;background:var(--panel);border:1px solid var(--light);border-radius:2px;font-size:0.75rem;color:var(--mid);';
+  chooser.innerHTML = `<span style="letter-spacing:0.05em;">Image size:</span>
+    <button class="btn" data-quality="full" style="font-size:0.72rem;padding:0.3rem 0.8rem;">Full resolution</button>
+    <button class="btn" data-quality="optimised" style="font-size:0.72rem;padding:0.3rem 0.8rem;">Optimised</button>
+    <button style="background:none;border:none;color:var(--mid);cursor:pointer;font-size:0.8rem;padding:0 0.3rem;" data-cancel>✕</button>`;
+  triggerBtn.parentNode.insertBefore(chooser, triggerBtn.nextSibling);
+  chooser.querySelector('[data-quality="full"]').addEventListener('click', () => { chooser.remove(); exportFn('full'); });
+  chooser.querySelector('[data-quality="optimised"]').addEventListener('click', () => { chooser.remove(); exportFn('optimised'); });
+  chooser.querySelector('[data-cancel]').addEventListener('click', () => chooser.remove());
+}
+
+function hideExportChooser(chooserId) {
+  const el = document.getElementById(chooserId);
+  if (el) el.remove();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  EXPORT ZIP
+// ══════════════════════════════════════════════════════════════
+
+async function exportZip(type, id, quality) {
+  const isOptimised = quality === 'optimised';
+  let label, groupWorks, mdHeader;
+
+  if (type === 'collection') {
+    const c = collections.find(x => x.id === id);
+    if (!c) return;
+    groupWorks = visibleWorks().filter(w => (w.collection_ids || []).includes(c.id));
+    label = c.name.replace(/[^a-z0-9]/gi, '-').toLowerCase().replace(/-+/g, '-').replace(/^-|-$/g, '');
+    mdHeader = `# ${c.name}\n${c.description ? c.description + '\n' : ''}\n${groupWorks.length} work${groupWorks.length !== 1 ? 's' : ''}\n\n---\n\n`;
+  } else {
+    const ex = exhibitions.find(e => e.id === id);
+    if (!ex) return;
+    groupWorks = (ex.work_ids || []).map(wid => works.find(w => w.id === wid)).filter(Boolean);
+    label = ex.name.replace(/[^a-z0-9]/gi, '-').toLowerCase().replace(/-+/g, '-').replace(/^-|-$/g, '');
+    const start = ex.start_date ? new Date(ex.start_date).toLocaleDateString('en-IE', {day:'numeric',month:'long',year:'numeric'}) : '';
+    const end = ex.end_date ? new Date(ex.end_date).toLocaleDateString('en-IE', {day:'numeric',month:'long',year:'numeric'}) : '';
+    mdHeader = `# ${ex.name}\n${ex.place ? ex.place + '\n' : ''}${start ? (end && end !== start ? start + ' – ' + end : start) + '\n' : ''}\n${groupWorks.length} work${groupWorks.length !== 1 ? 's' : ''}\n\n---\n\n`;
+  }
+
+  if (!groupWorks.length) { toast('No works to export', true); return; }
+
+  toast('Preparing export…');
+
+  // Prefix applied to every image filename: CK_ + collection/exhibition slug + _
+  const filePrefix = `CK_${label}_`;
+
+  const zip = new JSZip();
+  const folder = zip.folder(`CK_${label}`);
+
+  // Build markdown — saved as !works.md so it sorts to the top in file browsers
+  const mdLines = groupWorks.map((w, i) => {
+    const num = String(i + 1).padStart(2, '0');
+    const colNames = (w.collection_ids || []).map(cid => { const col = getCollection(cid); return col ? col.name : null; }).filter(Boolean);
+    const lines = [
+      `## ${num}. ${w.title}`,
+      w.year         ? `Year: ${w.year}` : '',
+      w.medium       ? `Medium: ${w.medium}` : '',
+      w.dimensions   ? `Dimensions: ${w.dimensions}` : '',
+      colNames.length ? `Collection: ${colNames.join(', ')}` : '',
+      w.description  ? `\n${w.description}` : '',
+    ].filter(Boolean);
+    return lines.join('\n');
+  });
+  folder.file('!works.md', mdHeader + mdLines.join('\n\n') + '\n');
+
+  // Fetch and add images
+  // Filename schema: CK_<collection-slug>_<NN>-<work-title-slug>[-<image-index>].jpg
+  let fetched = 0;
+  for (let i = 0; i < groupWorks.length; i++) {
+    const w = groupWorks[i];
+    const num = String(i + 1).padStart(2, '0');
+    const titleSlug = w.title.replace(/[^a-z0-9]/gi, '-').toLowerCase().replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 20);
+    const images = allImagesFor(w);
+    for (let j = 0; j < images.length; j++) {
+      let url = images[j];
+      if (isVideoUrl(url)) continue; // skip videos
+      if (isOptimised) url = cloudinaryPrintUrl(url);
+      const suffix = images.length > 1 ? `-${j + 1}` : '';
+      const filename = `${filePrefix}${num}-${titleSlug}${suffix}.jpg`;
+      try {
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error('fetch failed');
+        const blob = await resp.blob();
+        folder.file(filename, blob);
+        fetched++;
+      } catch(e) {
+        console.warn('Could not fetch image for', w.title, e);
+      }
+    }
+    toast(`Fetching images… ${i + 1} / ${groupWorks.length}`);
+  }
+
+  toast('Building zip…');
+  const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+  const sizeLabel = isOptimised ? '-optimised' : '-full';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `CK_${label}${sizeLabel}.zip`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast(`Downloaded — ${fetched} image${fetched !== 1 ? 's' : ''} + !works.md`);
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1881,6 +1896,7 @@ document.getElementById('exDetailDeleteBtn').addEventListener('click', async()=>
   catch(e){ toast('Delete failed: '+e.message,true); }
 });
 document.getElementById('exDetailPrintBtn').addEventListener('click',()=>printContactSheet(currentExhibitionId));
+document.getElementById('exDetailExportBtn').addEventListener('click', () => showExportChooser('exDetailExportChooser', 'exDetailExportBtn', (q) => exportZip('exhibition', currentExhibitionId, q)));
 
 // ══════════════════════════════════════════════════════════════
 //  EXHIBITION MODAL
@@ -2110,7 +2126,6 @@ document.querySelectorAll('#mobileNav .tab-btn').forEach(b=>{ b.onclick=()=>wind
 // ══════════════════════════════════════════════════════════════
 
 function showMobileNav(){ document.getElementById('mobileNav').style.display=window.innerWidth<=900?'flex':'none'; }
-document.getElementById('sidebarOverlay').addEventListener('click',()=>{});
 showMobileNav(); window.addEventListener('resize',showMobileNav);
 
 // ══════════════════════════════════════════════════════════════
