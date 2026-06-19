@@ -268,7 +268,7 @@
   .print-work-item + .print-work-item { margin-top: 0.45cm; }
   .print-work-item { display: table; width: 100%; table-layout: fixed; page-break-inside: avoid; break-inside: avoid-page; }
   .print-work-thumb-cell { display: table-cell; width: 72%; height: 5.7cm; overflow: hidden; }
-  .print-work-thumb { display: block; width: 100%; height: 100%; object-fit: cover; background: #f0ece5; }
+  .print-work-thumb { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center center; background: #f0ece5; }
   .print-work-info { display: table-cell; width: 28%; height: 5.7cm; padding: 4pt 0 4pt 14pt; vertical-align: top; box-sizing: border-box; }
   .print-work-title { font-family: var(--serif); font-size: 13pt; font-style: italic; font-weight: 400; margin-bottom: 6pt; }
   .print-work-meta { font-size: 9pt; color: #6b6660; line-height: 1.7; }
@@ -886,6 +886,13 @@ function allImagesFor(w) {
   if (Array.isArray(urls) && urls.length) return urls.filter(Boolean);
   if (w.image_url) return [w.image_url];
   return [];
+}
+// Returns a Cloudinary URL resized for print use (small file size).
+// Inserts w_900,q_55,f_auto transformation after /upload/.
+// Falls back to the original URL unchanged if it's not a Cloudinary URL.
+function cloudinaryPrintUrl(url) {
+  if (!url) return url;
+  return url.replace(/\/upload\/(?!w_)/, '/upload/w_900,q_55,f_auto/');
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2061,10 +2068,10 @@ function printContactSheet(id) {
   const dateStr=start?(end&&end!==start?`${start} – ${end}`:start):'';
   const worksHtml=exWorks.map((w,i)=>{
     const colNames=(w.collection_ids||[]).map(cid=>{const c=getCollection(cid);return c?c.name:null;}).filter(Boolean);
-    return `<div class="print-work-item"><div class="print-work-thumb-cell"><img class="print-work-thumb" src="${thumbFor(w,600,460)}" alt="${w.title}"></div><div class="print-work-info"><div class="print-work-title">${i+1}. ${w.title}</div><div class="print-work-meta">${w.year?`<strong>${w.year}</strong>`:''} ${w.medium?`<br>${w.medium}`:''} ${w.dimensions?`<br>${w.dimensions}`:''} ${colNames.length?`<br><em>${colNames.join(', ')}</em>`:''}</div></div></div>`;
+    return `<div class="print-work-item"><div class="print-work-thumb-cell"><img class="print-work-thumb" src="${cloudinaryPrintUrl(thumbFor(w))}" alt="${w.title}"></div><div class="print-work-info"><div class="print-work-title">${i+1}. ${w.title}</div><div class="print-work-meta">${w.year?`<strong>${w.year}</strong>`:''} ${w.medium?`<br>${w.medium}`:''} ${w.dimensions?`<br>${w.dimensions}`:''} ${colNames.length?`<br><em>${colNames.join(', ')}</em>`:''}</div></div></div>`;
   }).join('');
   const sheet=document.getElementById('printContactSheet');
-  sheet.innerHTML=`<div class="print-header"><div style="font-size:7.5pt;letter-spacing:0.15em;text-transform:uppercase;color:#6b6660;margin-bottom:6pt;">Material Poetry — Exhibition Contact Sheet</div><h1>${ex.name}</h1><div class="print-meta">${[ex.place,dateStr].filter(Boolean).join(' · ')}${exWorks.length?' · '+exWorks.length+' work'+(exWorks.length!==1?'s':''):''}</div></div><div class="print-works-grid">${worksHtml}</div>`;
+  sheet.innerHTML=`<div class="print-header"><div style="font-size:7.5pt;letter-spacing:0.15em;text-transform:uppercase;color:#6b6660;margin-bottom:6pt;">Cerlin Karunaratne — Exhibition Contact Sheet</div><h1>${ex.name}</h1><div class="print-meta">${[ex.place,dateStr].filter(Boolean).join(' · ')}${exWorks.length?' · '+exWorks.length+' work'+(exWorks.length!==1?'s':''):''}</div></div><div class="print-works-grid">${worksHtml}</div>`;
   sheet.style.display='block';
   waitForImagesThenPrint(sheet);
 }
@@ -2074,10 +2081,10 @@ function printContactSheetForCollection(id) {
   if(!c) return;
   const cWorks=visibleWorks().filter(w=>(w.collection_ids||[]).includes(c.id));
   const worksHtml=cWorks.map((w,i)=>{
-    return `<div class="print-work-item"><div class="print-work-thumb-cell"><img class="print-work-thumb" src="${thumbFor(w,600,460)}" alt="${w.title}"></div><div class="print-work-info"><div class="print-work-title">${i+1}. ${w.title}</div><div class="print-work-meta">${w.year?`<strong>${w.year}</strong>`:''} ${w.medium?`<br>${w.medium}`:''} ${w.dimensions?`<br>${w.dimensions}`:''}</div></div></div>`;
+    return `<div class="print-work-item"><div class="print-work-thumb-cell"><img class="print-work-thumb" src="${cloudinaryPrintUrl(thumbFor(w))}" alt="${w.title}"></div><div class="print-work-info"><div class="print-work-title">${i+1}. ${w.title}</div><div class="print-work-meta">${w.year?`<strong>${w.year}</strong>`:''} ${w.medium?`<br>${w.medium}`:''} ${w.dimensions?`<br>${w.dimensions}`:''}</div></div></div>`;
   }).join('');
   const sheet=document.getElementById('printContactSheet');
-  sheet.innerHTML=`<div class="print-header"><div style="font-size:7.5pt;letter-spacing:0.15em;text-transform:uppercase;color:#6b6660;margin-bottom:6pt;">Material Poetry — Collection Contact Sheet</div><h1>${c.name}</h1><div class="print-meta">${[c.description,cWorks.length?cWorks.length+' work'+(cWorks.length!==1?'s':''):''].filter(Boolean).join(' · ')}</div></div><div class="print-works-grid">${worksHtml}</div>`;
+  sheet.innerHTML=`<div class="print-header"><div style="font-size:7.5pt;letter-spacing:0.15em;text-transform:uppercase;color:#6b6660;margin-bottom:6pt;">Cerlin Karunaratne — Collection Contact Sheet</div><h1>${c.name}</h1><div class="print-meta">${[c.description,cWorks.length?cWorks.length+' work'+(cWorks.length!==1?'s':''):''].filter(Boolean).join(' · ')}</div></div><div class="print-works-grid">${worksHtml}</div>`;
   sheet.style.display='block';
   waitForImagesThenPrint(sheet);
 }
