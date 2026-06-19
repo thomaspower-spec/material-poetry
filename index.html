@@ -2041,21 +2041,17 @@ document.getElementById('saveBioBtn').addEventListener('click', async () => {
 function waitForImagesThenPrint(sheet) {
   const imgs = Array.from(sheet.querySelectorAll('img'));
   const pending = imgs.filter(img => !img.complete);
-  if (!pending.length) {
-    // Still defer one frame so layout has settled even when everything was already cached
-    requestAnimationFrame(() => requestAnimationFrame(() => { window.print(); sheet.style.display = 'none'; }));
-    return;
-  }
-  let remaining = pending.length;
-  const done = () => {
-    remaining--;
-    if (remaining <= 0) {
-      requestAnimationFrame(() => requestAnimationFrame(() => { window.print(); sheet.style.display = 'none'; }));
-    }
+  const doPrint = () => {
+    // Give the browser 400ms after all images are loaded to finish
+    // rendering them into the layout before invoking print
+    setTimeout(() => { window.print(); sheet.style.display = 'none'; }, 400);
   };
+  if (!pending.length) { doPrint(); return; }
+  let remaining = pending.length;
+  const done = () => { if (--remaining <= 0) doPrint(); };
   pending.forEach(img => {
     img.addEventListener('load', done, { once: true });
-    img.addEventListener('error', done, { once: true }); // don't hang forever on a broken image
+    img.addEventListener('error', done, { once: true }); // don't hang on a broken image
   });
 }
 
