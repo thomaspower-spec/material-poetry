@@ -58,6 +58,9 @@
   .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
   select.filter-select { padding: 0.6rem 1rem; background: var(--white); border: 1px solid var(--light); font-family: var(--sans); font-size: 0.8rem; color: var(--mid); border-radius: 2px; outline: none; cursor: pointer; }
+  .search-input { width: 100%; padding: 0.6rem 1rem; background: var(--white); border: 1px solid var(--light); font-family: var(--sans); font-size: 0.85rem; font-weight: 300; color: var(--ink); border-radius: 2px; outline: none; transition: border-color 0.15s; }
+  .search-input:focus { border-color: var(--ink); }
+  .search-input::placeholder { color: var(--light); }
 
   /* ── WORKS GRID — masonry via manual columns ── */
   .works-grid { display: flex; gap: 0.5rem; align-items: flex-start; }
@@ -486,6 +489,23 @@
       <button class="btn" id="cancelCollectionBtn">Cancel</button>
       <button class="btn" id="deleteCollectionBtn" style="display:none;color:var(--accent);border-color:var(--accent);">Delete</button>
       <button class="btn accent" id="saveCollectionBtn">Save Collection</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TO COLLECTION MODAL — select existing works to add to the current collection -->
+<div class="modal-overlay" id="addToCollectionModal">
+  <div class="modal" style="max-width:560px;">
+    <h2 id="addToCollectionTitle">Add Works to Collection</h2>
+    <div class="form-grid">
+      <div class="form-group form-full">
+        <input class="search-input" type="text" id="atcSearch" placeholder="Search works…" style="margin-bottom:0.5rem;">
+        <div id="atcWorksList" style="max-height:55vh;overflow-y:auto;border:1px solid var(--light);background:var(--white);border-radius:2px;"></div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" id="cancelAtcBtn">Cancel</button>
+      <button class="btn accent" id="saveAtcBtn">Add Selected</button>
     </div>
   </div>
 </div>
@@ -1670,7 +1690,7 @@ function renderUploadPreviews() {
   });
 }
 
-function openWorkModal(id) {
+function openWorkModal(id, preselectedCollectionId) {
   editingWorkId=id||null;
   pendingImageUrls=[];
   existingImageUrls=[];
@@ -1697,7 +1717,7 @@ function openWorkModal(id) {
     document.getElementById('wMedium').value='';
     document.getElementById('wDimensions').value='';
     document.getElementById('wVisibility').value='draft';
-    renderCollectionCheckboxes([]);
+    renderCollectionCheckboxes(preselectedCollectionId ? [preselectedCollectionId] : []);
     document.getElementById('wTags').value='';
     document.getElementById('wDesc').value='';
     document.getElementById('wNotes').value='';
@@ -1706,7 +1726,104 @@ function openWorkModal(id) {
   document.getElementById('workModal').classList.add('open');
 }
 
-document.getElementById('addWorkBtn').addEventListener('click',()=>openWorkModal(null));
+document.getElementById('addWorkBtn').addEventListener('click', () => {
+  if (activeFilter !== 'all') {
+    // In a collection — show inline chooser
+    showAddWorkChooser();
+  } else {
+    openWorkModal(null);
+  }
+});
+
+// ── Inline chooser: Select existing | Add new work ──
+function showAddWorkChooser() {
+  // Remove any existing chooser first
+  const existing = document.getElementById('addWorkChooser');
+  if (existing) { existing.remove(); return; } // toggle off if already open
+  const btn = document.getElementById('addWorkBtn');
+  const chooser = document.createElement('div');
+  chooser.id = 'addWorkChooser';
+  chooser.className = 'export-chooser';
+  chooser.style.cssText = 'display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;padding:0.6rem 0.8rem;background:var(--panel);border:1px solid var(--light);border-radius:2px;font-size:0.75rem;color:var(--mid);';
+  chooser.innerHTML = `
+    <button class="btn" id="atcSelectExisting" style="font-size:0.72rem;padding:0.3rem 0.8rem;">Select existing works</button>
+    <button class="btn" id="atcAddNew" style="font-size:0.72rem;padding:0.3rem 0.8rem;">Add new work</button>
+    <button style="background:none;border:none;color:var(--mid);cursor:pointer;font-size:0.8rem;padding:0 0.3rem;" id="atcCancel">✕</button>`;
+  btn.parentNode.insertBefore(chooser, btn);
+  document.getElementById('atcSelectExisting').addEventListener('click', () => { chooser.remove(); openAddToCollectionModal(activeFilter); });
+  document.getElementById('atcAddNew').addEventListener('click', () => { chooser.remove(); openWorkModal(null, activeFilter); });
+  document.getElementById('atcCancel').addEventListener('click', () => chooser.remove());
+}
+
+// ── Add to Collection modal — select existing works ──
+let atcCollectionId = null;
+let atcSelectedIds = new Set();
+
+function openAddToCollectionModal(collectionId) {
+  atcCollectionId = collectionId;
+  atcSelectedIds = new Set();
+  const col = getCollection(collectionId);
+  document.getElementById('addToCollectionTitle').textContent = `Add Works to "${col ? col.name : 'Collection'}"`;
+  document.getElementById('atcSearch').value = '';
+  renderAtcList('');
+  document.getElementById('addToCollectionModal').classList.add('open');
+}
+
+function renderAtcList(query) {
+  const container = document.getElementById('atcWorksList');
+  // Works not already in this collection
+  const currentIds = new Set(visibleWorks().filter(w => (w.collection_ids||[]).includes(atcCollectionId)).map(w => w.id));
+  const candidates = works.filter(w => !currentIds.has(w.id) && (!query || w.title.toLowerCase().includes(query)));
+  if (!candidates.length) {
+    container.innerHTML = `<div style="padding:0.8rem;font-size:0.82rem;color:var(--mid);font-style:italic;">No works to add${query ? ' matching that search' : ' — all works are already in this collection'}.</div>`;
+    return;
+  }
+  container.innerHTML = '';
+  candidates.forEach(w => {
+    const row = document.createElement('label');
+    row.style.cssText = 'display:grid;grid-template-columns:24px 56px 1fr;gap:0.7rem;align-items:center;padding:0.55rem 0.8rem;cursor:pointer;border-bottom:1px solid var(--panel);';
+    row.onmouseover = () => row.style.background = 'var(--panel)';
+    row.onmouseout = () => row.style.background = '';
+    const checked = atcSelectedIds.has(w.id) ? 'checked' : '';
+    row.innerHTML = `
+      <input type="checkbox" value="${w.id}" ${checked} style="accent-color:var(--accent);width:15px;height:15px;">
+      <img src="${thumbFor(w, 112, 84)}" style="width:56px;height:42px;object-fit:cover;" alt="">
+      <div>
+        <div style="font-family:var(--serif);font-style:italic;font-size:0.92rem;">${w.title}</div>
+        <div style="font-size:0.72rem;color:var(--mid);">${w.year||''}${w.medium?' · '+w.medium:''}</div>
+      </div>`;
+    row.querySelector('input').addEventListener('change', function() {
+      if (this.checked) atcSelectedIds.add(w.id);
+      else atcSelectedIds.delete(w.id);
+    });
+    container.appendChild(row);
+  });
+}
+
+document.getElementById('atcSearch').addEventListener('input', function() { renderAtcList(this.value.toLowerCase()); });
+document.getElementById('cancelAtcBtn').addEventListener('click', () => document.getElementById('addToCollectionModal').classList.remove('open'));
+document.getElementById('addToCollectionModal').addEventListener('click', e => { if (e.target === document.getElementById('addToCollectionModal')) document.getElementById('addToCollectionModal').classList.remove('open'); });
+
+document.getElementById('saveAtcBtn').addEventListener('click', async () => {
+  if (!atcSelectedIds.size) { toast('No works selected', true); return; }
+  const btn = document.getElementById('saveAtcBtn');
+  btn.innerHTML = '<span class="spinner"></span>Saving…'; btn.disabled = true;
+  try {
+    // For each selected work, add this collection to its collection_ids
+    for (const wid of atcSelectedIds) {
+      const w = works.find(x => x.id === wid);
+      if (!w) continue;
+      const newIds = [...new Set([...(w.collection_ids || []), atcCollectionId])];
+      const updated = await sb.safePatch('works', wid, { collection_ids: newIds });
+      const idx = works.findIndex(x => x.id === wid);
+      works[idx] = updated[0] || { ...w, collection_ids: newIds };
+    }
+    document.getElementById('addToCollectionModal').classList.remove('open');
+    renderAll();
+    toast(`Added ${atcSelectedIds.size} work${atcSelectedIds.size !== 1 ? 's' : ''} to collection`);
+  } catch(e) { toast('Save failed: ' + e.message, true); }
+  finally { btn.textContent = 'Add Selected'; btn.disabled = false; }
+});
 document.getElementById('viewAllFromModalBtn').addEventListener('click', e => { e.preventDefault(); openImgGridOverlay('upload'); });
 document.getElementById('cancelWorkBtn').addEventListener('click',()=>document.getElementById('workModal').classList.remove('open'));
 
