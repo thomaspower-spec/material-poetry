@@ -1077,7 +1077,7 @@ async function exportZip(type, id, quality) {
       w.medium       ? `Medium: ${w.medium}` : '',
       w.dimensions   ? `Dimensions: ${w.dimensions}` : '',
       colNames.length ? `Collection: ${colNames.join(', ')}` : '',
-      filenames.length ? `File(s): ${filenames.join(', ')}` : '',
+      filenames.length ? `File(s):\n${filenames.map(f => `- ${f}`).join('\n')}` : '',
       w.description  ? `\n${w.description}` : '',
     ].filter(Boolean);
     return lines.join('\n');
