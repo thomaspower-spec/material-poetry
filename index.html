@@ -1055,9 +1055,21 @@ async function exportZip(type, id, quality) {
   const zip = new JSZip();
   const folder = zip.folder(`CK_${label}`);
 
-  // Build markdown — saved as !works.md so it sorts to the top in file browsers
-  const mdLines = groupWorks.map((w, i) => {
+  // Precompute filenames per work first (deterministic from the schema —
+  // doesn't require the images to be fetched) so the markdown can list them.
+  const workFiles = groupWorks.map((w, i) => {
     const num = String(i + 1).padStart(2, '0');
+    const titleSlug = w.title.replace(/[^a-z0-9]/gi, '-').toLowerCase().replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 20);
+    const images = allImagesFor(w).filter(url => !isVideoUrl(url));
+    const filenames = images.map((url, j) => {
+      const suffix = images.length > 1 ? `-${j + 1}` : '';
+      return `${filePrefix}${num}-${titleSlug}${suffix}.jpg`;
+    });
+    return { work: w, num, titleSlug, images, filenames };
+  });
+
+  // Build markdown — saved as !works.md so it sorts to the top in file browsers
+  const mdLines = workFiles.map(({ work: w, num, filenames }) => {
     const colNames = (w.collection_ids || []).map(cid => { const col = getCollection(cid); return col ? col.name : null; }).filter(Boolean);
     const lines = [
       `## ${num}. ${w.title}`,
@@ -1065,26 +1077,21 @@ async function exportZip(type, id, quality) {
       w.medium       ? `Medium: ${w.medium}` : '',
       w.dimensions   ? `Dimensions: ${w.dimensions}` : '',
       colNames.length ? `Collection: ${colNames.join(', ')}` : '',
+      filenames.length ? `File(s): ${filenames.join(', ')}` : '',
       w.description  ? `\n${w.description}` : '',
     ].filter(Boolean);
     return lines.join('\n');
   });
   folder.file('!works.md', mdHeader + mdLines.join('\n\n') + '\n');
 
-  // Fetch and add images
-  // Filename schema: CK_<collection-slug>_<NN>-<work-title-slug>[-<image-index>].jpg
+  // Fetch and add images, using the filenames already computed above
   let fetched = 0;
-  for (let i = 0; i < groupWorks.length; i++) {
-    const w = groupWorks[i];
-    const num = String(i + 1).padStart(2, '0');
-    const titleSlug = w.title.replace(/[^a-z0-9]/gi, '-').toLowerCase().replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 20);
-    const images = allImagesFor(w);
+  for (let i = 0; i < workFiles.length; i++) {
+    const { work: w, images, filenames } = workFiles[i];
     for (let j = 0; j < images.length; j++) {
       let url = images[j];
-      if (isVideoUrl(url)) continue; // skip videos
       if (isOptimised) url = cloudinaryPrintUrl(url);
-      const suffix = images.length > 1 ? `-${j + 1}` : '';
-      const filename = `${filePrefix}${num}-${titleSlug}${suffix}.jpg`;
+      const filename = filenames[j];
       try {
         const resp = await fetch(url);
         if (!resp.ok) throw new Error('fetch failed');
@@ -1095,7 +1102,7 @@ async function exportZip(type, id, quality) {
         console.warn('Could not fetch image for', w.title, e);
       }
     }
-    toast(`Fetching images… ${i + 1} / ${groupWorks.length}`);
+    toast(`Fetching images… ${i + 1} / ${workFiles.length}`);
   }
 
   toast('Building zip…');
