@@ -505,7 +505,7 @@
     </div>
     <div class="form-actions">
       <button class="btn" id="cancelAtcBtn">Cancel</button>
-      <button class="btn accent" id="saveAtcBtn">Add Selected</button>
+      <button class="btn accent" id="saveAtcBtn">Save Changes</button>
     </div>
   </div>
 </div>
@@ -1758,12 +1758,15 @@ function showAddWorkChooser() {
 // ── Add to Collection modal — select existing works ──
 let atcCollectionId = null;
 let atcSelectedIds = new Set();
+let atcOriginalIds = new Set();
 
 function openAddToCollectionModal(collectionId) {
   atcCollectionId = collectionId;
-  atcSelectedIds = new Set();
+  // Pre-tick works already in this collection
+  atcOriginalIds = new Set(works.filter(w => (w.collection_ids||[]).includes(collectionId)).map(w => w.id));
+  atcSelectedIds = new Set(atcOriginalIds);
   const col = getCollection(collectionId);
-  document.getElementById('addToCollectionTitle').textContent = `Add Works to "${col ? col.name : 'Collection'}"`;
+  document.getElementById('addToCollectionTitle').textContent = `Works in "${col ? col.name : 'Collection'}"`;
   document.getElementById('atcSearch').value = '';
   renderAtcList('');
   document.getElementById('addToCollectionModal').classList.add('open');
@@ -1771,15 +1774,24 @@ function openAddToCollectionModal(collectionId) {
 
 function renderAtcList(query) {
   const container = document.getElementById('atcWorksList');
-  // Works not already in this collection
-  const currentIds = new Set(visibleWorks().filter(w => (w.collection_ids||[]).includes(atcCollectionId)).map(w => w.id));
-  const candidates = works.filter(w => !currentIds.has(w.id) && (!query || w.title.toLowerCase().includes(query)));
+  const candidates = works.filter(w => !query || w.title.toLowerCase().includes(query));
   if (!candidates.length) {
-    container.innerHTML = `<div style="padding:0.8rem;font-size:0.82rem;color:var(--mid);font-style:italic;">No works to add${query ? ' matching that search' : ' — all works are already in this collection'}.</div>`;
+    container.innerHTML = `<div style="padding:0.8rem;font-size:0.82rem;color:var(--mid);font-style:italic;">No works found.</div>`;
     return;
   }
+  // Already-in-collection works first, then the rest — both alphabetised
+  const inCollection = candidates.filter(w => atcOriginalIds.has(w.id)).sort((a,b)=>a.title.localeCompare(b.title));
+  const notInCollection = candidates.filter(w => !atcOriginalIds.has(w.id)).sort((a,b)=>a.title.localeCompare(b.title));
+  const ordered = [...inCollection, ...notInCollection];
   container.innerHTML = '';
-  candidates.forEach(w => {
+  ordered.forEach((w, i) => {
+    // Divider between "in collection" and "not in collection" groups
+    if (i === inCollection.length && inCollection.length && notInCollection.length) {
+      const divider = document.createElement('div');
+      divider.style.cssText = 'padding:0.4rem 0.8rem;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--light);background:var(--cream);border-bottom:1px solid var(--panel);';
+      divider.textContent = 'Other works';
+      container.appendChild(divider);
+    }
     const row = document.createElement('label');
     row.style.cssText = 'display:grid;grid-template-columns:24px 56px 1fr;gap:0.7rem;align-items:center;padding:0.55rem 0.8rem;cursor:pointer;border-bottom:1px solid var(--panel);';
     row.onmouseover = () => row.style.background = 'var(--panel)';
@@ -1805,12 +1817,14 @@ document.getElementById('cancelAtcBtn').addEventListener('click', () => document
 document.getElementById('addToCollectionModal').addEventListener('click', e => { if (e.target === document.getElementById('addToCollectionModal')) document.getElementById('addToCollectionModal').classList.remove('open'); });
 
 document.getElementById('saveAtcBtn').addEventListener('click', async () => {
-  if (!atcSelectedIds.size) { toast('No works selected', true); return; }
+  // Work out what changed: newly added vs newly removed
+  const toAdd = [...atcSelectedIds].filter(id => !atcOriginalIds.has(id));
+  const toRemove = [...atcOriginalIds].filter(id => !atcSelectedIds.has(id));
+  if (!toAdd.length && !toRemove.length) { document.getElementById('addToCollectionModal').classList.remove('open'); return; }
   const btn = document.getElementById('saveAtcBtn');
   btn.innerHTML = '<span class="spinner"></span>Saving…'; btn.disabled = true;
   try {
-    // For each selected work, add this collection to its collection_ids
-    for (const wid of atcSelectedIds) {
+    for (const wid of toAdd) {
       const w = works.find(x => x.id === wid);
       if (!w) continue;
       const newIds = [...new Set([...(w.collection_ids || []), atcCollectionId])];
@@ -1818,11 +1832,22 @@ document.getElementById('saveAtcBtn').addEventListener('click', async () => {
       const idx = works.findIndex(x => x.id === wid);
       works[idx] = updated[0] || { ...w, collection_ids: newIds };
     }
+    for (const wid of toRemove) {
+      const w = works.find(x => x.id === wid);
+      if (!w) continue;
+      const newIds = (w.collection_ids || []).filter(cid => cid !== atcCollectionId);
+      const updated = await sb.safePatch('works', wid, { collection_ids: newIds });
+      const idx = works.findIndex(x => x.id === wid);
+      works[idx] = updated[0] || { ...w, collection_ids: newIds };
+    }
     document.getElementById('addToCollectionModal').classList.remove('open');
     renderAll();
-    toast(`Added ${atcSelectedIds.size} work${atcSelectedIds.size !== 1 ? 's' : ''} to collection`);
+    const parts = [];
+    if (toAdd.length) parts.push(`${toAdd.length} added`);
+    if (toRemove.length) parts.push(`${toRemove.length} removed`);
+    toast(parts.join(', '));
   } catch(e) { toast('Save failed: ' + e.message, true); }
-  finally { btn.textContent = 'Add Selected'; btn.disabled = false; }
+  finally { btn.textContent = 'Save Changes'; btn.disabled = false; }
 });
 document.getElementById('viewAllFromModalBtn').addEventListener('click', e => { e.preventDefault(); openImgGridOverlay('upload'); });
 document.getElementById('cancelWorkBtn').addEventListener('click',()=>document.getElementById('workModal').classList.remove('open'));
