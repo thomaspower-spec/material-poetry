@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Material Poetry — Cerlin</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+
+
 
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -25,7 +27,7 @@
   body { background: var(--cream); color: var(--ink); font-family: var(--sans); font-weight: 300; min-height: 100vh; }
 
   /* ── LAYOUT ── */
-  .shell { display: grid; grid-template-columns: 1fr; grid-template-rows: auto 1fr; min-height: 100vh; }
+  .shell { display: grid; grid-template-columns: 220px 1fr; grid-template-rows: auto 1fr; min-height: 100vh; }
 
   /* ── HEADER ── */
   header { grid-column: 1 / -1; border-bottom: 1px solid var(--light); padding: 1.5rem 2rem; display: flex; align-items: baseline; gap: 2rem; background: var(--cream); position: sticky; top: 0; z-index: 100; }
@@ -37,8 +39,17 @@
   .tab-btn.active { background: var(--ink); color: var(--white); }
   .tab-btn:hover:not(.active) { background: var(--panel); color: var(--ink); }
 
+  /* ── SIDEBAR ── */
+  aside { border-right: 1px solid var(--light); padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 2rem; background: var(--cream); }
+  .sidebar-section h3 { font-family: var(--sans); font-size: 0.65rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--light); margin-bottom: 0.8rem; }
+  .sidebar-list { list-style: none; display: flex; flex-direction: column; gap: 0.2rem; }
+  .sidebar-list li button { display: block; width: 100%; text-align: left; padding: 0.4rem 0.7rem; font-family: var(--sans); font-size: 0.82rem; font-weight: 300; color: var(--mid); background: none; border: none; cursor: pointer; border-radius: 2px; transition: background 0.12s, color 0.12s; }
+  .sidebar-list li button:hover, .sidebar-list li button.active { background: var(--panel); color: var(--ink); }
+  .add-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.7rem; font-family: var(--sans); font-size: 0.78rem; font-weight: 400; letter-spacing: 0.05em; color: var(--accent); background: none; border: 1px dashed var(--accent); cursor: pointer; border-radius: 2px; width: 100%; margin-top: 0.4rem; transition: background 0.12s; }
+  .add-btn:hover { background: rgba(139,74,47,0.05); }
+
   /* ── MAIN ── */
-  main { padding: 1.5rem 2rem; overflow-y: auto; }
+  main { padding: 2.5rem 3rem; overflow-y: auto; }
   .view { display: none; }
   .view.active { display: block; }
 
@@ -57,18 +68,22 @@
   .btn.accent:hover { background: #7a3f27; border-color: #7a3f27; }
   .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
-  select.filter-select { padding: 0.6rem 1rem; background: var(--white); border: 1px solid var(--light); font-family: var(--sans); font-size: 0.8rem; color: var(--mid); border-radius: 2px; outline: none; cursor: pointer; }
-  .search-input { width: 100%; padding: 0.6rem 1rem; background: var(--white); border: 1px solid var(--light); font-family: var(--sans); font-size: 0.85rem; font-weight: 300; color: var(--ink); border-radius: 2px; outline: none; transition: border-color 0.15s; }
+  /* ── SEARCH ── */
+  .search-row { display: flex; gap: 1rem; margin-bottom: 2rem; align-items: center; flex-wrap: wrap; }
+  .search-input { flex: 1; padding: 0.6rem 1rem; background: var(--white); border: 1px solid var(--light); font-family: var(--sans); font-size: 0.85rem; font-weight: 300; color: var(--ink); border-radius: 2px; outline: none; transition: border-color 0.15s; }
   .search-input:focus { border-color: var(--ink); }
   .search-input::placeholder { color: var(--light); }
+  select.filter-select { padding: 0.6rem 1rem; background: var(--white); border: 1px solid var(--light); font-family: var(--sans); font-size: 0.8rem; color: var(--mid); border-radius: 2px; outline: none; cursor: pointer; }
 
-  /* ── WORKS GRID — masonry via manual columns ── */
-  .works-grid { display: flex; gap: 0.5rem; align-items: flex-start; }
-  .works-col { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
-  .work-card { break-inside: avoid; cursor: pointer; position: relative; background: var(--panel); display: block; }
-  .work-card:hover .work-thumb { opacity: 0.88; }
-  .work-thumb { width: 100%; height: auto; display: block; transition: opacity 0.2s; }
-  .work-info { display: none; }
+  /* ── WORKS GRID ── */
+  .works-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.5rem; }
+  .work-card { background: var(--white); border: 1px solid var(--panel); cursor: pointer; transition: box-shadow 0.2s, transform 0.2s; overflow: hidden; position: relative; }
+  .work-card:hover { box-shadow: 0 8px 32px rgba(26,24,20,0.1); transform: translateY(-2px); }
+  .work-thumb { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; background: var(--panel); }
+  .work-info { padding: 1rem 1.1rem 1.2rem; }
+  .work-title { font-family: var(--serif); font-size: 1.05rem; font-weight: 400; font-style: italic; margin-bottom: 0.3rem; }
+  .work-meta { font-size: 0.72rem; font-weight: 300; color: var(--mid); letter-spacing: 0.03em; }
+  .work-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.7rem; }
   .tag { padding: 0.2rem 0.5rem; background: var(--panel); font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mid); border-radius: 1px; }
 
   /* Visibility badges on cards */
@@ -87,12 +102,12 @@
   .timeline-text p { font-size: 0.78rem; color: var(--mid); }
 
   /* ── DETAIL OVERLAY ── */
-  .detail-overlay { display: none; position: fixed; inset: 0; background: var(--cream); z-index: 200; }
-  .detail-overlay.open { display: block; }
-  .detail-panel { width: 100%; height: 100vh; display: grid; grid-template-columns: 1fr 360px; overflow: hidden; }
-  .detail-media { background: var(--cream); display: flex; align-items: center; justify-content: center; height: 100vh; position: relative; overflow: hidden; padding: 2rem; }
-  .detail-media img { width: 100%; height: 100%; object-fit: contain; display: block; }
-  .detail-media video { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .detail-overlay { display: none; position: fixed; inset: 0; background: rgba(26,24,20,0.5); z-index: 200; align-items: center; justify-content: center; padding: 2rem; }
+  .detail-overlay.open { display: flex; }
+  .detail-panel { background: var(--cream); width: 100%; max-width: 900px; max-height: 90vh; overflow-y: auto; display: grid; grid-template-columns: 1fr 320px; }
+  .detail-media { background: var(--ink); display: flex; align-items: center; justify-content: center; min-height: 400px; max-height: 90vh; position: relative; overflow: hidden; }
+  .detail-media img { width: 100%; height: 100%; object-fit: contain; display: block; max-height: 90vh; }
+  .detail-media video { width: 100%; height: 100%; object-fit: contain; display: block; max-height: 90vh; }
 
   #imgFullscreenOverlay { display:none; position:fixed; inset:0; background:#000; z-index:1000; align-items:center; justify-content:center; }
   #imgFullscreenOverlay.open { display:flex; }
@@ -108,14 +123,13 @@
   .carousel-prev { left: 0.75rem; }
   .carousel-next { right: 0.75rem; }
   .carousel-counter { position: absolute; bottom: 0.75rem; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); color: var(--white); font-family: var(--sans); font-size: 0.65rem; letter-spacing: 0.12em; padding: 0.25rem 0.7rem; border-radius: 10px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
-  .detail-info { padding: 2.5rem 2rem; display: flex; flex-direction: column; gap: 1.5rem; height: 100vh; overflow-y: auto; border-left: 1px solid var(--light); }
+  .detail-info { padding: 2.5rem 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
   .detail-title { font-family: var(--serif); font-size: 2rem; font-weight: 300; font-style: italic; line-height: 1.1; }
   .detail-fields { display: flex; flex-direction: column; gap: 0.8rem; }
-  .detail-field label { display: none; }
-  .detail-field.admin-field label { display: block; font-size: 0.65rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--light); margin-bottom: 0.2rem; }
+  .detail-field label { display: block; font-size: 0.65rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--light); margin-bottom: 0.2rem; }
   .detail-field p { font-size: 0.85rem; color: var(--ink); }
-  .detail-close { position: fixed; top: 1rem; right: 1rem; background: rgba(0,0,0,0.25); border: 1px solid rgba(0,0,0,0.15); color: var(--ink); width: 36px; height: 36px; font-size: 0.9rem; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.18s; z-index: 210; }
-  .detail-close:hover { background: rgba(0,0,0,0.15); }
+  .detail-close { position: absolute; top: 1rem; right: 1rem; background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.2); color: var(--white); width: 36px; height: 36px; font-size: 0.9rem; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.18s; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 3; }
+  .detail-close:hover { background: rgba(0,0,0,0.75); }
 
   /* ── MODAL ── */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,24,20,0.5); z-index: 300; align-items: center; justify-content: center; padding: 2rem; }
@@ -136,8 +150,6 @@
   .upload-zone input[type="file"] { display: none; }
   .upload-previews { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.7rem; }
   .upload-preview { width: 70px; height: 70px; object-fit: cover; border: 1px solid var(--light); }
-  .upload-drop-target { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
-  #uploadPreviews > div:active { cursor: grabbing; }
   .form-actions { display: flex; justify-content: flex-end; gap: 0.7rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--light); }
 
   /* ── COLLECTIONS ── */
@@ -160,11 +172,15 @@
   .exhibition-date { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); white-space: nowrap; }
 
   /* ── BIO ── */
-  .bio-view { display: grid; grid-template-columns: 1fr 320px; gap: 3rem; align-items: start; }
+  .bio-view { max-width: 640px; }
   .bio-view .bio-text { font-family: var(--serif); font-size: 1.2rem; font-weight: 300; line-height: 1.75; color: var(--ink); margin-bottom: 2rem; }
   .bio-view .bio-statement { font-family: var(--serif); font-size: 1rem; font-style: italic; line-height: 1.8; color: var(--mid); padding: 1.5rem 2rem; border-left: 2px solid var(--accent); margin-bottom: 2rem; }
-  .bio-image-panel { display: flex; flex-direction: column; gap: 1rem; }
-  .bio-image-primary { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; background: var(--panel); border-radius: 2px; }
+
+  /* ── STATS ── */
+  .stats-bar { display: flex; gap: 2.5rem; margin-bottom: 2.5rem; }
+  .stat { display: flex; flex-direction: column; gap: 0.2rem; }
+  .stat-num { font-family: var(--serif); font-size: 2rem; font-weight: 300; line-height: 1; }
+  .stat-label { font-size: 0.65rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mid); }
 
   /* ── EMPTY STATE ── */
   .empty-state { text-align: center; padding: 5rem 2rem; color: var(--light); }
@@ -201,51 +217,61 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* ── MOBILE ── */
+  .mobile-menu-btn { display: none; background: none; border: 1px solid var(--light); color: var(--ink); width: 36px; height: 36px; font-size: 1.1rem; cursor: pointer; border-radius: 2px; align-items: center; justify-content: center; flex-shrink: 0; }
+  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(26,24,20,0.4); z-index: 150; }
+  .sidebar-overlay.open { display: block; }
+
   @media (max-width: 900px) {
     .shell { grid-template-columns: 1fr; }
+    aside { position: fixed; top: 0; left: -280px; width: 260px; height: 100vh; overflow-y: auto; z-index: 160; padding: 5rem 1.5rem 2rem; transition: left 0.25s ease; box-shadow: 4px 0 24px rgba(26,24,20,0.12); }
+    aside.open { left: 0; }
+    .mobile-menu-btn { display: flex; }
     .header-tabs { display: none; }
     .mobile-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: var(--cream); border-top: 1px solid var(--light); z-index: 100; }
+    .mobile-nav .tab-btn { flex: 1; padding: 0.7rem 0.3rem; font-size: 0.6rem; border-right: 1px solid var(--light); display: flex; flex-direction: column; align-items: center; gap: 0.2rem; }
+    .mobile-nav .tab-btn:last-child { border-right: none; }
+    .mobile-nav .tab-btn .nav-icon { font-size: 1rem; line-height: 1; }
     header { padding: 1rem 1.2rem; gap: 1rem; align-items: center; }
     .logo { font-size: 1.3rem; }
-    main { padding: 1rem 0.5rem 5rem; }
-    .detail-panel { grid-template-columns: 1fr; grid-template-rows: 60vh 1fr; }
-    .detail-media { height: 60vh; max-height: 60vh; }
+    main { padding: 1.5rem 1.2rem 5rem; }
+    .detail-panel { grid-template-columns: 1fr; }
+    .detail-media { min-height: 0; height: 56vw; max-height: 56vw; }
     .detail-overlay { padding: 0; align-items: flex-start; }
-    .works-grid { gap: 0.3rem; }
-    .works-grid .works-col:nth-child(3) { display: none; }
+    .detail-panel { max-height: 100vh; height: 100vh; overflow-y: auto; }
+    .works-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .page-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .page-header h1 { font-size: 2.2rem; }
     .modal-overlay { padding: 0; align-items: flex-end; }
     .modal { max-height: 92vh; border-radius: 0; padding: 1.8rem 1.5rem; }
     .form-grid { grid-template-columns: 1fr; }
     .form-full { grid-column: 1; }
   }
   @media (max-width: 600px) {
-    .works-grid .works-col:nth-child(2), .works-grid .works-col:nth-child(3) { display: none; }
+    .works-grid { grid-template-columns: 1fr; }
     .collections-grid { grid-template-columns: 1fr; }
     .exhibition-card { grid-template-columns: 1fr; gap: 0.5rem; }
     .detail-media { height: 60vw; max-height: 60vw; }
     .detail-info { padding: 1.5rem 1.2rem; }
     .detail-title { font-size: 1.5rem; }
-    .bio-view { grid-template-columns: 1fr; gap: 1.5rem; }
   }
 
   /* ── PRINT ── */
-  @page { size: A4; margin: 1cm; }
   @media print {
-    .shell, #toast, #imgFullscreenOverlay, #imgGridOverlay, #previewBanner { display: none !important; }
-    #printContactSheet { display: block !important; }
+    body * { visibility: hidden !important; }
+    #printContactSheet, #printContactSheet * { visibility: visible !important; }
+    #printContactSheet { position: fixed; inset: 0; background: white; padding: 0; margin: 0; }
   }
   #printContactSheet { display: none; font-family: var(--sans); color: #1a1814; background: white; }
-  .print-header { padding: 0 1cm 0.4cm; border-bottom: 2px solid #1a1814; }
-  .print-header h1 { font-family: var(--serif); font-size: 20pt; font-weight: 300; font-style: italic; margin-bottom: 4pt; }
+  .print-header { padding: 2cm 2cm 1cm; border-bottom: 2px solid #1a1814; }
+  .print-header h1 { font-family: var(--serif); font-size: 22pt; font-weight: 300; font-style: italic; margin-bottom: 4pt; }
   .print-header .print-meta { font-size: 9pt; color: #6b6660; letter-spacing: 0.08em; }
-  .print-works-grid { padding: 0.3cm 1cm; display: block; }
-  .print-work-item + .print-work-item { margin-top: 0.45cm; }
-  .print-work-item { display: table; width: 100%; table-layout: fixed; page-break-inside: avoid; break-inside: avoid-page; }
-  .print-work-thumb-cell { display: table-cell; width: 72%; height: 5.7cm; overflow: hidden; }
-  .print-work-thumb { display: block; width: 100%; height: 100%; object-fit: contain; object-position: left center; background: #f0ece5; }
-  .print-work-info { display: table-cell; width: 28%; height: 5.7cm; padding: 4pt 0 4pt 14pt; vertical-align: top; box-sizing: border-box; }
-  .print-work-title { font-family: var(--serif); font-size: 13pt; font-style: italic; font-weight: 400; margin-bottom: 6pt; }
-  .print-work-meta { font-size: 9pt; color: #6b6660; line-height: 1.7; }
+  .print-works-grid { padding: 0.8cm 2cm; display: grid; grid-template-columns: 1fr 1fr; gap: 0.7cm; }
+  .print-work-item { display: grid; grid-template-columns: 90pt 1fr; gap: 10pt; page-break-inside: avoid; border: 0.5pt solid #c8c3bc; padding: 8pt; }
+  .print-work-thumb { width: 90pt; height: 68pt; object-fit: cover; background: #f0ece5; display: block; }
+  .print-work-info { padding: 2pt 0; }
+  .print-work-title { font-family: var(--serif); font-size: 10pt; font-style: italic; font-weight: 400; margin-bottom: 4pt; }
+  .print-work-meta { font-size: 7.5pt; color: #6b6660; line-height: 1.6; }
+  .print-work-notes { font-size: 7pt; color: #8b4a2f; font-style: italic; margin-top: 4pt; }
 
   /* ── LOUPE MAGNIFIER ── */
   #loupeLens {
@@ -263,11 +289,10 @@
     cursor: none;
     transition: opacity 0.15s;
   }
+  .detail-media:hover #loupeLens,
   .detail-media.loupe-active #loupeLens { display: block; }
-  .detail-media { cursor: default; }
-  .detail-media.loupe-active { cursor: crosshair; }
-  #imgFullscreenOverlay { cursor: default; }
-  #imgFullscreenOverlay.loupe-active { cursor: crosshair; }
+  .detail-media { cursor: crosshair; }
+  #imgFullscreenOverlay { cursor: crosshair; }
   #imgFullscreenOverlay #fsloupeLens {
     display: none;
     position: fixed;
@@ -283,22 +308,6 @@
   }
   #imgFullscreenOverlay.loupe-active #fsloupeLens { display: block; }
 
-  /* ── IMAGE SET GRID OVERLAY ── */
-  #imgGridOverlay { display:none; position:fixed; inset:0; background:#000; z-index:1050; overflow-y:auto; padding:4.5rem 2rem 3rem; }
-  #imgGridOverlay.open { display:block; }
-  .grid-overlay-header { position:fixed; top:0; left:0; right:0; display:flex; align-items:center; justify-content:space-between; padding:1.2rem 2rem; background:linear-gradient(to bottom, rgba(0,0,0,0.7), transparent); z-index:2; }
-  .grid-overlay-title { color:rgba(255,255,255,0.85); font-family:var(--sans); font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase; }
-  .grid-overlay-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:0.6rem; max-width:1400px; margin:0 auto; }
-  .grid-overlay-item { position:relative; aspect-ratio:1; min-height:80px; overflow:hidden; cursor:pointer; background:#111; border:2px solid transparent; transition:border-color 0.15s, opacity 0.15s; }
-  .grid-overlay-item:hover { opacity:0.85; }
-  .grid-overlay-item.is-current { border-color: var(--accent); }
-  .grid-overlay-item img, .grid-overlay-item video { width:100%; height:100%; object-fit:cover; display:block; }
-  .grid-overlay-item .grid-item-play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.85); font-size:1.4rem; }
-  @media (max-width: 600px) {
-    #imgGridOverlay { padding:4rem 1rem 2rem; }
-    .grid-overlay-grid { grid-template-columns:repeat(auto-fill, minmax(110px, 1fr)); gap:0.4rem; }
-  }
-
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--light); border-radius: 3px; }
 </style>
@@ -310,30 +319,66 @@
 
 <div class="shell">
   <header>
+    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
     <div class="logo">Material <em>Poetry</em></div>
     <nav class="header-tabs">
       <button class="tab-btn active" data-view="works">Works</button>
       <button class="tab-btn" data-view="collections">Collections</button>
-      <button class="tab-btn" data-view="exhibitions" style="display:none;">Exhibitions</button>
+      <button class="tab-btn admin-only" data-view="exhibitions">Exhibitions</button>
+      <button class="tab-btn" data-view="timeline">Timeline</button>
       <button class="tab-btn" data-view="bio">About</button>
     </nav>
     <button class="mode-badge admin-only" id="adminLogoutBtn">Sign out</button>
     <button class="mode-badge" id="adminLoginBtn" style="display:none;">Admin</button>
   </header>
 
+  <aside>
+    <div class="sidebar-section">
+      <h3>Collections</h3>
+      <ul class="sidebar-list" id="sidebarCollections">
+        <li><button class="active" data-filter="all">All Works</button></li>
+      </ul>
+      <button class="add-btn admin-only" id="addCollectionBtn">+ New Collection</button>
+    </div>
+    <div class="sidebar-section">
+      <h3>Tags</h3>
+      <input type="text" id="tagSearch" placeholder="Filter tags…" style="width:100%;padding:0.35rem 0.6rem;background:var(--white);border:1px solid var(--light);font-family:var(--sans);font-size:0.75rem;color:var(--ink);border-radius:2px;outline:none;margin-bottom:0.5rem;">
+      <ul class="sidebar-list" id="sidebarTags"></ul>
+    </div>
+    <div class="sidebar-section">
+      <h3>Medium</h3>
+      <ul class="sidebar-list" id="sidebarMediums"></ul>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
   <nav class="mobile-nav" id="mobileNav" style="display:none;">
     <button class="tab-btn active" data-view="works"><span class="nav-icon">◻</span>Works</button>
     <button class="tab-btn" data-view="collections"><span class="nav-icon">⊞</span>Collections</button>
-    <button class="tab-btn" data-view="exhibitions" style="display:none;"><span class="nav-icon">◈</span>Exhibitions</button>
+    <button class="tab-btn admin-only" data-view="exhibitions"><span class="nav-icon">◈</span>Exhibitions</button>
+    <button class="tab-btn" data-view="timeline"><span class="nav-icon">↕</span>Timeline</button>
     <button class="tab-btn" data-view="bio"><span class="nav-icon">◉</span>About</button>
   </nav>
 
   <main>
     <!-- WORKS -->
     <div class="view active" id="view-works">
-      <div class="page-actions" style="display:flex;justify-content:flex-end;align-items:center;gap:0.7rem;padding:1rem 0 1.5rem;" id="worksActions">
-        <span id="collectionActions" style="display:none;gap:0.7rem;align-items:center;"></span>
-        <button class="btn primary admin-only" id="addWorkBtn">+ Add Work</button>
+      <div class="page-header">
+        <h1 id="worksHeading"><small id="worksSubheading">Portfolio</small><span id="worksTitle">All Works</span></h1>
+        <div class="page-actions">
+          <button class="btn primary admin-only" id="addWorkBtn">+ Add Work</button>
+        </div>
+      </div>
+      <p id="worksCollectionDesc" style="display:none;font-size:0.95rem;line-height:1.7;color:var(--mid);margin-bottom:2rem;max-width:640px;"></p>
+      <div class="stats-bar admin-only">
+        <div class="stat"><span class="stat-num" id="statWorks">—</span><span class="stat-label">Works</span></div>
+        <div class="stat"><span class="stat-num" id="statCollections">—</span><span class="stat-label">Collections</span></div>
+      </div>
+      <div class="search-row">
+        <input class="search-input" type="text" id="searchWorks" placeholder="Search works…">
+        <select class="filter-select" id="filterYear"><option value="">All Years</option></select>
+        <select class="filter-select" id="filterMedium"><option value="">All Media</option></select>
       </div>
       <div class="works-grid" id="worksGrid"></div>
     </div>
@@ -375,13 +420,8 @@
         </div>
       </div>
       <div class="bio-view">
-        <div>
-          <p class="bio-text" id="bioText">Cerlin is an artist based in Kerry, Ireland.</p>
-          <blockquote class="bio-statement" id="bioStatement">"Artist statement."</blockquote>
-        </div>
-        <div class="bio-image-panel" id="bioImagePanel" style="display:none;">
-          <img class="bio-image-primary" id="bioImagePrimary" alt="">
-        </div>
+        <p class="bio-text" id="bioText">Cerlin is an artist based in Kerry, Ireland.</p>
+        <blockquote class="bio-statement" id="bioStatement">"Artist statement."</blockquote>
       </div>
     </div>
   </main>
@@ -400,8 +440,8 @@
         <div class="detail-field"><label>Dimensions</label><p id="detailDimensions">—</p></div>
         <div class="detail-field"><label>Collection</label><p id="detailCollection">—</p></div>
         <div class="detail-field"><label>Tags</label><p id="detailTags">—</p></div>
-        <div class="detail-field admin-only admin-field"><label>Visibility</label><p id="detailVisibility">—</p></div>
-        <div class="detail-field admin-only admin-field"><label>Private Notes</label><p id="detailNotes" style="color:var(--mid);font-style:italic;">—</p></div>
+        <div class="detail-field admin-only"><label>Visibility</label><p id="detailVisibility">—</p></div>
+        <div class="detail-field admin-only"><label>Private Notes</label><p id="detailNotes" style="color:var(--mid);font-style:italic;">—</p></div>
       </div>
       <div class="page-actions" style="margin-top:auto;padding-top:1rem;justify-content:flex-start;">
         <button class="btn admin-only" id="editWorkBtn">Edit</button>
@@ -447,7 +487,6 @@
           <p>Images: JPG, PNG, WebP — Video: MP4, MOV — multiple files allowed</p>
         </label>
         <div class="upload-previews" id="uploadPreviews"></div>
-        <p id="uploadPreviewsHint" style="display:none;font-size:0.7rem;color:var(--light);margin-top:0.5rem;">Drag thumbnails to reorder · ★ sets the primary image · <button type="button" id="viewAllFromModalBtn" style="background:none;border:none;color:var(--accent);font-size:0.7rem;cursor:pointer;padding:0;text-decoration:underline;">view all full screen</button></p>
         <div id="uploadProgress" style="display:none;font-size:0.78rem;color:var(--mid);margin-top:0.4rem;"></div>
       </div>
     </div>
@@ -484,16 +523,9 @@
           <p style="font-size:0.72rem;color:var(--mid);margin-top:0.5rem;">Anyone with this link can view this collection without logging in.</p>
         </div>
       </div>
-      <!-- Works in this collection — shown only when editing an existing collection -->
-      <div class="form-group form-full" id="cWorksSection" style="display:none;">
-        <label>Works in this Collection</label>
-        <input class="search-input" type="text" id="atcSearch" placeholder="Search works…" style="margin-bottom:0.5rem;">
-        <div id="atcWorksList" style="max-height:280px;overflow-y:auto;border:1px solid var(--light);background:var(--white);border-radius:2px;"></div>
-      </div>
     </div>
     <div class="form-actions">
       <button class="btn" id="cancelCollectionBtn">Cancel</button>
-      <button class="btn" id="deleteCollectionBtn" style="display:none;color:var(--accent);border-color:var(--accent);">Delete</button>
       <button class="btn accent" id="saveCollectionBtn">Save Collection</button>
     </div>
   </div>
@@ -512,8 +544,7 @@
       </div>
       <div id="exDetailWorks" style="display:flex;flex-direction:column;gap:0.7rem;max-height:55vh;overflow-y:auto;margin-bottom:1.5rem;"></div>
       <div style="display:flex;gap:0.7rem;flex-wrap:wrap;border-top:1px solid var(--light);padding-top:1.2rem;">
-        <button class="btn admin-only" id="exDetailPrintBtn">⎙ Print Contact Sheet</button>
-        <button class="btn admin-only" id="exDetailExportBtn">⬇ Export Zip</button>
+        <button class="btn" id="exDetailPrintBtn">⎙ Print Contact Sheet</button>
         <button class="btn admin-only" id="exDetailEditBtn">Edit</button>
         <button class="btn admin-only" style="color:var(--accent);border-color:var(--accent);" id="exDetailDeleteBtn">Delete</button>
       </div>
@@ -559,16 +590,6 @@
     <div class="form-grid">
       <div class="form-group form-full"><label>Artist Bio</label><textarea id="editBioText" style="min-height:120px;"></textarea></div>
       <div class="form-group form-full"><label>Artist Statement</label><textarea id="editBioStatement" style="min-height:100px;"></textarea></div>
-      <div class="form-group form-full">
-        <label>Portrait Images</label>
-        <label class="upload-zone">
-          <input type="file" id="bioFile" accept="image/*" multiple>
-          <strong>Click to upload images</strong>
-          <p>JPG, PNG, WebP — multiple files allowed</p>
-        </label>
-        <div class="upload-previews" id="bioUploadPreviews"></div>
-        <div id="bioUploadProgress" style="display:none;font-size:0.78rem;color:var(--mid);margin-top:0.4rem;"></div>
-      </div>
     </div>
     <div class="form-actions">
       <button class="btn" id="cancelBioBtn">Cancel</button>
@@ -596,7 +617,6 @@
 <div id="toast"></div>
 <div id="printContactSheet"></div>
 <div id="imgFullscreenOverlay"></div>
-<div id="imgGridOverlay"></div>
 
 <script>
 // ══════════════════════════════════════════════════════════════
@@ -604,12 +624,13 @@
 // ══════════════════════════════════════════════════════════════
 
 const CONFIG = {
-  
   SUPABASE_URL: 'https://wowtdwlpatpqjzlqpqcj.supabase.co',
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indvd3Rkd2xwYXRwcWp6bHFwcWNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MTAzMjcsImV4cCI6MjA5MzM4NjMyN30.EA32PGNEmFMesy-Fq3HtKUbZdZ4aPxRSM6L6wLEoXNk',
   CLOUDINARY_CLOUD_NAME: 'dgimf8yud',
   CLOUDINARY_UPLOAD_PRESET: 'material-poetry',
-  SITE_URL: 'https://material-poetry.netlify.app',
+  // The public URL of this site — used to generate preview share links
+  // Update this after deploying to Netlify
+  SITE_URL: 'YOUR_SITE_URL',
 };
 
 // ══════════════════════════════════════════════════════════════
@@ -693,8 +714,8 @@ let activeFilter='all', activeTagFilter=null, activeMediumFilter=null;
 let editingWorkId=null, editingExhibitionId=null, currentExhibitionId=null;
 let editingCollectionId=null;
 let exhibitionSelectedWorks=[];
-let pendingImageUrls=[];
-let previewToken=null;
+let pendingImageUrls=[]; // array of Cloudinary URLs uploaded in current modal session
+let previewToken=null; // set if accessing via ?preview=TOKEN
 let isPreviewMode=false;
 
 function isAdmin() { return document.body.classList.contains('admin'); }
@@ -729,6 +750,7 @@ function checkPreviewMode() {
   document.getElementById('previewBanner').classList.add('show');
   // Filter to this collection
   activeFilter = col.id;
+  renderSidebar();
   renderWorksGrid();
 }
 
@@ -865,13 +887,6 @@ function allImagesFor(w) {
   if (w.image_url) return [w.image_url];
   return [];
 }
-// Returns a Cloudinary URL resized for print use (small file size).
-// Inserts w_900,q_55,f_auto transformation after /upload/.
-// Falls back to the original URL unchanged if it's not a Cloudinary URL.
-function cloudinaryPrintUrl(url) {
-  if (!url) return url;
-  return url.replace(/\/upload\/(?!w_)/, '/upload/w_500,q_50,f_auto/');
-}
 
 // ══════════════════════════════════════════════════════════════
 //  HELPERS
@@ -883,66 +898,159 @@ function getAllMediums() { const s=new Set(); visibleWorks().forEach(w=>{if(w.me
 function getAllYears() { const s=new Set(); visibleWorks().forEach(w=>{if(w.year)s.add(w.year);}); return [...s].sort((a,b)=>b-a); }
 
 // ══════════════════════════════════════════════════════════════
+//  SIDEBAR
+// ══════════════════════════════════════════════════════════════
+
+function renderSidebar() {
+  const colList=document.getElementById('sidebarCollections');
+  colList.innerHTML='';
+  const allLi=document.createElement('li');
+  const allBtn=document.createElement('button');
+  allBtn.textContent='All Works';
+  allBtn.className=activeFilter==='all'?'active':'';
+  allBtn.addEventListener('click',()=>{ activeFilter='all'; activeTagFilter=null; activeMediumFilter=null; renderSidebar(); renderWorksGrid(); window.switchView('works'); });
+  allLi.appendChild(allBtn); colList.appendChild(allLi);
+
+  // Only show collections that are visible at current access level
+  const visibleCollections = isAdmin() ? collections : collections.filter(c =>
+    c.visibility === 'published' || (isPreviewMode && c.share_token === previewToken)
+  );
+
+  visibleCollections.forEach(c => {
+    const li=document.createElement('li');
+    const btn=document.createElement('button');
+    btn.textContent=c.name;
+    btn.className=activeFilter===c.id?'active':'';
+    btn.addEventListener('click',()=>{ activeFilter=c.id; activeTagFilter=null; activeMediumFilter=null; renderSidebar(); renderWorksGrid(); window.switchView('works'); });
+    li.appendChild(btn); colList.appendChild(li);
+  });
+
+  renderTagList(document.getElementById('tagSearch').value);
+  renderSidebarMediums();
+}
+
+function renderTagList(query) {
+  const tagList=document.getElementById('sidebarTags');
+  tagList.innerHTML='';
+  getAllTags().filter(t=>!query||t.toLowerCase().includes(query.toLowerCase())).forEach(t=>{
+    const li=document.createElement('li');
+    const btn=document.createElement('button');
+    const count=visibleWorks().filter(w=>(w.tags||[]).includes(t)).length;
+    btn.innerHTML=`${t} <span style="color:var(--light);font-size:0.7rem;">${count}</span>`;
+    btn.className=activeTagFilter===t?'active':'';
+    btn.addEventListener('click',()=>{ activeTagFilter=activeTagFilter===t?null:t; activeMediumFilter=null; renderTagList(query); renderSidebarMediums(); window.switchView('works'); });
+    li.appendChild(btn); tagList.appendChild(li);
+  });
+}
+
+function renderSidebarMediums() {
+  const list=document.getElementById('sidebarMediums');
+  list.innerHTML='';
+  getAllMediums().forEach(m=>{
+    const li=document.createElement('li');
+    const btn=document.createElement('button');
+    btn.textContent=m;
+    btn.className=activeMediumFilter===m?'active':'';
+    btn.addEventListener('click',()=>{ activeMediumFilter=activeMediumFilter===m?null:m; activeTagFilter=null; renderSidebarMediums(); renderTagList(document.getElementById('tagSearch').value); window.switchView('works'); });
+    li.appendChild(btn); list.appendChild(li);
+  });
+}
+
+document.getElementById('tagSearch').addEventListener('input', function() { renderTagList(this.value); });
+
+// ══════════════════════════════════════════════════════════════
 //  WORKS GRID
 // ══════════════════════════════════════════════════════════════
+
+function filterWorks() {
+  let ws = visibleWorks();
+  if (activeFilter!=='all') ws=ws.filter(w=>(w.collection_ids||[]).includes(activeFilter));
+  const q=document.getElementById('searchWorks').value.toLowerCase();
+  if(q) ws=ws.filter(w=>w.title.toLowerCase().includes(q)||(w.tags||[]).join(' ').includes(q)||(w.medium||'').toLowerCase().includes(q));
+  const yr=document.getElementById('filterYear').value;
+  if(yr) ws=ws.filter(w=>String(w.year)===yr);
+  const med=document.getElementById('filterMedium').value;
+  if(med) ws=ws.filter(w=>(w.medium||'').startsWith(med));
+  if(activeTagFilter) ws=ws.filter(w=>(w.tags||[]).includes(activeTagFilter));
+  if(activeMediumFilter) ws=ws.filter(w=>(w.medium||'').startsWith(activeMediumFilter));
+  ws.sort((a,b)=>{
+    // Sort by full date if available, otherwise by year, then title
+    if(a.work_date&&b.work_date) return b.work_date.localeCompare(a.work_date);
+    if(a.work_date&&!b.work_date) return String(b.year||0).localeCompare(a.work_date.slice(0,4))>=0?1:-1;
+    if(!a.work_date&&b.work_date) return a.work_date?1:(b.year||0)-(a.year||0);
+    return (b.year||0)-(a.year||0)||a.title.localeCompare(b.title);
+  });
+  return ws;
+}
 
 function renderWorksGrid() {
   const grid=document.getElementById('worksGrid');
 
-  let ws = visibleWorks();
-  if (activeFilter !== 'all') ws = ws.filter(w => (w.collection_ids || []).includes(activeFilter));
-
-  // Show/hide collection heading and action buttons
-  let heading = document.getElementById('collectionHeading');
-  if (!heading) {
-    heading = document.createElement('div');
-    heading.id = 'collectionHeading';
-    heading.style.cssText = 'display:flex;align-items:baseline;justify-content:space-between;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap;';
-    grid.parentNode.insertBefore(heading, grid);
-  }
-  const colActions = document.getElementById('collectionActions');
-  if (activeFilter !== 'all') {
-    const col = getCollection(activeFilter);
-    heading.innerHTML = `<h2 style="font-family:var(--serif);font-size:1.6rem;font-weight:300;font-style:italic;color:var(--ink);">${col ? col.name : ''}</h2>`;
-    heading.style.display = 'flex';
-    // Collection action buttons — admin only
-    if (isAdmin() && col) {
-      colActions.innerHTML = `
-        <button class="btn" onclick="printContactSheetForCollection('${col.id}')">⎙ Print</button>
-        <button class="btn" onclick="showExportChooser('worksExportChooser','worksExportTrigger',(q)=>exportZip('collection','${col.id}',q))" id="worksExportTrigger">⬇ Export Zip</button>
-        <button class="btn" onclick="openCollectionModal('${col.id}')">Edit</button>
-      `;
-      colActions.style.display = 'flex';
-    } else {
-      colActions.innerHTML = '';
-      colActions.style.display = 'none';
-    }
+  // Update page heading based on active collection filter
+  const subheading=document.getElementById('worksSubheading');
+  const worksTitle=document.getElementById('worksTitle');
+  const collectionDesc=document.getElementById('worksCollectionDesc');
+  if(activeFilter==='all'){
+    subheading.textContent='Portfolio';
+    worksTitle.textContent='All Works';
+    collectionDesc.style.display='none';
+    collectionDesc.textContent='';
   } else {
-    heading.style.display = 'none';
-    colActions.innerHTML = '';
-    colActions.style.display = 'none';
+    const col=getCollection(activeFilter);
+    if(col){
+      subheading.textContent='Collection';
+      worksTitle.textContent=col.name;
+      if(col.description){
+        collectionDesc.textContent=col.description;
+        collectionDesc.style.display='block';
+      } else {
+        collectionDesc.style.display='none';
+      }
+    }
   }
 
-  if(!ws.length){ grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◻</div><p>No works yet.</p></div>`; return; }
+  // Active filter bar
+  let bar=document.getElementById('activeFilterBar');
+  if(!bar){bar=document.createElement('div');bar.id='activeFilterBar';bar.style.cssText='display:none;align-items:center;gap:0.7rem;margin-bottom:1rem;padding:0.5rem 0.8rem;background:var(--panel);font-size:0.78rem;color:var(--mid);';grid.parentNode.insertBefore(bar,grid);}
+  if(activeTagFilter||activeMediumFilter){
+    const label=activeTagFilter?`Tag: ${activeTagFilter}`:`Medium: ${activeMediumFilter}`;
+    bar.innerHTML=`<span>Filtered by — <strong style="color:var(--ink)">${label}</strong></span> <button onclick="activeTagFilter=null;activeMediumFilter=null;renderSidebar();renderWorksGrid();" style="font-size:0.7rem;padding:0.15rem 0.5rem;background:none;border:1px solid var(--light);cursor:pointer;border-radius:2px;color:var(--mid);">✕ Clear</button>`;
+    bar.style.display='flex';
+  } else { bar.style.display='none'; }
+
+  // Dropdowns
+  const yearSel=document.getElementById('filterYear');
+  const yrVal=yearSel.value;
+  yearSel.innerHTML='<option value="">All Years</option>';
+  getAllYears().forEach(y=>yearSel.innerHTML+=`<option value="${y}"${String(y)===yrVal?' selected':''}>${y}</option>`);
+  const medSel=document.getElementById('filterMedium');
+  const medVal=medSel.value;
+  medSel.innerHTML='<option value="">All Media</option>';
+  getAllMediums().forEach(m=>medSel.innerHTML+=`<option value="${m}"${m===medVal?' selected':''}>${m}</option>`);
+  if(isAdmin()){
+    document.getElementById('statWorks').textContent=visibleWorks().length;
+    document.getElementById('statCollections').textContent=collections.filter(c=>isAdmin()||c.visibility==='published').length;
+  }
+  const filtered=filterWorks();
+  if(!filtered.length){ grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◻</div><p>No works found.</p></div>`; return; }
   grid.innerHTML='';
-
-  // Create 3 column divs
-  const numCols = 3;
-  const cols = Array.from({length: numCols}, () => {
-    const col = document.createElement('div');
-    col.className = 'works-col';
-    grid.appendChild(col);
-    return col;
-  });
-
-  ws.forEach((w, i) => {
-    const card = document.createElement('div');
-    card.className = 'work-card';
-    let badge = '';
-    if(isAdmin() && w.visibility !== 'published') badge = `<span class="visibility-badge badge-${w.visibility}">${w.visibility}</span>`;
-    card.innerHTML = `${badge}<img class="work-thumb" src="${thumbFor(w)}" alt="${w.title}">`;
-    card.addEventListener('click', () => openDetail(w.id));
-    cols[i % numCols].appendChild(card);
+  filtered.forEach(w=>{
+    const card=document.createElement('div');
+    card.className='work-card';
+    const colNames=(w.collection_ids||[]).map(id=>getCollection(id)).filter(Boolean).map(c=>c.name);
+    // Visibility badge (admin only)
+    let badge='';
+    if(isAdmin()&&w.visibility!=='published') badge=`<span class="visibility-badge badge-${w.visibility}">${w.visibility}</span>`;
+    card.innerHTML=`
+      ${badge}
+      <img class="work-thumb" src="${thumbFor(w)}" alt="${w.title}">
+      <div class="work-info">
+        <div class="work-title">${w.title}</div>
+        <div class="work-meta">${w.year||''}${w.medium?' · '+w.medium:''}${colNames.length?' · '+colNames.join(', '):''}</div>
+        ${(w.tags||[]).length?`<div class="work-tags">${w.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`:''}
+      </div>`;
+    card.addEventListener('click',()=>openDetail(w.id));
+    grid.appendChild(card);
   });
 }
 
@@ -968,8 +1076,9 @@ function renderCollections() {
       const shareBtn=c.visibility==='preview'&&c.share_token?`<button style="position:absolute;top:0.5rem;right:0.5rem;background:var(--accent);color:var(--white);border:none;cursor:pointer;font-size:0.58rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.5rem;border-radius:1px;" onclick="event.stopPropagation();copyShareLink('${c.share_token}')">Copy link</button>`:'';
       adminControls=badge+shareBtn;
     }
-    card.innerHTML=`<div style="position:relative;">${adminControls}<div class="collection-strip">${thumbs}${empties}</div></div><div class="collection-meta"><h3>${c.name}</h3><p>${cWorks.length} work${cWorks.length!==1?'s':''}${c.description?' — '+c.description:''}</p></div>`;
-    card.addEventListener('click',()=>{ activeFilter=c.id; renderWorksGrid(); window.switchView('works'); });
+    const editBtn=isAdmin()?`<button class="btn" style="font-size:0.72rem;padding:0.3rem 0.8rem;margin-top:0.7rem;" onclick="event.stopPropagation();openCollectionModal('${c.id}')">Edit collection</button>`:'';
+    card.innerHTML=`<div style="position:relative;">${adminControls}<div class="collection-strip">${thumbs}${empties}</div></div><div class="collection-meta"><h3>${c.name}</h3><p>${cWorks.length} work${cWorks.length!==1?'s':''}${c.description?' — '+c.description:''}</p>${editBtn}</div>`;
+    card.addEventListener('click',()=>{ activeFilter=c.id; renderSidebar(); renderWorksGrid(); window.switchView('works'); });
     grid.appendChild(card);
   });
 }
@@ -977,143 +1086,6 @@ function renderCollections() {
 function copyShareLink(token) {
   const url=generateShareUrl(token);
   navigator.clipboard.writeText(url).then(()=>toast('Share link copied to clipboard')).catch(()=>{ prompt('Copy this link:', url); });
-}
-
-async function deleteCollection(id) {
-  const col = collections.find(c => c.id === id);
-  if (!col) return;
-  if (!confirm(`Delete collection "${col.name}"? The works in it won't be deleted.`)) return;
-  try {
-    await sb.safeDelete('collections', id);
-    collections = collections.filter(c => c.id !== id);
-    if (activeFilter === id) activeFilter = 'all';
-    renderAll();
-    toast('Collection deleted');
-  } catch(e) { toast('Delete failed: ' + e.message, true); }
-}
-
-// ══════════════════════════════════════════════════════════════
-//  EXPORT SIZE CHOOSER
-// ══════════════════════════════════════════════════════════════
-
-// Injects a two-button size choice inline below the triggering button,
-// then calls exportZip with the chosen quality when one is picked.
-function showExportChooser(chooserId, triggerBtnId, exportFn) {
-  // Remove any other open choosers first
-  document.querySelectorAll('.export-chooser').forEach(el => el.remove());
-  const triggerBtn = document.getElementById(triggerBtnId);
-  const chooser = document.createElement('div');
-  chooser.id = chooserId;
-  chooser.className = 'export-chooser';
-  chooser.style.cssText = 'display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;padding:0.6rem 0.8rem;background:var(--panel);border:1px solid var(--light);border-radius:2px;font-size:0.75rem;color:var(--mid);';
-  chooser.innerHTML = `<span style="letter-spacing:0.05em;">Image size:</span>
-    <button class="btn" data-quality="full" style="font-size:0.72rem;padding:0.3rem 0.8rem;">Full resolution</button>
-    <button class="btn" data-quality="optimised" style="font-size:0.72rem;padding:0.3rem 0.8rem;">Optimised</button>
-    <button style="background:none;border:none;color:var(--mid);cursor:pointer;font-size:0.8rem;padding:0 0.3rem;" data-cancel>✕</button>`;
-  triggerBtn.parentNode.insertBefore(chooser, triggerBtn.nextSibling);
-  chooser.querySelector('[data-quality="full"]').addEventListener('click', () => { chooser.remove(); exportFn('full'); });
-  chooser.querySelector('[data-quality="optimised"]').addEventListener('click', () => { chooser.remove(); exportFn('optimised'); });
-  chooser.querySelector('[data-cancel]').addEventListener('click', () => chooser.remove());
-}
-
-function hideExportChooser(chooserId) {
-  const el = document.getElementById(chooserId);
-  if (el) el.remove();
-}
-
-// ══════════════════════════════════════════════════════════════
-//  EXPORT ZIP
-// ══════════════════════════════════════════════════════════════
-
-async function exportZip(type, id, quality) {
-  const isOptimised = quality === 'optimised';
-  let label, groupWorks, mdHeader;
-
-  if (type === 'collection') {
-    const c = collections.find(x => x.id === id);
-    if (!c) return;
-    groupWorks = visibleWorks().filter(w => (w.collection_ids || []).includes(c.id));
-    label = c.name.replace(/[^a-z0-9]/gi, '-').toLowerCase().replace(/-+/g, '-').replace(/^-|-$/g, '');
-    mdHeader = `# ${c.name}\n${c.description ? c.description + '\n' : ''}\n${groupWorks.length} work${groupWorks.length !== 1 ? 's' : ''}\n\n---\n\n`;
-  } else {
-    const ex = exhibitions.find(e => e.id === id);
-    if (!ex) return;
-    groupWorks = (ex.work_ids || []).map(wid => works.find(w => w.id === wid)).filter(Boolean);
-    label = ex.name.replace(/[^a-z0-9]/gi, '-').toLowerCase().replace(/-+/g, '-').replace(/^-|-$/g, '');
-    const start = ex.start_date ? new Date(ex.start_date).toLocaleDateString('en-IE', {day:'numeric',month:'long',year:'numeric'}) : '';
-    const end = ex.end_date ? new Date(ex.end_date).toLocaleDateString('en-IE', {day:'numeric',month:'long',year:'numeric'}) : '';
-    mdHeader = `# ${ex.name}\n${ex.place ? ex.place + '\n' : ''}${start ? (end && end !== start ? start + ' – ' + end : start) + '\n' : ''}\n${groupWorks.length} work${groupWorks.length !== 1 ? 's' : ''}\n\n---\n\n`;
-  }
-
-  if (!groupWorks.length) { toast('No works to export', true); return; }
-
-  toast('Preparing export…');
-
-  // Prefix applied to every image filename: CK_ + collection/exhibition slug + _
-  const filePrefix = `CK_${label}_`;
-
-  const zip = new JSZip();
-  const folder = zip.folder(`CK_${label}`);
-
-  // Precompute filenames per work first (deterministic from the schema —
-  // doesn't require the images to be fetched) so the markdown can list them.
-  const workFiles = groupWorks.map((w, i) => {
-    const num = String(i + 1).padStart(2, '0');
-    const titleSlug = w.title.replace(/[^a-z0-9]/gi, '-').toLowerCase().replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 20);
-    const images = allImagesFor(w).filter(url => !isVideoUrl(url));
-    const filenames = images.map((url, j) => {
-      const suffix = images.length > 1 ? `-${j + 1}` : '';
-      return `${filePrefix}${num}-${titleSlug}${suffix}.jpg`;
-    });
-    return { work: w, num, titleSlug, images, filenames };
-  });
-
-  // Build markdown — saved as !works.md so it sorts to the top in file browsers
-  const mdLines = workFiles.map(({ work: w, num, filenames }) => {
-    const colNames = (w.collection_ids || []).map(cid => { const col = getCollection(cid); return col ? col.name : null; }).filter(Boolean);
-    const lines = [
-      `## ${num}. ${w.title}`,
-      w.year         ? `Year: ${w.year}` : '',
-      w.medium       ? `Medium: ${w.medium}` : '',
-      w.dimensions   ? `Dimensions: ${w.dimensions}` : '',
-      colNames.length ? `Collection: ${colNames.join(', ')}` : '',
-      filenames.length ? `File(s):\n${filenames.map(f => `- ${f}`).join('\n')}` : '',
-      w.description  ? `\n${w.description}` : '',
-    ].filter(Boolean);
-    return lines.join('\n');
-  });
-  folder.file('!works.md', mdHeader + mdLines.join('\n\n') + '\n');
-
-  // Fetch and add images, using the filenames already computed above
-  let fetched = 0;
-  for (let i = 0; i < workFiles.length; i++) {
-    const { work: w, images, filenames } = workFiles[i];
-    for (let j = 0; j < images.length; j++) {
-      let url = images[j];
-      if (isOptimised) url = cloudinaryPrintUrl(url);
-      const filename = filenames[j];
-      try {
-        const resp = await fetch(url);
-        if (!resp.ok) throw new Error('fetch failed');
-        const blob = await resp.blob();
-        folder.file(filename, blob);
-        fetched++;
-      } catch(e) {
-        console.warn('Could not fetch image for', w.title, e);
-      }
-    }
-    toast(`Fetching images… ${i + 1} / ${workFiles.length}`);
-  }
-
-  toast('Building zip…');
-  const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
-  const sizeLabel = isOptimised ? '-optimised' : '-full';
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `CK_${label}${sizeLabel}.zip`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-  toast(`Downloaded — ${fetched} image${fetched !== 1 ? 's' : ''} + !works.md`);
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1184,7 +1156,6 @@ function renderTimeline() {
 
 let carouselImages = [];
 let carouselIndex = 0;
-let loupeEnabled = false; // off by default; persists across carousel slides
 
 function isVideoUrl(url) {
   return url && (url.includes('/video/upload/') || /\.(mp4|mov|webm|ogg)(\?|$)/i.test(url));
@@ -1196,46 +1167,31 @@ function renderCarousel() {
   const src = carouselImages[carouselIndex] || '';
   const isVid = isVideoUrl(src);
   const mediaEl = isVid
-    ? `<video src="${src}" controls style="width:100%;height:100%;object-fit:contain;display:block;" playsinline></video>`
-    : `<img src="${src}" alt="" id="carouselImg" style="width:100%;height:100%;object-fit:contain;display:block;">`;
+    ? `<video src="${src}" controls style="width:100%;height:100%;object-fit:contain;display:block;max-height:500px;" playsinline></video>`
+    : `<img src="${src}" alt="" id="carouselImg" style="width:100%;height:100%;object-fit:contain;display:block;max-height:500px;">`;
   const fullscreenBtn = !isVid
     ? `<button id="carouselFullscreen" title="Full screen" style="position:absolute;bottom:0.75rem;right:0.75rem;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.2);color:var(--white);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">⛶</button>`
-    : '';
-  const loupeBtn = (!isVid && !('ontouchstart' in window))
-    ? `<button id="carouselLoupeBtn" title="${loupeEnabled ? 'Disable loupe' : 'Enable loupe'}" style="position:absolute;bottom:0.75rem;right:3.5rem;background:${loupeEnabled ? 'rgba(139,74,47,0.75)' : 'rgba(0,0,0,0.45)'};border:1px solid ${loupeEnabled ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)'};color:var(--white);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">🔍</button>`
     : '';
   media.innerHTML = `
     <button class="detail-close" id="detailClose">✕</button>
     ${mediaEl}
     ${fullscreenBtn}
-    ${loupeBtn}
     ${total > 1 ? `
       <button class="carousel-btn carousel-prev" id="carouselPrev">‹</button>
       <button class="carousel-btn carousel-next" id="carouselNext">›</button>
-      <button class="carousel-counter" id="carouselCounterBtn" title="View all images" style="border:none;cursor:pointer;display:flex;align-items:center;gap:0.35rem;">${carouselIndex + 1} / ${total} <span style="font-size:0.85rem;">⊞</span></button>
+      <div class="carousel-counter">${carouselIndex + 1} / ${total}</div>
     ` : ''}
   `;
-  // Apply loupe-active class based on current state
-  media.classList.toggle('loupe-active', loupeEnabled);
   // Re-attach loupe (innerHTML wipe destroys it)
   if (document._loupeLens) media.appendChild(document._loupeLens);
   if (total > 1) {
     document.getElementById('carouselPrev').addEventListener('click', e => { e.stopPropagation(); carouselIndex = (carouselIndex - 1 + total) % total; renderCarousel(); });
     document.getElementById('carouselNext').addEventListener('click', e => { e.stopPropagation(); carouselIndex = (carouselIndex + 1) % total; renderCarousel(); });
-    document.getElementById('carouselCounterBtn').addEventListener('click', e => { e.stopPropagation(); openImgGridOverlay(); });
   }
   if (!isVid) {
     document.getElementById('carouselFullscreen').addEventListener('click', e => {
       e.stopPropagation();
       openImgFullscreen();
-    });
-  }
-  const loupeBtnEl = document.getElementById('carouselLoupeBtn');
-  if (loupeBtnEl) {
-    loupeBtnEl.addEventListener('click', e => {
-      e.stopPropagation();
-      loupeEnabled = !loupeEnabled;
-      renderCarousel();
     });
   }
 }
@@ -1246,22 +1202,16 @@ function renderFsOverlay() {
   const nonVideoImages = carouselImages.filter(u => !isVideoUrl(u));
   const fsIndex = overlay.dataset.fsIndex = parseInt(overlay.dataset.fsIndex)||0;
   const src = nonVideoImages[fsIndex] || '';
-  const counter = nonVideoImages.length > 1 ? `<button class="carousel-counter" id="fsCounterBtn" title="View all images" style="border:none;cursor:pointer;display:flex;align-items:center;gap:0.35rem;">${fsIndex+1} / ${nonVideoImages.length} <span style="font-size:0.85rem;">⊞</span></button>` : '';
+  const counter = nonVideoImages.length > 1 ? `<div class="carousel-counter">${fsIndex+1} / ${nonVideoImages.length}</div>` : '';
   const arrows = nonVideoImages.length > 1 ? `
     <button class="carousel-btn carousel-prev" id="fsPrev">‹</button>
     <button class="carousel-btn carousel-next" id="fsNext">›</button>` : '';
-  const fsLoupeBtn = !('ontouchstart' in window)
-    ? `<button id="fsLoupeBtn" title="${loupeEnabled ? 'Disable loupe' : 'Enable loupe'}" style="position:fixed;bottom:1.5rem;right:1.5rem;background:${loupeEnabled ? 'rgba(139,74,47,0.75)' : 'rgba(0,0,0,0.45)'};border:1px solid ${loupeEnabled ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)'};color:var(--white);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">🔍</button>`
-    : '';
   overlay.innerHTML = `
     <button id="fsCloseBtn">✕</button>
     <img src="${src}" alt="">
     ${arrows}
     ${counter}
-    ${fsLoupeBtn}
   `;
-  // Apply loupe-active class based on current state
-  overlay.classList.toggle('loupe-active', loupeEnabled);
   // Re-attach fullscreen loupe (innerHTML wipe destroys it)
   if (document._fsloupeLens) overlay.appendChild(document._fsloupeLens);
   overlay.classList.add('open');
@@ -1269,15 +1219,6 @@ function renderFsOverlay() {
   if (nonVideoImages.length > 1) {
     document.getElementById('fsPrev').addEventListener('click', e => { e.stopPropagation(); overlay.dataset.fsIndex=(fsIndex-1+nonVideoImages.length)%nonVideoImages.length; renderFsOverlay(); });
     document.getElementById('fsNext').addEventListener('click', e => { e.stopPropagation(); overlay.dataset.fsIndex=(fsIndex+1)%nonVideoImages.length; renderFsOverlay(); });
-    document.getElementById('fsCounterBtn').addEventListener('click', e => { e.stopPropagation(); openImgGridOverlay('fullscreen'); });
-  }
-  const fsLoupeBtnEl = document.getElementById('fsLoupeBtn');
-  if (fsLoupeBtnEl) {
-    fsLoupeBtnEl.addEventListener('click', e => {
-      e.stopPropagation();
-      loupeEnabled = !loupeEnabled;
-      renderFsOverlay();
-    });
   }
 }
 
@@ -1288,34 +1229,7 @@ function renderFsOverlay() {
 (function initLoupe() {
   const LOUPE_SIZE = 160;
   const FS_LOUPE_SIZE = 200;
-
-  // Calculate the actual rendered bounds of the image pixels within an
-  // object-fit:contain img element — excludes letterbox/pillarbox areas
-  function getContainedImageRect(img) {
-    const containerRect = img.getBoundingClientRect();
-    const containerW = containerRect.width;
-    const containerH = containerRect.height;
-    const naturalW = img.naturalWidth;
-    const naturalH = img.naturalHeight;
-    const containerRatio = containerW / containerH;
-    const imageRatio = naturalW / naturalH;
-    let renderedW, renderedH;
-    if (imageRatio > containerRatio) {
-      renderedW = containerW;
-      renderedH = containerW / imageRatio;
-    } else {
-      renderedH = containerH;
-      renderedW = containerH * imageRatio;
-    }
-    const offsetX = (containerW - renderedW) / 2;
-    const offsetY = (containerH - renderedH) / 2;
-    return {
-      left: containerRect.left + offsetX,
-      top: containerRect.top + offsetY,
-      width: renderedW,
-      height: renderedH
-    };
-  }
+  const ZOOM = 2.5;
 
   // ── Carousel loupe ──
   const mediaEl = document.getElementById('detailMedia');
@@ -1323,18 +1237,18 @@ function renderFsOverlay() {
   const loupe = document.createElement('div');
   loupe.id = 'loupeLens';
   mediaEl.appendChild(loupe);
+  // Store on document so renderCarousel can re-attach after innerHTML wipe
   document._loupeLens = loupe;
 
   function updateCarouselLoupe(e) {
-    if (!loupeEnabled) { loupe.style.display = 'none'; return; }
     const img = mediaEl.querySelector('#carouselImg');
     if (!img || !img.complete || !img.naturalWidth) { loupe.style.display = 'none'; return; }
 
-    const imgRect = getContainedImageRect(img);
-    const mx = e.clientX - imgRect.left;
-    const my = e.clientY - imgRect.top;
+    const rect = img.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
 
-    if (mx < 0 || my < 0 || mx > imgRect.width || my > imgRect.height) {
+    if (mx < 0 || my < 0 || mx > rect.width || my > rect.height) {
       loupe.style.display = 'none';
       return;
     }
@@ -1342,15 +1256,15 @@ function renderFsOverlay() {
     loupe.style.display = 'block';
 
     const mediaRect = mediaEl.getBoundingClientRect();
-    loupe.style.left = (e.clientX - mediaRect.left - LOUPE_SIZE / 2) + 'px';
-    loupe.style.top = (e.clientY - mediaRect.top - LOUPE_SIZE / 2) + 'px';
+    const lx = e.clientX - mediaRect.left - LOUPE_SIZE / 2;
+    const ly = e.clientY - mediaRect.top - LOUPE_SIZE / 2;
+    loupe.style.left = lx + 'px';
+    loupe.style.top = ly + 'px';
 
-    // Zoom to show image at 1:1 native pixels
-    const zoom = img.naturalWidth / imgRect.width;
-    const bgW = imgRect.width * zoom;
-    const bgH = imgRect.height * zoom;
-    const bgX = -(mx * zoom - LOUPE_SIZE / 2);
-    const bgY = -(my * zoom - LOUPE_SIZE / 2);
+    const bgW = rect.width * ZOOM;
+    const bgH = rect.height * ZOOM;
+    const bgX = -(mx * ZOOM - LOUPE_SIZE / 2);
+    const bgY = -(my * ZOOM - LOUPE_SIZE / 2);
 
     loupe.style.backgroundImage = `url('${img.src}')`;
     loupe.style.backgroundSize = `${bgW}px ${bgH}px`;
@@ -1366,18 +1280,18 @@ function renderFsOverlay() {
   const fsLoupe = document.createElement('div');
   fsLoupe.id = 'fsloupeLens';
   fsOverlay.appendChild(fsLoupe);
+  // Store reference so renderFsOverlay can re-attach after innerHTML wipe
   document._fsloupeLens = fsLoupe;
 
   function updateFsLoupe(e) {
-    if (!loupeEnabled) { fsLoupe.style.display = 'none'; return; }
     const img = fsOverlay.querySelector('img');
     if (!img || !img.complete || !img.naturalWidth) { fsLoupe.style.display = 'none'; return; }
 
-    const imgRect = getContainedImageRect(img);
-    const mx = e.clientX - imgRect.left;
-    const my = e.clientY - imgRect.top;
+    const rect = img.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
 
-    if (mx < 0 || my < 0 || mx > imgRect.width || my > imgRect.height) {
+    if (mx < 0 || my < 0 || mx > rect.width || my > rect.height) {
       fsLoupe.style.display = 'none';
       return;
     }
@@ -1386,11 +1300,10 @@ function renderFsOverlay() {
     fsLoupe.style.left = (e.clientX - FS_LOUPE_SIZE / 2) + 'px';
     fsLoupe.style.top = (e.clientY - FS_LOUPE_SIZE / 2) + 'px';
 
-    const zoom = img.naturalWidth / imgRect.width;
-    const bgW = imgRect.width * zoom;
-    const bgH = imgRect.height * zoom;
-    const bgX = -(mx * zoom - FS_LOUPE_SIZE / 2);
-    const bgY = -(my * zoom - FS_LOUPE_SIZE / 2);
+    const bgW = rect.width * ZOOM;
+    const bgH = rect.height * ZOOM;
+    const bgX = -(mx * ZOOM - FS_LOUPE_SIZE / 2);
+    const bgY = -(my * ZOOM - FS_LOUPE_SIZE / 2);
 
     fsLoupe.style.backgroundImage = `url('${img.src}')`;
     fsLoupe.style.backgroundSize = `${bgW}px ${bgH}px`;
@@ -1422,98 +1335,6 @@ document.getElementById('imgFullscreenOverlay').addEventListener('click', e => {
   if (e.target === document.getElementById('imgFullscreenOverlay')) document.getElementById('imgFullscreenOverlay').classList.remove('open');
 });
 
-// ══════════════════════════════════════════════════════════════
-//  IMAGE SET — "VIEW ALL" GRID OVERLAY
-// ══════════════════════════════════════════════════════════════
-// Source can be the public/admin work carousel (carouselImages) or the
-// upload list inside the edit modal (existingImageUrls + pendingImageUrls).
-// gridOverlaySource tracks which one is currently being browsed.
-let gridOverlaySource = 'carousel'; // 'carousel' | 'upload' | 'fullscreen'
-
-function openImgGridOverlay(source) {
-  gridOverlaySource = source || 'carousel';
-  renderImgGridOverlay();
-  document.getElementById('imgGridOverlay').classList.add('open');
-}
-
-function closeImgGridOverlay() {
-  document.getElementById('imgGridOverlay').classList.remove('open');
-}
-
-function renderImgGridOverlay() {
-  const overlay = document.getElementById('imgGridOverlay');
-  const fromUpload = gridOverlaySource === 'upload';
-  const fromFullscreen = gridOverlaySource === 'fullscreen';
-  const list = fromUpload ? [...existingImageUrls, ...pendingImageUrls] : carouselImages;
-  let currentSrc = null;
-  if (fromFullscreen) {
-    const nonVideoImages = carouselImages.filter(u => !isVideoUrl(u));
-    const fsIdx = parseInt(document.getElementById('imgFullscreenOverlay').dataset.fsIndex) || 0;
-    currentSrc = nonVideoImages[fsIdx];
-  } else if (!fromUpload) {
-    currentSrc = carouselImages[carouselIndex];
-  }
-  const title = fromUpload
-    ? `${list.length} image${list.length!==1?'s':''} in this work — click to jump`
-    : `${list.length} image${list.length!==1?'s':''}`;
-
-  const itemsHtml = list.map((url, i) => {
-    const isVid = isVideoUrl(url);
-    const mediaHtml = isVid
-      ? `<video src="${url}" muted playsinline></video><span class="grid-item-play">▶</span>`
-      : `<img src="${url}" alt="">`;
-    const isCurrent = !fromUpload && url === currentSrc;
-    return `<div class="grid-overlay-item${isCurrent?' is-current':''}" data-idx="${i}">${mediaHtml}</div>`;
-  }).join('');
-
-  overlay.innerHTML = `
-    <div class="grid-overlay-header">
-      <span class="grid-overlay-title">${title}</span>
-      <button id="gridOverlayClose" style="background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.2);color:#fff;width:36px;height:36px;font-size:1rem;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">✕</button>
-    </div>
-    <div class="grid-overlay-grid" id="gridOverlayGrid">${itemsHtml}</div>
-  `;
-
-  document.getElementById('gridOverlayClose').addEventListener('click', closeImgGridOverlay);
-  // Delegate from the grid container rather than binding per-item — this is robust even
-  // if a click lands on a not-yet-loaded image, a child span, or an edge pixel, since
-  // closest() walks up to the nearest .grid-overlay-item regardless of the exact target.
-  document.getElementById('gridOverlayGrid').addEventListener('click', e => {
-    const item = e.target.closest('.grid-overlay-item');
-    if (!item) return;
-    const idx = parseInt(item.dataset.idx, 10);
-    if (fromUpload) {
-      closeImgGridOverlay();
-    } else if (fromFullscreen) {
-      // Selecting from the grid while in fullscreen should update the fullscreen
-      // view itself (which tracks its own index over non-video images only),
-      // not just the carousel underneath it.
-      const nonVideoImages = carouselImages.filter(u => !isVideoUrl(u));
-      const fsOverlay = document.getElementById('imgFullscreenOverlay');
-      const newFsIdx = nonVideoImages.indexOf(list[idx]);
-      fsOverlay.dataset.fsIndex = Math.max(0, newFsIdx);
-      carouselIndex = idx;
-      closeImgGridOverlay();
-      renderFsOverlay();
-      renderCarousel(); // keep the carousel underneath in sync for when fullscreen is closed
-    } else {
-      carouselIndex = idx;
-      closeImgGridOverlay();
-      renderCarousel();
-    }
-  });
-}
-
-document.getElementById('imgGridOverlay').addEventListener('click', e => {
-  if (e.target.id === 'imgGridOverlay' || e.target.classList.contains('grid-overlay-grid')) closeImgGridOverlay();
-});
-
-document.addEventListener('keydown', e => {
-  if (document.getElementById('imgGridOverlay').classList.contains('open') && e.key === 'Escape') {
-    closeImgGridOverlay();
-  }
-});
-
 function openDetail(id) {
   const w = works.find(x => x.id === id);
   if (!w) return;
@@ -1539,10 +1360,7 @@ function openDetail(id) {
 }
 
 document.getElementById('detailOverlay').addEventListener('click', e=>{
-  if(e.target===document.getElementById('detailOverlay')||e.target.id==='detailClose') {
-    document.getElementById('detailOverlay').classList.remove('open');
-    loupeEnabled = false;
-  }
+  if(e.target===document.getElementById('detailOverlay')||e.target.id==='detailClose') document.getElementById('detailOverlay').classList.remove('open');
 });
 
 // Keyboard navigation for carousel
@@ -1556,7 +1374,7 @@ document.addEventListener('keydown', e => {
   if (!document.getElementById('detailOverlay').classList.contains('open')) return;
   if (e.key === 'ArrowLeft' && carouselImages.length > 1) { carouselIndex = (carouselIndex - 1 + carouselImages.length) % carouselImages.length; renderCarousel(); }
   if (e.key === 'ArrowRight' && carouselImages.length > 1) { carouselIndex = (carouselIndex + 1) % carouselImages.length; renderCarousel(); }
-  if (e.key === 'Escape') { document.getElementById('detailOverlay').classList.remove('open'); loupeEnabled = false; }
+  if (e.key === 'Escape') document.getElementById('detailOverlay').classList.remove('open');
 });
 document.getElementById('editWorkBtn').addEventListener('click',()=>{ document.getElementById('detailOverlay').classList.remove('open'); openWorkModal(editingWorkId); });
 document.getElementById('deleteWorkBtn').addEventListener('click', async()=>{
@@ -1585,56 +1403,13 @@ function getSelectedCollections() { return Array.from(document.querySelectorAll(
 // existingUrls is the current saved list; pendingImageUrls holds newly uploaded ones
 let existingImageUrls=[];
 
-let dragFromIndex=null;
-
-function reorderUploadList(fromIndex, toIndex) {
-  const all=[...existingImageUrls,...pendingImageUrls];
-  if(fromIndex===toIndex || fromIndex<0 || toIndex<0 || fromIndex>=all.length || toIndex>=all.length) return;
-  const [moved]=all.splice(fromIndex,1);
-  all.splice(toIndex,0,moved);
-  // Flatten into existingImageUrls (same pattern used by the star "set primary" handler)
-  existingImageUrls=all;
-  pendingImageUrls=[];
-  renderUploadPreviews();
-}
-
 function renderUploadPreviews() {
   const container=document.getElementById('uploadPreviews');
   container.innerHTML='';
   const all=[...existingImageUrls,...pendingImageUrls];
-  const hint=document.getElementById('uploadPreviewsHint');
-  hint.style.display = all.length>1 ? 'block' : 'none';
   all.forEach((url,i)=>{
     const wrap=document.createElement('div');
-    wrap.style.cssText='position:relative;display:inline-block;margin-right:4px;cursor:grab;';
-    wrap.draggable=true;
-    wrap.dataset.idx=i;
-
-    wrap.addEventListener('dragstart', e=>{
-      dragFromIndex=i;
-      wrap.style.opacity='0.4';
-      e.dataTransfer.effectAllowed='move';
-      // Firefox requires data to be set for drag to initiate
-      e.dataTransfer.setData('text/plain', String(i));
-    });
-    wrap.addEventListener('dragend', ()=>{
-      wrap.style.opacity='1';
-      dragFromIndex=null;
-      container.querySelectorAll('.upload-drop-target').forEach(el=>el.classList.remove('upload-drop-target'));
-    });
-    wrap.addEventListener('dragover', e=>{
-      e.preventDefault();
-      e.dataTransfer.dropEffect='move';
-      if(dragFromIndex===null || dragFromIndex===i) return;
-      wrap.classList.add('upload-drop-target');
-    });
-    wrap.addEventListener('dragleave', ()=>{ wrap.classList.remove('upload-drop-target'); });
-    wrap.addEventListener('drop', e=>{
-      e.preventDefault();
-      wrap.classList.remove('upload-drop-target');
-      if(dragFromIndex===null) return;
-      reorderUploadList(dragFromIndex, i);
-    });
+    wrap.style.cssText='position:relative;display:inline-block;margin-right:4px;';
 
     let mediaEl;
     if(isVideoUrl(url)){
@@ -1686,7 +1461,7 @@ function renderUploadPreviews() {
   });
 }
 
-function openWorkModal(id, preselectedCollectionId) {
+function openWorkModal(id) {
   editingWorkId=id||null;
   pendingImageUrls=[];
   existingImageUrls=[];
@@ -1713,7 +1488,7 @@ function openWorkModal(id, preselectedCollectionId) {
     document.getElementById('wMedium').value='';
     document.getElementById('wDimensions').value='';
     document.getElementById('wVisibility').value='draft';
-    renderCollectionCheckboxes(preselectedCollectionId ? [preselectedCollectionId] : []);
+    renderCollectionCheckboxes([]);
     document.getElementById('wTags').value='';
     document.getElementById('wDesc').value='';
     document.getElementById('wNotes').value='';
@@ -1722,86 +1497,7 @@ function openWorkModal(id, preselectedCollectionId) {
   document.getElementById('workModal').classList.add('open');
 }
 
-document.getElementById('addWorkBtn').addEventListener('click', () => {
-  if (activeFilter !== 'all') {
-    openWorkModal(null, activeFilter);
-  } else {
-    openWorkModal(null);
-  }
-});
-
-// ── Works checklist — shared by the collection edit modal ──
-let atcCollectionId = null;
-let atcSelectedIds = new Set();
-let atcOriginalIds = new Set();
-
-function renderAtcList(query) {
-  const container = document.getElementById('atcWorksList');
-  const candidates = works.filter(w => !query || w.title.toLowerCase().includes(query));
-  if (!candidates.length) {
-    container.innerHTML = `<div style="padding:0.8rem;font-size:0.82rem;color:var(--mid);font-style:italic;">No works found.</div>`;
-    return;
-  }
-  // Already-in-collection works first, then the rest — both alphabetised
-  const inCollection = candidates.filter(w => atcOriginalIds.has(w.id)).sort((a,b)=>a.title.localeCompare(b.title));
-  const notInCollection = candidates.filter(w => !atcOriginalIds.has(w.id)).sort((a,b)=>a.title.localeCompare(b.title));
-  const ordered = [...inCollection, ...notInCollection];
-  container.innerHTML = '';
-  ordered.forEach((w, i) => {
-    // Divider between "in collection" and "not in collection" groups
-    if (i === inCollection.length && inCollection.length && notInCollection.length) {
-      const divider = document.createElement('div');
-      divider.style.cssText = 'padding:0.4rem 0.8rem;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--light);background:var(--cream);border-bottom:1px solid var(--panel);';
-      divider.textContent = 'Other works';
-      container.appendChild(divider);
-    }
-    const row = document.createElement('label');
-    row.style.cssText = 'display:grid;grid-template-columns:24px 56px 1fr;gap:0.7rem;align-items:center;padding:0.55rem 0.8rem;cursor:pointer;border-bottom:1px solid var(--panel);';
-    row.onmouseover = () => row.style.background = 'var(--panel)';
-    row.onmouseout = () => row.style.background = '';
-    const checked = atcSelectedIds.has(w.id) ? 'checked' : '';
-    row.innerHTML = `
-      <input type="checkbox" value="${w.id}" ${checked} style="accent-color:var(--accent);width:15px;height:15px;">
-      <img src="${thumbFor(w, 112, 84)}" style="width:56px;height:42px;object-fit:cover;" alt="">
-      <div>
-        <div style="font-family:var(--serif);font-style:italic;font-size:0.92rem;">${w.title}</div>
-        <div style="font-size:0.72rem;color:var(--mid);">${w.year||''}${w.medium?' · '+w.medium:''}</div>
-      </div>`;
-    row.querySelector('input').addEventListener('change', function() {
-      if (this.checked) atcSelectedIds.add(w.id);
-      else atcSelectedIds.delete(w.id);
-    });
-    container.appendChild(row);
-  });
-}
-
-document.getElementById('atcSearch').addEventListener('input', function() { renderAtcList(this.value.toLowerCase()); });
-
-// Persists any changes to collection membership (called from saveCollectionBtn)
-async function saveWorksMembership() {
-  if (!atcCollectionId) return { added: 0, removed: 0 };
-  const toAdd = [...atcSelectedIds].filter(id => !atcOriginalIds.has(id));
-  const toRemove = [...atcOriginalIds].filter(id => !atcSelectedIds.has(id));
-  for (const wid of toAdd) {
-    const w = works.find(x => x.id === wid);
-    if (!w) continue;
-    const newIds = [...new Set([...(w.collection_ids || []), atcCollectionId])];
-    const updated = await sb.safePatch('works', wid, { collection_ids: newIds });
-    const idx = works.findIndex(x => x.id === wid);
-    works[idx] = updated[0] || { ...w, collection_ids: newIds };
-  }
-  for (const wid of toRemove) {
-    const w = works.find(x => x.id === wid);
-    if (!w) continue;
-    const newIds = (w.collection_ids || []).filter(cid => cid !== atcCollectionId);
-    const updated = await sb.safePatch('works', wid, { collection_ids: newIds });
-    const idx = works.findIndex(x => x.id === wid);
-    works[idx] = updated[0] || { ...w, collection_ids: newIds };
-  }
-  return { added: toAdd.length, removed: toRemove.length };
-}
-
-document.getElementById('viewAllFromModalBtn').addEventListener('click', e => { e.preventDefault(); openImgGridOverlay('upload'); });
+document.getElementById('addWorkBtn').addEventListener('click',()=>openWorkModal(null));
 document.getElementById('cancelWorkBtn').addEventListener('click',()=>document.getElementById('workModal').classList.remove('open'));
 
 // Auto-fill year from date picker
@@ -1871,30 +1567,17 @@ document.getElementById('saveWorkBtn').addEventListener('click', async()=>{
 function openCollectionModal(id) {
   editingCollectionId=id||null;
   document.getElementById('collectionModalTitle').textContent=id?'Edit Collection':'New Collection';
-  document.getElementById('deleteCollectionBtn').style.display=id?'':'none';
   if(id){
     const c=collections.find(x=>x.id===id);
     document.getElementById('cName').value=c.name;
     document.getElementById('cDesc').value=c.description||'';
     document.getElementById('cVisibility').value=c.visibility||'published';
     updateCollectionShareBox(c);
-    // Show and populate the works checklist for an existing collection
-    document.getElementById('cWorksSection').style.display='block';
-    document.getElementById('atcSearch').value='';
-    atcCollectionId = id;
-    atcOriginalIds = new Set(works.filter(w => (w.collection_ids||[]).includes(id)).map(w => w.id));
-    atcSelectedIds = new Set(atcOriginalIds);
-    renderAtcList('');
   } else {
     document.getElementById('cName').value='';
     document.getElementById('cDesc').value='';
     document.getElementById('cVisibility').value='published';
     document.getElementById('cShareBox').style.display='none';
-    // No works section for a brand new collection — nothing to assign yet
-    document.getElementById('cWorksSection').style.display='none';
-    atcCollectionId = null;
-    atcOriginalIds = new Set();
-    atcSelectedIds = new Set();
   }
   document.getElementById('collectionModal').classList.add('open');
 }
@@ -1921,20 +1604,7 @@ document.getElementById('cCopyLinkBtn').addEventListener('click',()=>{
   navigator.clipboard.writeText(url).then(()=>toast('Link copied!')).catch(()=>{ document.getElementById('cShareUrl').select(); document.execCommand('copy'); toast('Link copied!'); });
 });
 
-document.getElementById('deleteCollectionBtn').addEventListener('click', async () => {
-  const col = collections.find(c => c.id === editingCollectionId);
-  if (!col) return;
-  if (!confirm(`Delete collection "${col.name}"? The works in it won't be deleted.`)) return;
-  try {
-    await sb.safeDelete('collections', editingCollectionId);
-    collections = collections.filter(c => c.id !== editingCollectionId);
-    if (activeFilter === editingCollectionId) activeFilter = 'all';
-    document.getElementById('collectionModal').classList.remove('open');
-    renderAll();
-    toast('Collection deleted');
-  } catch(e) { toast('Delete failed: ' + e.message, true); }
-});
-
+document.getElementById('addCollectionBtn').addEventListener('click',()=>openCollectionModal(null));
 document.getElementById('addCollectionBtn2').addEventListener('click',()=>openCollectionModal(null));
 document.getElementById('cancelCollectionBtn').addEventListener('click',()=>document.getElementById('collectionModal').classList.remove('open'));
 
@@ -1957,13 +1627,8 @@ document.getElementById('saveCollectionBtn').addEventListener('click', async()=>
       const created=await sb.safePost('collections',data);
       collections.push(created[0]||{id:uid(),...data});
     }
-    const membership = await saveWorksMembership();
     document.getElementById('collectionModal').classList.remove('open');
-    renderAll();
-    const parts=[editingCollectionId?'Collection updated':'Collection created'];
-    if(membership.added) parts.push(`${membership.added} work${membership.added!==1?'s':''} added`);
-    if(membership.removed) parts.push(`${membership.removed} work${membership.removed!==1?'s':''} removed`);
-    toast(parts.join(' · '));
+    renderAll(); toast(editingCollectionId?'Collection updated':'Collection created');
   } catch(e){ toast('Save failed: '+e.message,true); }
   finally{ btn.textContent='Save Collection'; btn.disabled=false; }
 });
@@ -2007,7 +1672,6 @@ document.getElementById('exDetailDeleteBtn').addEventListener('click', async()=>
   catch(e){ toast('Delete failed: '+e.message,true); }
 });
 document.getElementById('exDetailPrintBtn').addEventListener('click',()=>printContactSheet(currentExhibitionId));
-document.getElementById('exDetailExportBtn').addEventListener('click', () => showExportChooser('exDetailExportChooser', 'exDetailExportBtn', (q) => exportZip('exhibition', currentExhibitionId, q)));
 
 // ══════════════════════════════════════════════════════════════
 //  EXHIBITION MODAL
@@ -2059,128 +1723,24 @@ document.getElementById('saveExhibitionBtn').addEventListener('click', async()=>
 //  BIO
 // ══════════════════════════════════════════════════════════════
 
-// Bio image handling
-let bioExistingImageUrls = [];
-let bioPendingImageUrls = [];
-
-function renderBioUploadPreviews() {
-  const container = document.getElementById('bioUploadPreviews');
-  container.innerHTML = '';
-  const all = [...bioExistingImageUrls, ...bioPendingImageUrls];
-  all.forEach((url, i) => {
-    const wrap = document.createElement('div');
-    wrap.style.cssText = 'position:relative;display:inline-block;margin-right:4px;';
-    const img = document.createElement('img');
-    img.className = 'upload-preview';
-    img.src = url;
-    const star = document.createElement('button');
-    star.textContent = i === 0 ? '★' : '☆';
-    star.title = i === 0 ? 'Primary image' : 'Set as primary';
-    star.style.cssText = `position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:20px;height:20px;border-radius:50%;background:${i === 0 ? 'var(--accent)' : 'rgba(0,0,0,0.4)'};color:var(--white);border:none;cursor:${i === 0 ? 'default' : 'pointer'};font-size:0.7rem;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;`;
-    if (i !== 0) {
-      star.addEventListener('click', () => {
-        const allUrls = [...bioExistingImageUrls, ...bioPendingImageUrls];
-        allUrls.splice(i, 1);
-        allUrls.unshift(url);
-        bioExistingImageUrls = allUrls;
-        bioPendingImageUrls = [];
-        renderBioUploadPreviews();
-      });
-    }
-    const removeBtn = document.createElement('button');
-    removeBtn.textContent = '✕';
-    removeBtn.style.cssText = 'position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--ink);color:var(--white);border:none;cursor:pointer;font-size:0.6rem;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;';
-    removeBtn.title = 'Remove';
-    removeBtn.addEventListener('click', () => {
-      bioExistingImageUrls = [...bioExistingImageUrls, ...bioPendingImageUrls].filter((_, j) => j !== i);
-      bioPendingImageUrls = [];
-      renderBioUploadPreviews();
-    });
-    wrap.appendChild(img);
-    wrap.appendChild(star);
-    wrap.appendChild(removeBtn);
-    container.appendChild(wrap);
-  });
-}
-
-function renderBioImages() {
-  const panel = document.getElementById('bioImagePanel');
-  const allImages = [...(bio.image_urls || [])].filter(Boolean);
-  if (!allImages.length) {
-    panel.style.display = 'none';
-    return;
-  }
-  panel.style.display = 'flex';
-  document.getElementById('bioImagePrimary').src = allImages[0];
-}
-
-document.getElementById('editBioBtn').addEventListener('click', () => {
-  document.getElementById('editBioText').value = bio.text;
-  document.getElementById('editBioStatement').value = bio.statement;
-  bioExistingImageUrls = [...(bio.image_urls || [])].filter(Boolean);
-  bioPendingImageUrls = [];
-  document.getElementById('bioFile').value = '';
-  document.getElementById('bioUploadProgress').style.display = 'none';
-  renderBioUploadPreviews();
-  document.getElementById('bioModal').classList.add('open');
-});
-
-document.getElementById('bioFile').addEventListener('change', async function() {
-  const files = Array.from(this.files);
-  if (!files.length) return;
-  const progress = document.getElementById('bioUploadProgress');
-  progress.style.display = 'block';
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    progress.textContent = `Uploading ${i + 1} of ${files.length}… 0%`;
-    try {
-      const url = await uploadToCloudinary(file, pct => { progress.textContent = `Uploading ${i + 1} of ${files.length}… ${pct}%`; });
-      if (!bioPendingImageUrls.includes(url)) bioPendingImageUrls.push(url);
-      renderBioUploadPreviews();
-    } catch (e) { toast('Upload failed: ' + e.message, true); }
-  }
-  progress.textContent = `✓ ${files.length} image${files.length !== 1 ? 's' : ''} uploaded`;
-  setTimeout(() => { progress.style.display = 'none'; }, 2000);
-  this.value = '';
-});
-document.getElementById('cancelBioBtn').addEventListener('click', () => document.getElementById('bioModal').classList.remove('open'));
-document.getElementById('saveBioBtn').addEventListener('click', async () => {
-  bio.text = document.getElementById('editBioText').value;
-  bio.statement = document.getElementById('editBioStatement').value;
-  bio.image_urls = [...bioExistingImageUrls, ...bioPendingImageUrls];
-  document.getElementById('bioText').textContent = bio.text;
-  document.getElementById('bioStatement').textContent = bio.statement;
-  renderBioImages();
+document.getElementById('editBioBtn').addEventListener('click',()=>{ document.getElementById('editBioText').value=bio.text; document.getElementById('editBioStatement').value=bio.statement; document.getElementById('bioModal').classList.add('open'); });
+document.getElementById('cancelBioBtn').addEventListener('click',()=>document.getElementById('bioModal').classList.remove('open'));
+document.getElementById('saveBioBtn').addEventListener('click', async()=>{
+  bio.text=document.getElementById('editBioText').value;
+  bio.statement=document.getElementById('editBioStatement').value;
+  document.getElementById('bioText').textContent=bio.text;
+  document.getElementById('bioStatement').textContent=bio.statement;
   try {
-    if (bio.id) await sb.safePatch('bio', bio.id, { text: bio.text, statement: bio.statement, image_urls: bio.image_urls });
-    else { const r = await sb.safePost('bio', { text: bio.text, statement: bio.statement, image_urls: bio.image_urls }); bio = r[0]; }
-    bioExistingImageUrls = [];
-    bioPendingImageUrls = [];
+    if(bio.id) await sb.safePatch('bio',bio.id,{text:bio.text,statement:bio.statement});
+    else { const r=await sb.safePost('bio',{text:bio.text,statement:bio.statement}); bio=r[0]; }
     document.getElementById('bioModal').classList.remove('open');
     toast('Bio saved');
-  } catch (e) { toast('Save failed: ' + e.message, true); }
+  } catch(e){ toast('Save failed: '+e.message,true); }
 });
 
 // ══════════════════════════════════════════════════════════════
 //  PRINT CONTACT SHEET
 // ══════════════════════════════════════════════════════════════
-
-function waitForImagesThenPrint(sheet) {
-  const imgs = Array.from(sheet.querySelectorAll('img'));
-  const pending = imgs.filter(img => !img.complete);
-  const doPrint = () => {
-    // Give the browser 400ms after all images are loaded to finish
-    // rendering them into the layout before invoking print
-    setTimeout(() => { window.print(); sheet.style.display = 'none'; }, 400);
-  };
-  if (!pending.length) { doPrint(); return; }
-  let remaining = pending.length;
-  const done = () => { if (--remaining <= 0) doPrint(); };
-  pending.forEach(img => {
-    img.addEventListener('load', done, { once: true });
-    img.addEventListener('error', done, { once: true }); // don't hang on a broken image
-  });
-}
 
 function printContactSheet(id) {
   const ex=exhibitions.find(e=>e.id===id);
@@ -2191,52 +1751,42 @@ function printContactSheet(id) {
   const dateStr=start?(end&&end!==start?`${start} – ${end}`:start):'';
   const worksHtml=exWorks.map((w,i)=>{
     const colNames=(w.collection_ids||[]).map(cid=>{const c=getCollection(cid);return c?c.name:null;}).filter(Boolean);
-    return `<div class="print-work-item"><div class="print-work-thumb-cell"><img class="print-work-thumb" src="${cloudinaryPrintUrl(thumbFor(w))}" alt="${w.title}"></div><div class="print-work-info"><div class="print-work-title">${i+1}. ${w.title}</div><div class="print-work-meta">${w.year?`<strong>${w.year}</strong>`:''} ${w.medium?`<br>${w.medium}`:''} ${w.dimensions?`<br>${w.dimensions}`:''} ${colNames.length?`<br><em>${colNames.join(', ')}</em>`:''}</div></div></div>`;
+    return `<div class="print-work-item"><img class="print-work-thumb" src="${thumbFor(w,180,136)}" alt="${w.title}"><div class="print-work-info"><div class="print-work-title">${i+1}. ${w.title}</div><div class="print-work-meta">${w.year?`<strong>${w.year}</strong>`:''} ${w.medium?`<br>${w.medium}`:''} ${w.dimensions?`<br>${w.dimensions}`:''} ${colNames.length?`<br><em>${colNames.join(', ')}</em>`:''}</div>${w.notes&&isAdmin()?`<div class="print-work-notes">${w.notes}</div>`:''}</div></div>`;
   }).join('');
   const sheet=document.getElementById('printContactSheet');
-  sheet.innerHTML=`<div class="print-header"><div style="font-size:7.5pt;letter-spacing:0.15em;text-transform:uppercase;color:#6b6660;margin-bottom:6pt;">Cerlin Karunaratne — Exhibition Contact Sheet</div><h1>${ex.name}</h1><div class="print-meta">${[ex.place,dateStr].filter(Boolean).join(' · ')}${exWorks.length?' · '+exWorks.length+' work'+(exWorks.length!==1?'s':''):''}</div></div><div class="print-works-grid">${worksHtml}</div>`;
-  sheet.style.display='block';
-  waitForImagesThenPrint(sheet);
-}
-
-function printContactSheetForCollection(id) {
-  const c=collections.find(x=>x.id===id);
-  if(!c) return;
-  const cWorks=visibleWorks().filter(w=>(w.collection_ids||[]).includes(c.id));
-  const worksHtml=cWorks.map((w,i)=>{
-    return `<div class="print-work-item"><div class="print-work-thumb-cell"><img class="print-work-thumb" src="${cloudinaryPrintUrl(thumbFor(w))}" alt="${w.title}"></div><div class="print-work-info"><div class="print-work-title">${i+1}. ${w.title}</div><div class="print-work-meta">${w.year?`<strong>${w.year}</strong>`:''} ${w.medium?`<br>${w.medium}`:''} ${w.dimensions?`<br>${w.dimensions}`:''}</div></div></div>`;
-  }).join('');
-  const sheet=document.getElementById('printContactSheet');
-  sheet.innerHTML=`<div class="print-header"><div style="font-size:7.5pt;letter-spacing:0.15em;text-transform:uppercase;color:#6b6660;margin-bottom:6pt;">Cerlin Karunaratne — Collection Contact Sheet</div><h1>${c.name}</h1><div class="print-meta">${[c.description,cWorks.length?cWorks.length+' work'+(cWorks.length!==1?'s':''):''].filter(Boolean).join(' · ')}</div></div><div class="print-works-grid">${worksHtml}</div>`;
-  sheet.style.display='block';
-  waitForImagesThenPrint(sheet);
+  sheet.innerHTML=`<div class="print-header"><div style="font-size:7.5pt;letter-spacing:0.15em;text-transform:uppercase;color:#6b6660;margin-bottom:6pt;">Material Poetry — Exhibition Contact Sheet</div><h1>${ex.name}</h1><div class="print-meta">${[ex.place,dateStr].filter(Boolean).join(' · ')}${exWorks.length?' · '+exWorks.length+' work'+(exWorks.length!==1?'s':''):''}</div></div><div class="print-works-grid">${worksHtml}</div>`;
+  sheet.style.display='block'; window.print(); sheet.style.display='none';
 }
 
 // ══════════════════════════════════════════════════════════════
 //  VIEW SWITCHING
 // ══════════════════════════════════════════════════════════════
 
-window.switchView=function(name, resetFilter=false){
+window.switchView=function(name){
   const target = document.querySelector(`#view-${name}`);
   if (!target) return;
-  if (resetFilter) activeFilter = 'all';
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   target.classList.add('active');
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
   if(name==='works') renderWorksGrid();
   if(name==='collections') renderCollections();
   if(name==='exhibitions') renderExhibitions();
+  if(name==='timeline') renderTimeline();
   document.querySelectorAll('#mobileNav .tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
+  document.querySelector('aside').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
 };
 
-document.querySelectorAll('header .tab-btn').forEach(b=>{ b.onclick=()=>window.switchView(b.dataset.view, b.dataset.view==='works'); });
-document.querySelectorAll('#mobileNav .tab-btn').forEach(b=>{ b.onclick=()=>window.switchView(b.dataset.view, b.dataset.view==='works'); });
+document.querySelectorAll('header .tab-btn').forEach(b=>{ b.onclick=()=>window.switchView(b.dataset.view); });
+document.querySelectorAll('#mobileNav .tab-btn').forEach(b=>{ b.onclick=()=>window.switchView(b.dataset.view); });
 
 // ══════════════════════════════════════════════════════════════
 //  MOBILE
 // ══════════════════════════════════════════════════════════════
 
 function showMobileNav(){ document.getElementById('mobileNav').style.display=window.innerWidth<=900?'flex':'none'; }
+document.getElementById('mobileMenuBtn').addEventListener('click',()=>{ document.querySelector('aside').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('open'); });
+document.getElementById('sidebarOverlay').addEventListener('click',()=>{ document.querySelector('aside').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('open'); });
 showMobileNav(); window.addEventListener('resize',showMobileNav);
 
 // ══════════════════════════════════════════════════════════════
@@ -2244,10 +1794,9 @@ showMobileNav(); window.addEventListener('resize',showMobileNav);
 // ══════════════════════════════════════════════════════════════
 
 function renderAll() {
-  renderWorksGrid(); renderCollections(); renderExhibitions();
+  renderSidebar(); renderWorksGrid(); renderCollections(); renderExhibitions(); renderTimeline();
   document.getElementById('bioText').textContent=bio.text||'';
   document.getElementById('bioStatement').textContent=bio.statement||'';
-  renderBioImages();
 }
 
 // ── INIT ──
