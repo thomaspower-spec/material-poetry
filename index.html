@@ -425,7 +425,9 @@
       </div>
       <div class="form-group"><label>Year <span style="font-weight:300;text-transform:none;letter-spacing:0;">(auto-fills from date)</span></label><input type="number" id="wYear" placeholder="2024" min="1900" max="2099"></div>
       <div class="form-group"><label>Medium</label><input type="text" id="wMedium" placeholder="e.g. Oil on linen"></div>
-      <div class="form-group"><label>Dimensions</label><input type="text" id="wDimensions" placeholder="e.g. 60 × 80 cm"></div>
+      <div class="form-group"><label>Width <span style="font-weight:300;text-transform:none;letter-spacing:0;">(cm)</span></label><input type="number" id="wWidthCm" placeholder="80" min="0" step="0.1"></div>
+      <div class="form-group"><label>Height <span style="font-weight:300;text-transform:none;letter-spacing:0;">(cm)</span></label><input type="number" id="wHeightCm" placeholder="60" min="0" step="0.1"></div>
+      <div class="form-group form-full"><label>Dimension notes <span style="font-weight:300;text-transform:none;letter-spacing:0;">(for multi-piece, 3D, or irregular work — optional if width/height above cover it)</span></label><input type="text" id="wDimensions" placeholder="e.g. 28 pieces, each 27.5 x 14cm"></div>
       <div class="form-group form-full">
         <label>Visibility</label>
         <select id="wVisibility">
@@ -514,6 +516,7 @@
           <h2 class="detail-title" id="exDetailTitle" style="margin-bottom:0.4rem;"></h2>
           <p id="exDetailMeta" style="font-size:0.8rem;color:var(--mid);"></p>
         </div>
+        <div id="exDetailSizeSummary" class="admin-only" style="font-size:0.72rem;color:var(--mid);text-align:right;line-height:1.6;flex-shrink:0;"></div>
         <button class="detail-close" id="exDetailClose" style="position:static;background:var(--panel);color:var(--ink);flex-shrink:0;width:32px;height:32px;">✕</button>
       </div>
       <div id="exDetailWorks" style="display:flex;flex-direction:column;gap:0.7rem;max-height:55vh;overflow-y:auto;margin-bottom:1.5rem;"></div>
@@ -890,6 +893,25 @@ function cloudinaryPrintUrl(url) {
 // ══════════════════════════════════════════════════════════════
 
 function getCollection(id) { return collections.find(c=>c.id===id); }
+
+// Matches a plain "80 x 60cm" / "110x110cm" style string with nothing extra —
+// used to avoid showing redundant text alongside structured width_cm/height_cm
+const SIMPLE_DIM_PATTERN = /^\s*\d+(?:\.\d+)?\s*(?:cm)?\s*[x×]\s*\d+(?:\.\d+)?\s*(?:cm)?\s*$/i;
+
+// Preferred display string for a work's size: uses structured width_cm/height_cm
+// when present (tidy, consistent formatting), falling back to the free-text
+// dimensions field for legacy/irregular/multi-piece entries. If both exist and
+// the text carries genuine extra information (e.g. "28 pieces, each..."),
+// append it as a note rather than dropping it.
+function displayDimensions(w) {
+  if (w.width_cm != null && w.height_cm != null) {
+    const base = `${w.width_cm} × ${w.height_cm}cm`;
+    const text = (w.dimensions || '').trim();
+    const note = text && !SIMPLE_DIM_PATTERN.test(text) ? text : '';
+    return note ? `${base} — ${note}` : base;
+  }
+  return w.dimensions || '';
+}
 function getAllTags() { const s=new Set(); visibleWorks().forEach(w=>(w.tags||[]).forEach(t=>s.add(t))); return [...s].sort(); }
 function getAllMediums() { const s=new Set(); visibleWorks().forEach(w=>{if(w.medium)s.add(w.medium.split(' ')[0]);}); return [...s].sort(); }
 function getAllYears() { const s=new Set(); visibleWorks().forEach(w=>{if(w.year)s.add(w.year);}); return [...s].sort((a,b)=>b-a); }
@@ -1086,7 +1108,7 @@ async function exportZip(type, id, quality) {
       `## ${num}. ${w.title}`,
       w.year         ? `Year: ${w.year}` : '',
       w.medium       ? `Medium: ${w.medium}` : '',
-      w.dimensions   ? `Dimensions: ${w.dimensions}` : '',
+      displayDimensions(w) ? `Dimensions: ${displayDimensions(w)}` : '',
       colNames.length ? `Collection: ${colNames.join(', ')}` : '',
       filenames.length ? `File(s):\n${filenames.map(f => `- ${f}`).join('\n')}` : '',
       w.description  ? `\n${w.description}` : '',
@@ -1151,6 +1173,72 @@ function exhibitionDateLabel(ex, longForm=false) {
   return '';
 }
 
+// ── Portfolio-case sizing (admin-only note on the exhibition detail overlay) ──
+
+// A0 down to A4, long/short sides in mm — used to find the smallest standard
+// folio size that could fit every work in an exhibition
+const FOLIO_SIZES = [
+  { name: 'A4', long: 297,  short: 210 },
+  { name: 'A3', long: 420,  short: 297 },
+  { name: 'A2', long: 594,  short: 420 },
+  { name: 'A1', long: 841,  short: 594 },
+  { name: 'A0', long: 1189, short: 841 },
+];
+
+function minimumFolioSize(longMm, shortMm) {
+  for (const size of FOLIO_SIZES) {
+    if (size.long >= longMm && size.short >= shortMm) return size.name;
+  }
+  return 'Larger than A0';
+}
+
+// A work's long/short side in cm, whichever way round they were entered.
+// Prefers the structured width_cm/height_cm fields; falls back to parsing the
+// free-text dimensions field (for works entered before that field existed, or
+// where a simple pair can still be extracted despite extra wording)
+function workSizeCm(w) {
+  if (w.width_cm != null && w.height_cm != null) {
+    return { long: Math.max(w.width_cm, w.height_cm), short: Math.min(w.width_cm, w.height_cm) };
+  }
+  const text = (w.dimensions || '').trim();
+  const m = text.match(/(\d+(?:\.\d+)?)\s*(?:cm)?\s*[x×]\s*(\d+(?:\.\d+)?)/i);
+  if (!m) return null;
+  const a = parseFloat(m[1]), b = parseFloat(m[2]);
+  return { long: Math.max(a, b), short: Math.min(a, b) };
+}
+
+// Largest long/short side across an exhibition's works, which works, and the
+// smallest standard folio size that would fit all of them
+function exhibitionSizeSummary(exWorks) {
+  let maxLong = null, maxLongWork = null, maxShort = null, maxShortWork = null, missingCount = 0;
+  exWorks.forEach(w => {
+    const size = workSizeCm(w);
+    if (!size) { missingCount++; return; }
+    if (maxLong === null || size.long > maxLong) { maxLong = size.long; maxLongWork = w; }
+    if (maxShort === null || size.short > maxShort) { maxShort = size.short; maxShortWork = w; }
+  });
+  if (maxLong === null) return { missingCount, maxLong: null };
+  return {
+    maxLong, maxLongWork, maxShort, maxShortWork, missingCount,
+    folio: minimumFolioSize(maxLong * 10, maxShort * 10)
+  };
+}
+
+function renderExDetailSizeSummary(exWorks) {
+  const el = document.getElementById('exDetailSizeSummary');
+  const s = exhibitionSizeSummary(exWorks);
+  if (s.maxLong === null) {
+    el.innerHTML = s.missingCount ? `<span style="font-style:italic;">No dimensions recorded yet</span>` : '';
+    return;
+  }
+  const sameWork = s.maxShortWork.id === s.maxLongWork.id;
+  el.innerHTML =
+    `Largest: <strong>${s.maxLong}cm</strong> <span style="font-style:italic;">(${s.maxLongWork.title})</span>` +
+    (sameWork ? '' : ` · <strong>${s.maxShort}cm</strong> <span style="font-style:italic;">(${s.maxShortWork.title})</span>`) +
+    `<br>Folio needed: <strong>${s.folio}</strong>` +
+    (s.missingCount ? `<br><span style="font-style:italic;">${s.missingCount} work${s.missingCount!==1?'s':''} missing dimensions</span>` : '');
+}
+
 function renderExhibitions() {
   const list=document.getElementById('exhibitionsList');
   // Filter by visibility based on access level
@@ -1200,7 +1288,7 @@ function renderTimeline() {
     byYear[y].forEach(w=>{
       const item=document.createElement('div');
       item.className='timeline-item';
-      item.innerHTML=`<img src="${thumbFor(w,160,120)}" style="width:80px;height:60px;object-fit:cover;flex-shrink:0;" alt="${w.title}"><div class="timeline-text"><h4>${w.title}</h4><p>${w.medium||''}${w.dimensions?' · '+w.dimensions:''}</p></div>`;
+      item.innerHTML=`<img src="${thumbFor(w,160,120)}" style="width:80px;height:60px;object-fit:cover;flex-shrink:0;" alt="${w.title}"><div class="timeline-text"><h4>${w.title}</h4><p>${w.medium||''}${displayDimensions(w)?' · '+displayDimensions(w):''}</p></div>`;
       item.addEventListener('click',()=>openDetail(w.id));
       wd.appendChild(item);
     });
@@ -1560,7 +1648,7 @@ function openDetail(id) {
     ? new Date(w.work_date).toLocaleDateString('en-IE', {day:'numeric', month:'long', year:'numeric'})
     : (w.year || '—');
   document.getElementById('detailMedium').textContent = w.medium || '—';
-  document.getElementById('detailDimensions').textContent = w.dimensions || '—';
+  document.getElementById('detailDimensions').textContent = displayDimensions(w) || '—';
   const colNames = (w.collection_ids||[]).map(id=>getCollection(id)).filter(Boolean).map(c=>c.name);
   document.getElementById('detailCollection').textContent = colNames.length ? colNames.join(', ') : '—';
   document.getElementById('detailTags').textContent = (w.tags||[]).length ? w.tags.join(', ') : '—';
@@ -1755,6 +1843,8 @@ function openWorkModal(id, preselectedCollectionId) {
     document.getElementById('wDate').value=w.work_date||'';
     document.getElementById('wYear').value=w.year||'';
     document.getElementById('wMedium').value=w.medium||'';
+    document.getElementById('wWidthCm').value=w.width_cm||'';
+    document.getElementById('wHeightCm').value=w.height_cm||'';
     document.getElementById('wDimensions').value=w.dimensions||'';
     document.getElementById('wVisibility').value=w.visibility||'draft';
     renderCollectionCheckboxes(w.collection_ids||[]);
@@ -1769,6 +1859,8 @@ function openWorkModal(id, preselectedCollectionId) {
     document.getElementById('wDate').value='';
     document.getElementById('wYear').value='';
     document.getElementById('wMedium').value='';
+    document.getElementById('wWidthCm').value='';
+    document.getElementById('wHeightCm').value='';
     document.getElementById('wDimensions').value='';
     document.getElementById('wVisibility').value='draft';
     renderCollectionCheckboxes(preselectedCollectionId ? [preselectedCollectionId] : []);
@@ -1888,7 +1980,10 @@ async function saveWorkExhibitionMembership(workId) {
 }
 
 document.getElementById('viewAllFromModalBtn').addEventListener('click', e => { e.preventDefault(); openImgGridOverlay('upload'); });
-document.getElementById('cancelWorkBtn').addEventListener('click',()=>document.getElementById('workModal').classList.remove('open'));
+document.getElementById('cancelWorkBtn').addEventListener('click',()=>{
+  document.getElementById('workModal').classList.remove('open');
+  if (returnToExhibitionId) { const exId = returnToExhibitionId; returnToExhibitionId = null; openExhibitionDetail(exId); }
+});
 
 // Auto-fill year from date picker
 document.getElementById('wDate').addEventListener('change', function() {
@@ -1930,6 +2025,8 @@ document.getElementById('saveWorkBtn').addEventListener('click', async()=>{
     work_date:document.getElementById('wDate').value||null,
     medium:document.getElementById('wMedium').value.trim(),
     dimensions:document.getElementById('wDimensions').value.trim(),
+    width_cm:parseFloat(document.getElementById('wWidthCm').value)||null,
+    height_cm:parseFloat(document.getElementById('wHeightCm').value)||null,
     visibility:document.getElementById('wVisibility').value,
     collection_ids:getSelectedCollections(),
     tags:document.getElementById('wTags').value.split(',').map(t=>t.trim()).filter(Boolean),
@@ -1953,6 +2050,7 @@ document.getElementById('saveWorkBtn').addEventListener('click', async()=>{
     pendingImageUrls=[]; existingImageUrls=[];
     document.getElementById('workModal').classList.remove('open');
     renderAll();
+    if (returnToExhibitionId) { const exId = returnToExhibitionId; returnToExhibitionId = null; openExhibitionDetail(exId); }
     const parts=[editingWorkId?'Work updated':'Work added'];
     if(membership.added) parts.push(`${membership.added} exhibition${membership.added!==1?'s':''} added`);
     if(membership.removed) parts.push(`${membership.removed} exhibition${membership.removed!==1?'s':''} removed`);
@@ -2078,6 +2176,7 @@ function openExhibitionDetail(id) {
   const worksContainer=document.getElementById('exDetailWorks');
   worksContainer.innerHTML='';
   const exWorks=(ex.work_ids||[]).map(wid=>works.find(w=>w.id===wid)).filter(Boolean);
+  renderExDetailSizeSummary(exWorks);
   if(!exWorks.length){ worksContainer.innerHTML=`<p style="font-size:0.85rem;color:var(--mid);font-style:italic;padding:1rem 0;">No works associated.</p>`; }
   else {
     exWorks.forEach(w=>{
@@ -2085,7 +2184,7 @@ function openExhibitionDetail(id) {
       row.style.cssText='display:grid;grid-template-columns:72px 1fr;gap:0.9rem;align-items:center;padding:0.7rem;background:var(--panel);border-radius:2px;cursor:pointer;transition:background 0.12s;';
       row.onmouseover=()=>row.style.background='#e8e3db';
       row.onmouseout=()=>row.style.background='var(--panel)';
-      row.innerHTML=`<img src="${thumbFor(w,144,108)}" style="width:72px;height:54px;object-fit:cover;" alt="${w.title}"><div><div style="font-family:var(--serif);font-style:italic;font-size:1rem;margin-bottom:0.2rem;">${w.title}</div><div style="font-size:0.75rem;color:var(--mid);">${w.year||''}${w.medium?' · '+w.medium:''}${w.dimensions?' · '+w.dimensions:''}</div>${w.notes&&isAdmin()?`<div style="font-size:0.72rem;color:var(--accent);margin-top:0.2rem;font-style:italic;">${w.notes}</div>`:''}</div>`;
+      row.innerHTML=`<img src="${thumbFor(w,144,108)}" style="width:72px;height:54px;object-fit:cover;" alt="${w.title}"><div><div style="font-family:var(--serif);font-style:italic;font-size:1rem;margin-bottom:0.2rem;">${w.title}</div><div style="font-size:0.75rem;color:var(--mid);">${w.year||''}${w.medium?' · '+w.medium:''}${displayDimensions(w)?' · '+displayDimensions(w):''}</div>${w.notes&&isAdmin()?`<div style="font-size:0.72rem;color:var(--accent);margin-top:0.2rem;font-style:italic;">${w.notes}</div>`:''}</div>`;
       row.addEventListener('click',()=>{ document.getElementById('exhibitionDetailOverlay').classList.remove('open'); const exId=currentExhibitionId; openDetail(w.id); returnToExhibitionId=exId; });
       worksContainer.appendChild(row);
     });
@@ -2328,7 +2427,7 @@ function printContactSheet(id) {
   const dateStr=exhibitionDateLabel(ex,true);
   const worksHtml=exWorks.map((w,i)=>{
     const colNames=(w.collection_ids||[]).map(cid=>{const c=getCollection(cid);return c?c.name:null;}).filter(Boolean);
-    return `<div class="print-work-item"><div class="print-work-thumb-cell"><img class="print-work-thumb" src="${cloudinaryPrintUrl(thumbFor(w))}" alt="${w.title}"></div><div class="print-work-info"><div class="print-work-title">${i+1}. ${w.title}</div><div class="print-work-meta">${w.year?`<strong>${w.year}</strong>`:''} ${w.medium?`<br>${w.medium}`:''} ${w.dimensions?`<br>${w.dimensions}`:''} ${colNames.length?`<br><em>${colNames.join(', ')}</em>`:''}</div></div></div>`;
+    return `<div class="print-work-item"><div class="print-work-thumb-cell"><img class="print-work-thumb" src="${cloudinaryPrintUrl(thumbFor(w))}" alt="${w.title}"></div><div class="print-work-info"><div class="print-work-title">${i+1}. ${w.title}</div><div class="print-work-meta">${w.year?`<strong>${w.year}</strong>`:''} ${w.medium?`<br>${w.medium}`:''} ${displayDimensions(w)?`<br>${displayDimensions(w)}`:''} ${colNames.length?`<br><em>${colNames.join(', ')}</em>`:''}</div></div></div>`;
   }).join('');
   const sheet=document.getElementById('printContactSheet');
   sheet.innerHTML=`<div class="print-header"><div style="font-size:7.5pt;letter-spacing:0.15em;text-transform:uppercase;color:#6b6660;margin-bottom:6pt;">Cerlin Karunaratne — Exhibition Contact Sheet</div><h1>${ex.name}</h1><div class="print-meta">${[ex.place,dateStr].filter(Boolean).join(' · ')}${exWorks.length?' · '+exWorks.length+' work'+(exWorks.length!==1?'s':''):''}</div></div><div class="print-works-grid">${worksHtml}</div>`;
@@ -2341,7 +2440,7 @@ function printContactSheetForCollection(id) {
   if(!c) return;
   const cWorks=visibleWorks().filter(w=>(w.collection_ids||[]).includes(c.id));
   const worksHtml=cWorks.map((w,i)=>{
-    return `<div class="print-work-item"><div class="print-work-thumb-cell"><img class="print-work-thumb" src="${cloudinaryPrintUrl(thumbFor(w))}" alt="${w.title}"></div><div class="print-work-info"><div class="print-work-title">${i+1}. ${w.title}</div><div class="print-work-meta">${w.year?`<strong>${w.year}</strong>`:''} ${w.medium?`<br>${w.medium}`:''} ${w.dimensions?`<br>${w.dimensions}`:''}</div></div></div>`;
+    return `<div class="print-work-item"><div class="print-work-thumb-cell"><img class="print-work-thumb" src="${cloudinaryPrintUrl(thumbFor(w))}" alt="${w.title}"></div><div class="print-work-info"><div class="print-work-title">${i+1}. ${w.title}</div><div class="print-work-meta">${w.year?`<strong>${w.year}</strong>`:''} ${w.medium?`<br>${w.medium}`:''} ${displayDimensions(w)?`<br>${displayDimensions(w)}`:''}</div></div></div>`;
   }).join('');
   const sheet=document.getElementById('printContactSheet');
   sheet.innerHTML=`<div class="print-header"><div style="font-size:7.5pt;letter-spacing:0.15em;text-transform:uppercase;color:#6b6660;margin-bottom:6pt;">Cerlin Karunaratne — Collection Contact Sheet</div><h1>${c.name}</h1><div class="print-meta">${[c.description,cWorks.length?cWorks.length+' work'+(cWorks.length!==1?'s':''):''].filter(Boolean).join(' · ')}</div></div><div class="print-works-grid">${worksHtml}</div>`;
