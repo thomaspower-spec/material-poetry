@@ -436,6 +436,10 @@
         <label>Collections <span style="font-weight:300;text-transform:none;letter-spacing:0;">(select one or more)</span></label>
         <div id="wCollectionsList" style="background:var(--white);border:1px solid var(--light);max-height:120px;overflow-y:auto;padding:0.4rem 0;border-radius:2px;"></div>
       </div>
+      <div class="form-group form-full">
+        <label>Exhibitions <span style="font-weight:300;text-transform:none;letter-spacing:0;">(select one or more)</span></label>
+        <div id="wExhibitionsList" style="background:var(--white);border:1px solid var(--light);max-height:120px;overflow-y:auto;padding:0.4rem 0;border-radius:2px;"></div>
+      </div>
       <div class="form-group form-full"><label>Tags <span style="font-weight:300;text-transform:none;letter-spacing:0;">(comma separated)</span></label><input type="text" id="wTags" placeholder="e.g. abstraction, texture, large-scale"></div>
       <div class="form-group form-full"><label>Description <span style="font-weight:300;text-transform:none;letter-spacing:0;">— public facing</span></label><textarea id="wDesc" placeholder="A short description of this work, visible to everyone…" style="min-height:80px;"></textarea></div>
       <div class="form-group form-full"><label>Private Notes</label><textarea id="wNotes" placeholder="Provenance, exhibition history, sale details…"></textarea></div>
@@ -543,10 +547,9 @@
         </select>
       </div>
       <div class="form-group form-full">
-        <label>Select Works</label>
-        <input class="search-input" type="text" id="eWorkSearch" placeholder="Search works to add…" style="margin-bottom:0.5rem;">
-        <div id="eWorksList" style="max-height:200px;overflow-y:auto;border:1px solid var(--light);background:var(--white);"></div>
-        <div id="eSelectedWorks" style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.5rem;"></div>
+        <label>Works in this Exhibition</label>
+        <input class="search-input" type="text" id="exwSearch" placeholder="Search works…" style="margin-bottom:0.5rem;">
+        <div id="exwWorksList" style="max-height:280px;overflow-y:auto;border:1px solid var(--light);background:var(--white);border-radius:2px;"></div>
       </div>
     </div>
     <div class="form-actions">
@@ -696,7 +699,6 @@ let works=[], collections=[], exhibitions=[], bio={text:'',statement:''};
 let activeFilter='all', activeTagFilter=null, activeMediumFilter=null;
 let editingWorkId=null, editingExhibitionId=null, currentExhibitionId=null;
 let editingCollectionId=null;
-let exhibitionSelectedWorks=[];
 let pendingImageUrls=[];
 let previewToken=null;
 let isPreviewMode=false;
@@ -1603,6 +1605,24 @@ function renderCollectionCheckboxes(selectedIds) {
 
 function getSelectedCollections() { return Array.from(document.querySelectorAll('#wCollectionsList input[type=checkbox]:checked')).map(cb=>cb.value); }
 
+// Exhibition membership lives on the exhibition record (work_ids[]), not on the work,
+// so this list is derived rather than read straight off the work
+function exhibitionsForWork(workId) {
+  return exhibitions.filter(ex => (ex.work_ids||[]).includes(workId)).map(ex => ex.id);
+}
+
+function renderExhibitionCheckboxes(selectedIds) {
+  const container=document.getElementById('wExhibitionsList');
+  if(!exhibitions.length){container.innerHTML='<div style="padding:0.5rem 0.8rem;font-size:0.8rem;color:var(--mid);">No exhibitions yet.</div>';return;}
+  container.innerHTML=exhibitions.map(ex=>`<label style="display:flex;align-items:center;gap:0.6rem;padding:0.4rem 0.8rem;cursor:pointer;font-size:0.82rem;" onmouseover="this.style.background='var(--panel)'" onmouseout="this.style.background=''"><input type="checkbox" value="${ex.id}" ${(selectedIds||[]).includes(ex.id)?'checked':''} style="accent-color:var(--accent);width:14px;height:14px;"> ${ex.name}</label>`).join('');
+}
+
+function getSelectedExhibitions() { return Array.from(document.querySelectorAll('#wExhibitionsList input[type=checkbox]:checked')).map(cb=>cb.value); }
+
+// Snapshot of which exhibitions this work belonged to when the modal opened —
+// used to diff against the selection on save (mirrors atcOriginalIds/atcSelectedIds)
+let workOriginalExhibitionIds = new Set();
+
 // Renders existing image previews with ✕ remove buttons
 // existingUrls is the current saved list; pendingImageUrls holds newly uploaded ones
 let existingImageUrls=[];
@@ -1724,6 +1744,8 @@ function openWorkModal(id, preselectedCollectionId) {
     document.getElementById('wDimensions').value=w.dimensions||'';
     document.getElementById('wVisibility').value=w.visibility||'draft';
     renderCollectionCheckboxes(w.collection_ids||[]);
+    workOriginalExhibitionIds = new Set(exhibitionsForWork(id));
+    renderExhibitionCheckboxes([...workOriginalExhibitionIds]);
     document.getElementById('wTags').value=(w.tags||[]).join(', ');
     document.getElementById('wDesc').value=w.description||'';
     document.getElementById('wNotes').value=w.notes||'';
@@ -1736,6 +1758,8 @@ function openWorkModal(id, preselectedCollectionId) {
     document.getElementById('wDimensions').value='';
     document.getElementById('wVisibility').value='draft';
     renderCollectionCheckboxes(preselectedCollectionId ? [preselectedCollectionId] : []);
+    workOriginalExhibitionIds = new Set();
+    renderExhibitionCheckboxes([]);
     document.getElementById('wTags').value='';
     document.getElementById('wDesc').value='';
     document.getElementById('wNotes').value='';
@@ -1823,6 +1847,32 @@ async function saveWorksMembership() {
   return { added: toAdd.length, removed: toRemove.length };
 }
 
+// Reverse of saveWorksMembership: this work's exhibition membership is diffed
+// against the original snapshot, and each affected exhibition record is patched
+// (since exhibition.work_ids is the source of truth, not a field on the work itself)
+async function saveWorkExhibitionMembership(workId) {
+  const selected = new Set(getSelectedExhibitions());
+  const toAdd = [...selected].filter(id => !workOriginalExhibitionIds.has(id));
+  const toRemove = [...workOriginalExhibitionIds].filter(id => !selected.has(id));
+  for (const exId of toAdd) {
+    const ex = exhibitions.find(x => x.id === exId);
+    if (!ex) continue;
+    const newIds = [...new Set([...(ex.work_ids || []), workId])];
+    const updated = await sb.safePatch('exhibitions', exId, { work_ids: newIds });
+    const idx = exhibitions.findIndex(x => x.id === exId);
+    exhibitions[idx] = updated[0] || { ...ex, work_ids: newIds };
+  }
+  for (const exId of toRemove) {
+    const ex = exhibitions.find(x => x.id === exId);
+    if (!ex) continue;
+    const newIds = (ex.work_ids || []).filter(wid => wid !== workId);
+    const updated = await sb.safePatch('exhibitions', exId, { work_ids: newIds });
+    const idx = exhibitions.findIndex(x => x.id === exId);
+    exhibitions[idx] = updated[0] || { ...ex, work_ids: newIds };
+  }
+  return { added: toAdd.length, removed: toRemove.length };
+}
+
 document.getElementById('viewAllFromModalBtn').addEventListener('click', e => { e.preventDefault(); openImgGridOverlay('upload'); });
 document.getElementById('cancelWorkBtn').addEventListener('click',()=>document.getElementById('workModal').classList.remove('open'));
 
@@ -1874,17 +1924,25 @@ document.getElementById('saveWorkBtn').addEventListener('click', async()=>{
     image_urls:finalImages
   };
   try {
+    let workId = editingWorkId;
     if(editingWorkId){
       const updated=await sb.safePatch('works',editingWorkId,data);
       const idx=works.findIndex(w=>w.id===editingWorkId);
       works[idx]=updated[0]||{...works[idx],...data};
     } else {
       const created=await sb.safePost('works',data);
-      works.push(created[0]||{id:uid(),...data});
+      const newWork=created[0]||{id:uid(),...data};
+      works.push(newWork);
+      workId=newWork.id;
     }
+    const membership = await saveWorkExhibitionMembership(workId);
     pendingImageUrls=[]; existingImageUrls=[];
     document.getElementById('workModal').classList.remove('open');
-    renderAll(); toast(editingWorkId?'Work updated':'Work added');
+    renderAll();
+    const parts=[editingWorkId?'Work updated':'Work added'];
+    if(membership.added) parts.push(`${membership.added} exhibition${membership.added!==1?'s':''} added`);
+    if(membership.removed) parts.push(`${membership.removed} exhibition${membership.removed!==1?'s':''} removed`);
+    toast(parts.join(' · '));
   } catch(e){ toast('Save failed: '+e.message,true); }
   finally{ btn.textContent='Save Work'; btn.disabled=false; }
 });
@@ -2038,28 +2096,72 @@ document.getElementById('exDetailExportBtn').addEventListener('click', () => sho
 
 function openExhibitionModal(id) {
   editingExhibitionId=id||null;
-  exhibitionSelectedWorks=[];
   document.getElementById('exhibitionModalTitle').textContent=id?'Edit Exhibition':'New Exhibition';
-  if(id){ const ex=exhibitions.find(e=>e.id===id); document.getElementById('eName').value=ex.name; document.getElementById('ePlace').value=ex.place||''; document.getElementById('eStart').value=ex.start_date||''; document.getElementById('eEnd').value=ex.end_date||''; document.getElementById('eYear').value=ex.year||''; document.getElementById('eVisibility').value=ex.visibility||'draft'; exhibitionSelectedWorks=[...(ex.work_ids||[])]; }
-  else { ['eName','ePlace','eStart','eEnd','eYear'].forEach(id=>document.getElementById(id).value=''); document.getElementById('eVisibility').value='draft'; }
-  renderExhibitionWorksList(''); renderSelectedWorks();
+  document.getElementById('exwSearch').value='';
+  if(id){
+    const ex=exhibitions.find(e=>e.id===id);
+    document.getElementById('eName').value=ex.name;
+    document.getElementById('ePlace').value=ex.place||'';
+    document.getElementById('eStart').value=ex.start_date||'';
+    document.getElementById('eEnd').value=ex.end_date||'';
+    document.getElementById('eYear').value=ex.year||'';
+    document.getElementById('eVisibility').value=ex.visibility||'draft';
+    exOriginalIds = new Set(ex.work_ids||[]);
+    exSelectedIds = new Set(exOriginalIds);
+  } else {
+    ['eName','ePlace','eStart','eEnd','eYear'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('eVisibility').value='draft';
+    exOriginalIds = new Set();
+    exSelectedIds = new Set();
+  }
+  renderExhibitionWorksChecklist('');
   document.getElementById('exhibitionModal').classList.add('open');
 }
 
-function renderExhibitionWorksList(q) {
-  const list=document.getElementById('eWorksList');
-  const filtered=works.filter(w=>!exhibitionSelectedWorks.includes(w.id)&&(!q||w.title.toLowerCase().includes(q)));
-  list.innerHTML=filtered.map(w=>`<div style="padding:0.5rem 0.8rem;cursor:pointer;font-size:0.82rem;border-bottom:1px solid var(--panel);" onmouseover="this.style.background='var(--panel)'" onmouseout="this.style.background=''" data-wid="${w.id}"><strong style="font-style:italic;">${w.title}</strong> <span style="color:var(--mid);font-size:0.75rem;">${w.year||''}</span></div>`).join('')||'<div style="padding:0.5rem 0.8rem;color:var(--mid);font-size:0.82rem;">No works found</div>';
-  list.querySelectorAll('[data-wid]').forEach(el=>{ el.addEventListener('click',()=>{ exhibitionSelectedWorks.push(el.dataset.wid); renderExhibitionWorksList(document.getElementById('eWorkSearch').value.toLowerCase()); renderSelectedWorks(); }); });
+// Works checklist for the exhibition modal — same grouped/pre-ticked pattern as
+// the collection edit modal's works checklist (renderAtcList)
+let exOriginalIds = new Set();
+let exSelectedIds = new Set();
+
+function renderExhibitionWorksChecklist(query) {
+  const container = document.getElementById('exwWorksList');
+  const candidates = works.filter(w => !query || w.title.toLowerCase().includes(query));
+  if (!candidates.length) {
+    container.innerHTML = `<div style="padding:0.8rem;font-size:0.82rem;color:var(--mid);font-style:italic;">No works found.</div>`;
+    return;
+  }
+  const inExhibition = candidates.filter(w => exOriginalIds.has(w.id)).sort((a,b)=>a.title.localeCompare(b.title));
+  const notInExhibition = candidates.filter(w => !exOriginalIds.has(w.id)).sort((a,b)=>a.title.localeCompare(b.title));
+  const ordered = [...inExhibition, ...notInExhibition];
+  container.innerHTML = '';
+  ordered.forEach((w, i) => {
+    if (i === inExhibition.length && inExhibition.length && notInExhibition.length) {
+      const divider = document.createElement('div');
+      divider.style.cssText = 'padding:0.4rem 0.8rem;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--light);background:var(--cream);border-bottom:1px solid var(--panel);';
+      divider.textContent = 'Other works';
+      container.appendChild(divider);
+    }
+    const row = document.createElement('label');
+    row.style.cssText = 'display:grid;grid-template-columns:24px 56px 1fr;gap:0.7rem;align-items:center;padding:0.55rem 0.8rem;cursor:pointer;border-bottom:1px solid var(--panel);';
+    row.onmouseover = () => row.style.background = 'var(--panel)';
+    row.onmouseout = () => row.style.background = '';
+    const checked = exSelectedIds.has(w.id) ? 'checked' : '';
+    row.innerHTML = `
+      <input type="checkbox" value="${w.id}" ${checked} style="accent-color:var(--accent);width:15px;height:15px;">
+      <img src="${thumbFor(w, 112, 84)}" style="width:56px;height:42px;object-fit:cover;" alt="">
+      <div>
+        <div style="font-family:var(--serif);font-style:italic;font-size:0.92rem;">${w.title}</div>
+        <div style="font-size:0.72rem;color:var(--mid);">${w.year||''}${w.medium?' · '+w.medium:''}</div>
+      </div>`;
+    row.querySelector('input').addEventListener('change', function() {
+      if (this.checked) exSelectedIds.add(w.id);
+      else exSelectedIds.delete(w.id);
+    });
+    container.appendChild(row);
+  });
 }
 
-function renderSelectedWorks() {
-  const div=document.getElementById('eSelectedWorks');
-  div.innerHTML=exhibitionSelectedWorks.map(id=>{ const w=works.find(x=>x.id===id); return w?`<span class="tag" style="cursor:pointer;background:var(--ink);color:var(--white);" data-remove="${id}">${w.title} ✕</span>`:''; }).join('');
-  div.querySelectorAll('[data-remove]').forEach(el=>{ el.addEventListener('click',()=>{ exhibitionSelectedWorks=exhibitionSelectedWorks.filter(id=>id!==el.dataset.remove); renderExhibitionWorksList(document.getElementById('eWorkSearch').value.toLowerCase()); renderSelectedWorks(); }); });
-}
-
-document.getElementById('eWorkSearch').addEventListener('input',function(){ renderExhibitionWorksList(this.value.toLowerCase()); });
+document.getElementById('exwSearch').addEventListener('input',function(){ renderExhibitionWorksChecklist(this.value.toLowerCase()); });
 document.getElementById('addExhibitionBtn').addEventListener('click',()=>openExhibitionModal(null));
 document.getElementById('cancelExhibitionBtn').addEventListener('click',()=>document.getElementById('exhibitionModal').classList.remove('open'));
 
@@ -2068,7 +2170,7 @@ document.getElementById('saveExhibitionBtn').addEventListener('click', async()=>
   if(!name){alert('Please enter a name.');return;}
   const btn=document.getElementById('saveExhibitionBtn');
   btn.innerHTML='<span class="spinner"></span>Saving…'; btn.disabled=true;
-  const data={name,place:document.getElementById('ePlace').value.trim(),start_date:document.getElementById('eStart').value||null,end_date:document.getElementById('eEnd').value||null,year:parseInt(document.getElementById('eYear').value)||null,visibility:document.getElementById('eVisibility').value,work_ids:[...exhibitionSelectedWorks]};
+  const data={name,place:document.getElementById('ePlace').value.trim(),start_date:document.getElementById('eStart').value||null,end_date:document.getElementById('eEnd').value||null,year:parseInt(document.getElementById('eYear').value)||null,visibility:document.getElementById('eVisibility').value,work_ids:[...exSelectedIds]};
   try {
     if(editingExhibitionId){ const updated=await sb.safePatch('exhibitions',editingExhibitionId,data); const idx=exhibitions.findIndex(e=>e.id===editingExhibitionId); exhibitions[idx]=updated[0]||{...exhibitions[idx],...data}; }
     else { const created=await sb.safePost('exhibitions',data); exhibitions.push(created[0]||{id:uid(),...data}); }
