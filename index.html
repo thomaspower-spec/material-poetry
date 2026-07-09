@@ -516,7 +516,7 @@
           <h2 class="detail-title" id="exDetailTitle" style="margin-bottom:0.4rem;"></h2>
           <p id="exDetailMeta" style="font-size:0.8rem;color:var(--mid);"></p>
         </div>
-        <div id="exDetailSizeSummary" class="admin-only" style="font-size:0.72rem;color:var(--mid);text-align:right;line-height:1.6;flex-shrink:0;"></div>
+        <div id="exDetailSizeSummary" class="admin-only" style="font-size:0.72rem;color:var(--mid);text-align:right;line-height:1.6;flex-shrink:0;max-width:260px;"></div>
         <button class="detail-close" id="exDetailClose" style="position:static;background:var(--panel);color:var(--ink);flex-shrink:0;width:32px;height:32px;">✕</button>
       </div>
       <div id="exDetailWorks" style="display:flex;flex-direction:column;gap:0.7rem;max-height:55vh;overflow-y:auto;margin-bottom:1.5rem;"></div>
@@ -1187,9 +1187,9 @@ const FOLIO_SIZES = [
 
 function minimumFolioSize(longMm, shortMm) {
   for (const size of FOLIO_SIZES) {
-    if (size.long >= longMm && size.short >= shortMm) return size.name;
+    if (size.long >= longMm && size.short >= shortMm) return size;
   }
-  return 'Larger than A0';
+  return { name: 'Larger than A0', long: null, short: null };
 }
 
 // A work's long/short side in cm, whichever way round they were entered.
@@ -1231,11 +1231,16 @@ function renderExDetailSizeSummary(exWorks) {
     el.innerHTML = s.missingCount ? `<span style="font-style:italic;">No dimensions recorded yet</span>` : '';
     return;
   }
-  const sameWork = s.maxShortWork.id === s.maxLongWork.id;
+  // Both figures are always shown, even when the same work happens to have
+  // both the largest long side and largest short side — each is a separate
+  // measurement needed for a case/box, regardless of which work it came from
+  const folioLabel = s.folio.long
+    ? `fits in ${s.folio.name}, ${(s.folio.long/10).toFixed(1)} × ${(s.folio.short/10).toFixed(1)}cm`
+    : s.folio.name;
   el.innerHTML =
-    `Largest: <strong>${s.maxLong}cm</strong> <span style="font-style:italic;">(${s.maxLongWork.title})</span>` +
-    (sameWork ? '' : ` · <strong>${s.maxShort}cm</strong> <span style="font-style:italic;">(${s.maxShortWork.title})</span>`) +
-    `<br>Folio needed: <strong>${s.folio}</strong>` +
+    `Longest side: <strong>${s.maxLong}cm</strong> <span style="font-style:italic;">(${s.maxLongWork.title})</span>` +
+    `<br>Shortest side needed: <strong>${s.maxShort}cm</strong> <span style="font-style:italic;">(${s.maxShortWork.title})</span>` +
+    `<br>Minimum case dimensions: <strong>${s.maxLong} × ${s.maxShort}cm</strong> <span style="font-style:italic;">(${folioLabel})</span>` +
     (s.missingCount ? `<br><span style="font-style:italic;">${s.missingCount} work${s.missingCount!==1?'s':''} missing dimensions</span>` : '');
 }
 
