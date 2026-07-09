@@ -701,6 +701,10 @@ let works=[], collections=[], exhibitions=[], bio={text:'',statement:''};
 let activeFilter='all', activeTagFilter=null, activeMediumFilter=null;
 let editingWorkId=null, editingExhibitionId=null, currentExhibitionId=null;
 let editingCollectionId=null;
+// Tracks which exhibition (if any) to return to when the work detail overlay closes.
+// Reset to null by default inside openDetail(); the exhibition-row click handler
+// sets it explicitly right after calling openDetail() so it isn't wiped by the reset.
+let returnToExhibitionId = null;
 let pendingImageUrls=[];
 let previewToken=null;
 let isPreviewMode=false;
@@ -1544,6 +1548,7 @@ function openDetail(id) {
   const w = works.find(x => x.id === id);
   if (!w) return;
   editingWorkId = id;
+  returnToExhibitionId = null;
   carouselImages = allImagesFor(w);
   if (!carouselImages.length) carouselImages = [makePlaceholderSrc(id, 600, 500)];
   carouselIndex = 0;
@@ -1568,6 +1573,7 @@ document.getElementById('detailOverlay').addEventListener('click', e=>{
   if(e.target===document.getElementById('detailOverlay')||e.target.id==='detailClose') {
     document.getElementById('detailOverlay').classList.remove('open');
     loupeEnabled = false;
+    if (returnToExhibitionId) { const exId = returnToExhibitionId; returnToExhibitionId = null; openExhibitionDetail(exId); }
   }
 });
 
@@ -1582,7 +1588,11 @@ document.addEventListener('keydown', e => {
   if (!document.getElementById('detailOverlay').classList.contains('open')) return;
   if (e.key === 'ArrowLeft' && carouselImages.length > 1) { carouselIndex = (carouselIndex - 1 + carouselImages.length) % carouselImages.length; renderCarousel(); }
   if (e.key === 'ArrowRight' && carouselImages.length > 1) { carouselIndex = (carouselIndex + 1) % carouselImages.length; renderCarousel(); }
-  if (e.key === 'Escape') { document.getElementById('detailOverlay').classList.remove('open'); loupeEnabled = false; }
+  if (e.key === 'Escape') {
+    document.getElementById('detailOverlay').classList.remove('open');
+    loupeEnabled = false;
+    if (returnToExhibitionId) { const exId = returnToExhibitionId; returnToExhibitionId = null; openExhibitionDetail(exId); }
+  }
 });
 document.getElementById('editWorkBtn').addEventListener('click',()=>{ document.getElementById('detailOverlay').classList.remove('open'); openWorkModal(editingWorkId); });
 document.getElementById('deleteWorkBtn').addEventListener('click', async()=>{
@@ -1591,7 +1601,9 @@ document.getElementById('deleteWorkBtn').addEventListener('click', async()=>{
     await sb.safeDelete('works',editingWorkId);
     works=works.filter(w=>w.id!==editingWorkId);
     document.getElementById('detailOverlay').classList.remove('open');
-    renderAll(); toast('Work deleted');
+    renderAll();
+    if (returnToExhibitionId) { const exId = returnToExhibitionId; returnToExhibitionId = null; openExhibitionDetail(exId); }
+    toast('Work deleted');
   } catch(e){ toast('Delete failed: '+e.message,true); }
 });
 
@@ -2074,7 +2086,7 @@ function openExhibitionDetail(id) {
       row.onmouseover=()=>row.style.background='#e8e3db';
       row.onmouseout=()=>row.style.background='var(--panel)';
       row.innerHTML=`<img src="${thumbFor(w,144,108)}" style="width:72px;height:54px;object-fit:cover;" alt="${w.title}"><div><div style="font-family:var(--serif);font-style:italic;font-size:1rem;margin-bottom:0.2rem;">${w.title}</div><div style="font-size:0.75rem;color:var(--mid);">${w.year||''}${w.medium?' · '+w.medium:''}${w.dimensions?' · '+w.dimensions:''}</div>${w.notes&&isAdmin()?`<div style="font-size:0.72rem;color:var(--accent);margin-top:0.2rem;font-style:italic;">${w.notes}</div>`:''}</div>`;
-      row.addEventListener('click',()=>{ document.getElementById('exhibitionDetailOverlay').classList.remove('open'); openDetail(w.id); });
+      row.addEventListener('click',()=>{ document.getElementById('exhibitionDetailOverlay').classList.remove('open'); const exId=currentExhibitionId; openDetail(w.id); returnToExhibitionId=exId; });
       worksContainer.appendChild(row);
     });
   }
