@@ -231,7 +231,9 @@
   /* ── PRINT ── */
   @page { size: A4; margin: 1cm; }
   @media print {
-    .shell, #toast, #imgFullscreenOverlay, #imgGridOverlay, #previewBanner { display: none !important; }
+    /* Hide every top-level element except the contact sheet itself, so any
+       overlay/modal left open (e.g. exhibition detail) doesn't bleed into print */
+    body > *:not(#printContactSheet) { display: none !important; }
     #printContactSheet { display: block !important; }
   }
   #printContactSheet { display: none; font-family: var(--sans); color: #1a1814; background: white; }
