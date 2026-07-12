@@ -702,6 +702,11 @@ async function uploadToCloudinary(file, onProgress) {
 
 let works=[], collections=[], exhibitions=[], bio={text:'',statement:''};
 let activeFilter='all', activeTagFilter=null, activeMediumFilter=null;
+// Feature flag: set to true to re-enable the exhibition size-summary note
+// (longest/shortest side, minimum case dimensions) beside the exhibition title.
+// Temporarily disabled July 2026 — code is untouched, just not rendered.
+const SHOW_EXHIBITION_SIZE_SUMMARY = false;
+
 let editingWorkId=null, editingExhibitionId=null, currentExhibitionId=null;
 let editingCollectionId=null;
 // Tracks which exhibition (if any) to return to when the work detail overlay closes.
@@ -2182,7 +2187,7 @@ function openExhibitionDetail(id) {
   const worksContainer=document.getElementById('exDetailWorks');
   worksContainer.innerHTML='';
   const exWorks=(ex.work_ids||[]).map(wid=>works.find(w=>w.id===wid)).filter(Boolean);
-  renderExDetailSizeSummary(exWorks);
+  if (SHOW_EXHIBITION_SIZE_SUMMARY) { renderExDetailSizeSummary(exWorks); } else { document.getElementById('exDetailSizeSummary').innerHTML=''; }
   if(!exWorks.length){ worksContainer.innerHTML=`<p style="font-size:0.85rem;color:var(--mid);font-style:italic;padding:1rem 0;">No works associated.</p>`; }
   else {
     exWorks.forEach(w=>{
