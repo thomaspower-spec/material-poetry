@@ -378,8 +378,8 @@
       </div>
       <div class="bio-view">
         <div>
-          <p class="bio-text" id="bioText">Cerlin is an artist based in Kerry, Ireland.</p>
           <blockquote class="bio-statement" id="bioStatement">"Artist statement."</blockquote>
+          <p class="bio-text" id="bioText">Cerlin is an artist based in Kerry, Ireland.</p>
         </div>
         <div class="bio-image-panel" id="bioImagePanel" style="display:none;">
           <img class="bio-image-primary" id="bioImagePrimary" alt="">
@@ -569,8 +569,8 @@
   <div class="modal">
     <h2>Edit Bio & Statement</h2>
     <div class="form-grid">
-      <div class="form-group form-full"><label>Artist Bio</label><textarea id="editBioText" style="min-height:120px;"></textarea></div>
       <div class="form-group form-full"><label>Artist Statement</label><textarea id="editBioStatement" style="min-height:100px;"></textarea></div>
+      <div class="form-group form-full"><label>Artist Bio</label><textarea id="editBioText" style="min-height:120px;"></textarea></div>
       <div class="form-group form-full">
         <label>Portrait Images</label>
         <label class="upload-zone">
@@ -850,7 +850,13 @@ async function loadAll() {
       sb.get('exhibitions', '?order=start_date.desc.nullslast,year.desc.nullslast')
     ]);
     const bioRows = await sb.get('bio', '?limit=1');
-    if (bioRows.length) bio = bioRows[0];
+    if (bioRows.length) {
+      bio = bioRows[0];
+      if (typeof bio.image_urls === 'string') {
+        try { bio.image_urls = JSON.parse(bio.image_urls); } catch(e) { bio.image_urls = []; }
+      }
+      if (!Array.isArray(bio.image_urls)) bio.image_urls = [];
+    }
     checkPreviewMode();
     renderAll();
   } catch(e) {
