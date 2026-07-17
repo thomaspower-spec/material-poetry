@@ -170,7 +170,7 @@
   .bio-view .bio-statement { font-family: var(--serif); font-size: 1.2rem; font-style: italic; line-height: 1.8; color: var(--mid); padding: 1.5rem 2rem; border-left: 2px solid var(--accent); margin-bottom: 2rem; }
   .bio-view a, .cv-text a { color: inherit; text-decoration: underline; text-underline-offset: 0.15em; }
   .bio-cv-panel { display: flex; flex-direction: column; gap: 0.5rem; }
-  .bio-image-panel { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem; }
+  .bio-image-panel { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; max-width: 340px; }
   .bio-image-primary { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; background: var(--panel); border-radius: 2px; }
 
   /* ── EMPTY STATE ── */
@@ -386,13 +386,13 @@
       </div>
       <div class="bio-view">
         <div>
+          <div class="bio-image-panel" id="bioImagePanel" style="display:none;">
+            <img class="bio-image-primary" id="bioImagePrimary" alt="">
+          </div>
           <blockquote class="bio-statement" id="bioStatement">"Artist statement."</blockquote>
           <p class="bio-text" id="bioText">Cerlin is an artist based in Kerry, Ireland.</p>
         </div>
         <div class="bio-cv-panel">
-          <div class="bio-image-panel" id="bioImagePanel" style="display:none;">
-            <img class="bio-image-primary" id="bioImagePrimary" alt="">
-          </div>
           <div class="cv-text" id="cvText"></div>
           <div id="cvExhibitions"></div>
         </div>
@@ -2371,6 +2371,19 @@ function renderBioUploadPreviews() {
   });
 }
 
+// Crops the bio portrait to a subject-focused frame via Cloudinary, rather than
+// relying on CSS object-fit (which would only trim the image minimally, since
+// the original is already roughly portrait-shaped) or Cloudinary's automatic
+// face/gravity detection (tested — unreliable on this photo; barely cropped at
+// all, likely thrown off by the small angled face against a busy landscape).
+// NOTE: these crop coordinates are tuned to this specific uploaded photo's
+// geometry. If the portrait image is ever replaced, this crop will need
+// redoing to match the new photo — it will not adapt automatically.
+function cloudinaryBioPortraitUrl(url) {
+  if (!url) return url;
+  return url.replace(/\/upload\/(?!x_)/, '/upload/x_0,y_650,w_938,h_1250,c_crop/q_auto,f_auto/');
+}
+
 function renderBioImages() {
   const panel = document.getElementById('bioImagePanel');
   const allImages = [...(bio.image_urls || [])].filter(Boolean);
@@ -2379,7 +2392,7 @@ function renderBioImages() {
     return;
   }
   panel.style.display = 'flex';
-  document.getElementById('bioImagePrimary').src = allImages[0];
+  document.getElementById('bioImagePrimary').src = cloudinaryBioPortraitUrl(allImages[0]);
 }
 
 // Escapes HTML special characters, then wraps any email address in a mailto link.
