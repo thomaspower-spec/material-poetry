@@ -341,7 +341,7 @@
 
 <div class="shell">
   <header>
-    <div class="logo">Material <em>Poetry</em></div>
+    <div class="logo" id="siteLogo" style="cursor:pointer;">Cerlin Karunaratne</div>
     <nav class="header-tabs">
       <button class="tab-btn active" data-view="works">Works</button>
       <button class="tab-btn admin-only" data-view="collections">Collections</button>
@@ -401,7 +401,7 @@
     <!-- BIO -->
     <div class="view" id="view-bio">
       <div class="page-header" style="margin-bottom:1.3rem;padding-bottom:1rem;">
-        <h1>Cerlin Karunaratne</h1>
+        <h1></h1>
         <div class="page-actions">
           <span class="visibility-badge admin-only" id="bioVisibilityBadge" style="display:none;position:static;align-self:center;"></span>
           <button class="btn admin-only" id="editBioBtn">Edit</button>
@@ -2729,6 +2729,7 @@ window.switchView=function(name, resetFilter=false){
 };
 
 document.querySelectorAll('header .tab-btn').forEach(b=>{ b.onclick=()=>window.switchView(b.dataset.view, b.dataset.view==='works'); });
+document.getElementById('siteLogo').addEventListener('click', () => window.switchView('works', true));
 document.querySelectorAll('#mobileNav .tab-btn').forEach(b=>{ b.onclick=()=>window.switchView(b.dataset.view, b.dataset.view==='works'); });
 
 // ══════════════════════════════════════════════════════════════
