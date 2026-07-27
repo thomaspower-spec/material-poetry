@@ -341,7 +341,7 @@
 
 <div class="shell">
   <header>
-    <div class="logo">Material <em>Poetry</em></div>
+    <div class="logo" id="siteLogo" style="cursor:pointer;">Cerlin Karunaratne</div>
     <nav class="header-tabs">
       <button class="tab-btn active" data-view="works">Works</button>
       <button class="tab-btn admin-only" data-view="collections">Collections</button>
@@ -401,8 +401,9 @@
     <!-- BIO -->
     <div class="view" id="view-bio">
       <div class="page-header" style="margin-bottom:1.3rem;padding-bottom:1rem;">
-        <h1>Cerlin Karunaratne</h1>
+        <h1></h1>
         <div class="page-actions">
+          <span class="visibility-badge admin-only" id="bioVisibilityBadge" style="display:none;position:static;align-self:center;"></span>
           <button class="btn admin-only" id="editBioBtn">Edit</button>
         </div>
       </div>
@@ -436,7 +437,7 @@
         <div class="detail-field"><label>Year</label><p id="detailYear">—</p></div>
         <div class="detail-field"><label>Medium</label><p id="detailMedium">—</p></div>
         <div class="detail-field"><label>Dimensions</label><p id="detailDimensions">—</p></div>
-        <div class="detail-field"><label>Collection</label><p id="detailCollection">—</p></div>
+        <div class="detail-field admin-only admin-field"><label>Collection</label><p id="detailCollection">—</p></div>
         <div class="detail-field"><label>Tags</label><p id="detailTags">—</p></div>
         <div class="detail-field admin-only admin-field"><label>Visibility</label><p id="detailVisibility">—</p></div>
         <div class="detail-field admin-only admin-field"><label>Private Notes</label><p id="detailNotes" style="color:var(--mid);font-style:italic;">—</p></div>
@@ -626,6 +627,14 @@
       <div class="form-group form-full"><label>Artist Statement</label><textarea id="editBioStatement" style="min-height:100px;"></textarea></div>
       <div class="form-group form-full"><label>Artist Bio</label><textarea id="editBioText" style="min-height:120px;"></textarea></div>
       <div class="form-group form-full"><label>CV — Education &amp; Awards <span style="font-weight:300;text-transform:none;letter-spacing:0;">(plain text — put section names like EDUCATION or AWARDS in capitals on their own line; exhibitions are added automatically below from the Exhibitions tab)</span></label><textarea id="editBioCv" style="min-height:160px;"></textarea></div>
+      <div class="form-group form-full">
+        <label>Visibility</label>
+        <select id="bioVisibility">
+          <option value="draft">Draft — admin only</option>
+          <option value="preview">Preview — hidden from public nav, admin only</option>
+          <option value="published">Published — public</option>
+        </select>
+      </div>
       <div class="form-group form-full">
         <label>Portrait Images</label>
         <label class="upload-zone">
@@ -923,6 +932,7 @@ async function loadAll() {
         try { bio.image_urls = JSON.parse(bio.image_urls); } catch(e) { bio.image_urls = []; }
       }
       if (!Array.isArray(bio.image_urls)) bio.image_urls = [];
+      if (!bio.visibility) bio.visibility = 'preview';
     }
     checkPreviewMode();
     checkLoginMode();
@@ -2603,6 +2613,7 @@ document.getElementById('editBioBtn').addEventListener('click', () => {
   document.getElementById('editBioText').value = bio.text;
   document.getElementById('editBioStatement').value = bio.statement;
   document.getElementById('editBioCv').value = bio.cv_text || '';
+  document.getElementById('bioVisibility').value = bio.visibility || 'preview';
   bioExistingImageUrls = [...(bio.image_urls || [])].filter(Boolean);
   bioPendingImageUrls = [];
   document.getElementById('bioFile').value = '';
@@ -2634,14 +2645,16 @@ document.getElementById('saveBioBtn').addEventListener('click', async () => {
   bio.text = document.getElementById('editBioText').value;
   bio.statement = document.getElementById('editBioStatement').value;
   bio.cv_text = document.getElementById('editBioCv').value;
+  bio.visibility = document.getElementById('bioVisibility').value;
   bio.image_urls = [...bioExistingImageUrls, ...bioPendingImageUrls];
   document.getElementById('bioText').innerHTML = linkifyEmails(bio.text);
   document.getElementById('bioStatement').innerHTML = linkifyEmails(bio.statement);
   renderBioImages();
   renderCv();
+  applyBioVisibility();
   try {
-    if (bio.id) await sb.safePatch('bio', bio.id, { text: bio.text, statement: bio.statement, cv_text: bio.cv_text, image_urls: bio.image_urls });
-    else { const r = await sb.safePost('bio', { text: bio.text, statement: bio.statement, cv_text: bio.cv_text, image_urls: bio.image_urls }); bio = r[0]; }
+    if (bio.id) await sb.safePatch('bio', bio.id, { text: bio.text, statement: bio.statement, cv_text: bio.cv_text, image_urls: bio.image_urls, visibility: bio.visibility });
+    else { const r = await sb.safePost('bio', { text: bio.text, statement: bio.statement, cv_text: bio.cv_text, image_urls: bio.image_urls, visibility: bio.visibility }); bio = r[0]; }
     bioExistingImageUrls = [];
     bioPendingImageUrls = [];
     document.getElementById('bioModal').classList.remove('open');
@@ -2716,6 +2729,7 @@ window.switchView=function(name, resetFilter=false){
 };
 
 document.querySelectorAll('header .tab-btn').forEach(b=>{ b.onclick=()=>window.switchView(b.dataset.view, b.dataset.view==='works'); });
+document.getElementById('siteLogo').addEventListener('click', () => window.switchView('works', true));
 document.querySelectorAll('#mobileNav .tab-btn').forEach(b=>{ b.onclick=()=>window.switchView(b.dataset.view, b.dataset.view==='works'); });
 
 // ══════════════════════════════════════════════════════════════
@@ -2729,12 +2743,27 @@ showMobileNav(); window.addEventListener('resize',showMobileNav);
 //  RENDER ALL
 // ══════════════════════════════════════════════════════════════
 
+function applyBioVisibility() {
+  const show = isAdmin() || bio.visibility === 'published';
+  document.querySelectorAll('[data-view="bio"]').forEach(el => { el.style.display = show ? '' : 'none'; });
+  const badge = document.getElementById('bioVisibilityBadge');
+  if (isAdmin() && bio.visibility && bio.visibility !== 'published') {
+    badge.textContent = bio.visibility;
+    badge.className = `visibility-badge admin-only badge-${bio.visibility}`;
+    badge.style.display = '';
+  } else if (badge) {
+    badge.style.display = 'none';
+  }
+  if (!show && document.getElementById('view-bio')?.classList.contains('active')) window.switchView('works', true);
+}
+
 function renderAll() {
   renderWorksGrid(); renderCollections(); renderExhibitions();
   document.getElementById('bioText').innerHTML=linkifyEmails(bio.text||'');
   document.getElementById('bioStatement').innerHTML=linkifyEmails(bio.statement||'');
   renderBioImages();
   renderCv();
+  applyBioVisibility();
 }
 
 // ── INIT ──
