@@ -142,6 +142,15 @@
   .upload-zone strong { display: block; font-size: 0.9rem; color: var(--ink); margin-bottom: 0.3rem; }
   .upload-zone input[type="file"] { display: none; }
   .upload-previews { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.7rem; }
+  .ex-chip-link { text-decoration: none; }
+  .ex-chip-link:hover { color: var(--ink); background: var(--light); }
+  #exLightbox { display:none; position:fixed; inset:0; background:#000; z-index:1000; align-items:center; justify-content:center; flex-direction:column; cursor:pointer; }
+  #exLightbox.open { display:flex; }
+  #exLightbox img { max-width:92vw; max-height:86vh; object-fit:contain; display:block; cursor:default; }
+  #exLightboxCaption { color:#fff; font-size:0.78rem; margin-top:0.8rem; text-align:center; max-width:80vw; }
+  #exLightboxClose { position:fixed; top:1.2rem; right:1.2rem; width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,0.15); color:#fff; border:none; cursor:pointer; font-size:0.95rem; }
+  #exLightboxPrev, #exLightboxNext { position:fixed; top:50%; transform:translateY(-50%); width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.15); color:#fff; border:none; cursor:pointer; font-size:1.1rem; }
+  #exLightboxPrev { left:1rem; } #exLightboxNext { right:1rem; }
   .upload-preview { width: 70px; height: 70px; object-fit: cover; border: 1px solid var(--light); }
   .upload-drop-target { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
   #uploadPreviews > div:active { cursor: grabbing; }
@@ -574,7 +583,11 @@
         <div id="exDetailSizeSummary" class="admin-only" style="font-size:0.72rem;color:var(--mid);text-align:right;line-height:1.6;flex-shrink:0;max-width:280px;"></div>
         <button class="detail-close" id="exDetailClose" style="position:static;background:var(--panel);color:var(--ink);flex-shrink:0;width:32px;height:32px;">✕</button>
       </div>
+      <img id="exDetailPoster" src="" alt="" style="display:none;width:100%;max-height:min(46vh,420px);object-fit:contain;background:var(--panel);border-radius:2px;margin-bottom:1.5rem;cursor:pointer;">
+      <p id="exDetailAbout" style="display:none;font-family:var(--serif);font-style:italic;font-size:1.02rem;line-height:1.65;color:var(--ink);margin-bottom:1.5rem;white-space:pre-line;"></p>
       <div id="exDetailWorks" style="display:flex;flex-direction:column;gap:0.7rem;max-height:55vh;overflow-y:auto;margin-bottom:1.5rem;"></div>
+      <div id="exDetailCoExhibitors" style="display:none;flex-wrap:wrap;gap:0.4rem;align-items:center;margin-bottom:1.2rem;"></div>
+      <div id="exDetailImages" style="display:none;gap:0.6rem;overflow-x:auto;padding-bottom:0.5rem;margin-bottom:1.5rem;"></div>
       <div style="display:flex;gap:0.7rem;flex-wrap:wrap;border-top:1px solid var(--light);padding-top:1.2rem;">
         <button class="btn admin-only" id="exDetailPrintBtn">⎙ Print Contact Sheet</button>
         <button class="btn admin-only" id="exDetailExportBtn">⬇ Export Zip</button>
@@ -606,10 +619,27 @@
           <option value="published">Published — public</option>
         </select>
       </div>
+      <div class="form-group form-full"><label>About This Show <span style="font-weight:300;text-transform:none;letter-spacing:0;">(a few words in your own voice — shown as plain text on the exhibition page, no heading)</span></label><textarea id="eAbout" style="min-height:90px;" placeholder="What this show was, how the work came together, what it felt like…"></textarea></div>
       <div class="form-group form-full">
         <label>Works in this Exhibition</label>
         <input class="search-input" type="text" id="exwSearch" placeholder="Search works…" style="margin-bottom:0.5rem;">
         <div id="exwWorksList" style="max-height:280px;overflow-y:auto;border:1px solid var(--light);background:var(--white);border-radius:2px;"></div>
+      </div>
+      <div class="form-group form-full">
+        <label>Shown With <span style="font-weight:300;text-transform:none;letter-spacing:0;">(other artists in this show — link optional)</span></label>
+        <div id="exCoList" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
+        <button type="button" class="btn" id="addCoExhibitorBtn" style="margin-top:0.6rem;">+ Add Artist</button>
+      </div>
+      <div class="form-group form-full">
+        <label>Exhibition Images <span style="font-weight:300;text-transform:none;letter-spacing:0;">(poster, booklet, install or opening-night shots — separate from the works themselves)</span></label>
+        <label class="upload-zone">
+          <input type="file" id="exImagesFile" accept="image/*" multiple>
+          <strong>Click to upload images</strong>
+          <p>Poster, booklet pages, install or press photos</p>
+        </label>
+        <p id="exImagesUploadProgress" style="display:none;font-size:0.75rem;color:var(--mid);margin-top:0.4rem;"></p>
+        <div class="upload-previews" id="exImagesPreviews" style="align-items:flex-start;"></div>
+        <p style="font-size:0.7rem;color:var(--light);margin-top:0.5rem;">Tag one image "Poster" to feature it large at the top of the exhibition page.</p>
       </div>
     </div>
     <div class="form-actions">
@@ -672,6 +702,13 @@
 <div id="toast"></div>
 <div id="printContactSheet"></div>
 <div id="imgFullscreenOverlay"></div>
+<div id="exLightbox">
+  <button id="exLightboxClose" title="Close">✕</button>
+  <button id="exLightboxPrev" title="Previous">‹</button>
+  <img id="exLightboxImg" src="" alt="">
+  <button id="exLightboxNext" title="Next">›</button>
+  <p id="exLightboxCaption"></p>
+</div>
 <div id="imgGridOverlay"></div>
 
 <script>
@@ -1723,6 +1760,11 @@ document.addEventListener('keydown', e => {
   if (document.getElementById('imgGridOverlay').classList.contains('open') && e.key === 'Escape') {
     closeImgGridOverlay();
   }
+  if (document.getElementById('exLightbox').classList.contains('open')) {
+    if (e.key === 'Escape') document.getElementById('exLightbox').classList.remove('open');
+    if (e.key === 'ArrowLeft' && exLightboxImages.length > 1) { exLightboxIdx=(exLightboxIdx-1+exLightboxImages.length)%exLightboxImages.length; renderExLightbox(); }
+    if (e.key === 'ArrowRight' && exLightboxImages.length > 1) { exLightboxIdx=(exLightboxIdx+1)%exLightboxImages.length; renderExLightbox(); }
+  }
 });
 
 function openDetail(id) {
@@ -2382,6 +2424,17 @@ function openExhibitionDetail(id) {
   currentExhibitionId=id;
   document.getElementById('exDetailTitle').textContent=ex.name;
   document.getElementById('exDetailMeta').textContent=[ex.place,exhibitionDateLabel(ex,true)].filter(Boolean).join(' · ');
+
+  const exImgs=(ex.exhibition_images||[]).filter(im=>im&&im.url);
+  const poster=exImgs.find(im=>im.type==='poster');
+  const posterEl=document.getElementById('exDetailPoster');
+  if(poster){ posterEl.src=poster.url; posterEl.alt=poster.caption||ex.name; posterEl.style.display='block'; posterEl.onclick=()=>openExLightbox(exImgs,exImgs.indexOf(poster)); }
+  else { posterEl.style.display='none'; posterEl.onclick=null; }
+
+  const aboutEl=document.getElementById('exDetailAbout');
+  if(ex.about_text&&ex.about_text.trim()){ aboutEl.textContent=ex.about_text; aboutEl.style.display='block'; }
+  else { aboutEl.style.display='none'; }
+
   const worksContainer=document.getElementById('exDetailWorks');
   worksContainer.innerHTML='';
   const exWorks=(ex.work_ids||[]).map(wid=>works.find(w=>w.id===wid)).filter(Boolean);
@@ -2398,8 +2451,66 @@ function openExhibitionDetail(id) {
       worksContainer.appendChild(row);
     });
   }
+
+  const co=(ex.co_exhibitors||[]).filter(c=>c&&c.name&&c.name.trim());
+  const coContainer=document.getElementById('exDetailCoExhibitors');
+  coContainer.innerHTML='';
+  if(co.length){
+    coContainer.style.display='flex';
+    const label=document.createElement('span');
+    label.textContent='Shown with';
+    label.style.cssText='font-size:0.72rem;color:var(--mid);margin-right:0.2rem;';
+    coContainer.appendChild(label);
+    co.forEach(c=>{
+      const hasUrl=c.url&&c.url.trim();
+      const chip=document.createElement(hasUrl?'a':'span');
+      chip.className='tag'+(hasUrl?' ex-chip-link':'');
+      chip.textContent=c.name;
+      if(hasUrl){ chip.href=/^https?:\/\//i.test(c.url)?c.url:'https://'+c.url; chip.target='_blank'; chip.rel='noopener'; }
+      coContainer.appendChild(chip);
+    });
+  } else { coContainer.style.display='none'; }
+
+  const filmImages=exImgs.filter(im=>im!==poster);
+  const imagesContainer=document.getElementById('exDetailImages');
+  imagesContainer.innerHTML='';
+  if(filmImages.length){
+    imagesContainer.style.display='flex';
+    filmImages.forEach(im=>{
+      const thumb=document.createElement('img');
+      thumb.src=im.url; thumb.alt=im.caption||'';
+      thumb.style.cssText='height:110px;flex-shrink:0;object-fit:cover;border-radius:2px;cursor:pointer;';
+      thumb.title=im.caption||(im.type?im.type.charAt(0).toUpperCase()+im.type.slice(1):'');
+      thumb.addEventListener('click',()=>openExLightbox(exImgs,exImgs.indexOf(im)));
+      imagesContainer.appendChild(thumb);
+    });
+  } else { imagesContainer.style.display='none'; }
+
   document.getElementById('exhibitionDetailOverlay').classList.add('open');
 }
+
+// ── Exhibition image lightbox — simple standalone viewer, independent of the
+// work-detail carousel/loupe machinery, since exhibition documentation shots
+// don't need those tools. ──
+let exLightboxImages=[]; let exLightboxIdx=0;
+function openExLightbox(images,idx){
+  exLightboxImages=images; exLightboxIdx=idx;
+  renderExLightbox();
+  document.getElementById('exLightbox').classList.add('open');
+}
+function renderExLightbox(){
+  const im=exLightboxImages[exLightboxIdx];
+  if(!im) return;
+  document.getElementById('exLightboxImg').src=im.url;
+  document.getElementById('exLightboxCaption').textContent=im.caption||'';
+  const multi=exLightboxImages.length>1;
+  document.getElementById('exLightboxPrev').style.display=multi?'block':'none';
+  document.getElementById('exLightboxNext').style.display=multi?'block':'none';
+}
+document.getElementById('exLightboxClose').addEventListener('click',e=>{ e.stopPropagation(); document.getElementById('exLightbox').classList.remove('open'); });
+document.getElementById('exLightbox').addEventListener('click',e=>{ if(e.target.id==='exLightbox') document.getElementById('exLightbox').classList.remove('open'); });
+document.getElementById('exLightboxPrev').addEventListener('click',e=>{ e.stopPropagation(); exLightboxIdx=(exLightboxIdx-1+exLightboxImages.length)%exLightboxImages.length; renderExLightbox(); });
+document.getElementById('exLightboxNext').addEventListener('click',e=>{ e.stopPropagation(); exLightboxIdx=(exLightboxIdx+1)%exLightboxImages.length; renderExLightbox(); });
 
 document.getElementById('exDetailClose').addEventListener('click',()=>document.getElementById('exhibitionDetailOverlay').classList.remove('open'));
 document.getElementById('exhibitionDetailOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('exhibitionDetailOverlay')) document.getElementById('exhibitionDetailOverlay').classList.remove('open'); });
@@ -2428,14 +2539,23 @@ function openExhibitionModal(id) {
     document.getElementById('eEnd').value=ex.end_date||'';
     document.getElementById('eYear').value=ex.year||'';
     document.getElementById('eVisibility').value=ex.visibility||'draft';
+    document.getElementById('eAbout').value=ex.about_text||'';
     exOriginalIds = new Set(ex.work_ids||[]);
     exSelectedIds = new Set(exOriginalIds);
+    exImages = JSON.parse(JSON.stringify(ex.exhibition_images||[]));
+    exCoExhibitors = JSON.parse(JSON.stringify(ex.co_exhibitors||[]));
   } else {
-    ['eName','ePlace','eStart','eEnd','eYear'].forEach(id=>document.getElementById(id).value='');
+    ['eName','ePlace','eStart','eEnd','eYear','eAbout'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('eVisibility').value='draft';
     exOriginalIds = new Set();
     exSelectedIds = new Set();
+    exImages = [];
+    exCoExhibitors = [];
   }
+  document.getElementById('exImagesFile').value='';
+  document.getElementById('exImagesUploadProgress').style.display='none';
+  renderExImagesPreviews();
+  renderCoExhibitorRows();
   renderExhibitionWorksChecklist('');
   document.getElementById('exhibitionModal').classList.add('open');
 }
@@ -2444,6 +2564,104 @@ function openExhibitionModal(id) {
 // the collection edit modal's works checklist (renderAtcList)
 let exOriginalIds = new Set();
 let exSelectedIds = new Set();
+
+// Exhibition images (poster/booklet/install/press) — {url,type,caption} objects,
+// distinct from work_ids. Unlike the works checklist, "primary/poster" is set via
+// the type dropdown rather than ordering, so a single array (not existing/pending
+// split like bio images) is enough.
+let exImages = [];
+const EX_IMAGE_TYPES = [['poster','Poster'],['booklet','Booklet'],['install','Install shot'],['press','Press']];
+
+function renderExImagesPreviews() {
+  const container = document.getElementById('exImagesPreviews');
+  container.innerHTML = '';
+  exImages.forEach((img, i) => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;flex-direction:column;gap:0.3rem;width:120px;';
+    const thumbWrap = document.createElement('div');
+    thumbWrap.style.cssText = 'position:relative;';
+    const el = document.createElement('img');
+    el.className = 'upload-preview';
+    el.src = img.url;
+    el.style.cssText = 'width:120px;height:90px;object-fit:cover;display:block;';
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.textContent = '✕';
+    removeBtn.title = 'Remove';
+    removeBtn.style.cssText = 'position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--ink);color:var(--white);border:none;cursor:pointer;font-size:0.6rem;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;';
+    removeBtn.addEventListener('click', () => { exImages.splice(i, 1); renderExImagesPreviews(); });
+    thumbWrap.appendChild(el);
+    thumbWrap.appendChild(removeBtn);
+
+    const typeSelect = document.createElement('select');
+    typeSelect.style.cssText = 'font-size:0.68rem;padding:0.25rem;border:1px solid var(--light);border-radius:2px;background:var(--white);width:100%;';
+    EX_IMAGE_TYPES.forEach(([val, label]) => {
+      const opt = document.createElement('option');
+      opt.value = val; opt.textContent = label;
+      if ((img.type || 'install') === val) opt.selected = true;
+      typeSelect.appendChild(opt);
+    });
+    typeSelect.addEventListener('change', function() { exImages[i].type = this.value; });
+
+    const captionInput = document.createElement('input');
+    captionInput.type = 'text';
+    captionInput.placeholder = 'Caption (optional)';
+    captionInput.value = img.caption || '';
+    captionInput.style.cssText = 'font-size:0.68rem;padding:0.3rem 0.35rem;border:1px solid var(--light);border-radius:2px;width:100%;box-sizing:border-box;';
+    captionInput.addEventListener('input', function() { exImages[i].caption = this.value; });
+
+    wrap.appendChild(thumbWrap);
+    wrap.appendChild(typeSelect);
+    wrap.appendChild(captionInput);
+    container.appendChild(wrap);
+  });
+}
+
+document.getElementById('exImagesFile').addEventListener('change', async function() {
+  const files = Array.from(this.files);
+  if (!files.length) return;
+  const progress = document.getElementById('exImagesUploadProgress');
+  progress.style.display = 'block';
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    progress.textContent = `Uploading ${i + 1} of ${files.length}… 0%`;
+    try {
+      const url = await uploadToCloudinary(file, pct => { progress.textContent = `Uploading ${i + 1} of ${files.length}… ${pct}%`; });
+      exImages.push({ url, type: 'install', caption: '' });
+      renderExImagesPreviews();
+    } catch (e) { toast('Upload failed: ' + e.message, true); }
+  }
+  progress.textContent = `✓ ${files.length} image${files.length !== 1 ? 's' : ''} uploaded`;
+  setTimeout(() => { progress.style.display = 'none'; }, 2000);
+  this.value = '';
+});
+
+// Co-exhibitors — {name,url} rows for linking out to other artists in a group show
+let exCoExhibitors = [];
+
+function renderCoExhibitorRows() {
+  const container = document.getElementById('exCoList');
+  container.innerHTML = '';
+  exCoExhibitors.forEach((co, i) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 28px;gap:0.5rem;align-items:center;';
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text'; nameInput.placeholder = 'Artist name'; nameInput.value = co.name || '';
+    nameInput.style.cssText = 'font-size:0.82rem;padding:0.5rem 0.6rem;border:1px solid var(--light);border-radius:2px;';
+    nameInput.addEventListener('input', function() { exCoExhibitors[i].name = this.value; });
+    const urlInput = document.createElement('input');
+    urlInput.type = 'text'; urlInput.placeholder = 'Website or Instagram (optional)'; urlInput.value = co.url || '';
+    urlInput.style.cssText = 'font-size:0.82rem;padding:0.5rem 0.6rem;border:1px solid var(--light);border-radius:2px;';
+    urlInput.addEventListener('input', function() { exCoExhibitors[i].url = this.value; });
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button'; removeBtn.textContent = '✕'; removeBtn.title = 'Remove';
+    removeBtn.style.cssText = 'width:26px;height:26px;border-radius:50%;background:var(--panel);border:none;cursor:pointer;font-size:0.7rem;';
+    removeBtn.addEventListener('click', () => { exCoExhibitors.splice(i, 1); renderCoExhibitorRows(); });
+    row.appendChild(nameInput); row.appendChild(urlInput); row.appendChild(removeBtn);
+    container.appendChild(row);
+  });
+}
+document.getElementById('addCoExhibitorBtn').addEventListener('click', () => { exCoExhibitors.push({ name: '', url: '' }); renderCoExhibitorRows(); });
 
 function renderExhibitionWorksChecklist(query) {
   const container = document.getElementById('exwWorksList');
@@ -2492,7 +2710,7 @@ document.getElementById('saveExhibitionBtn').addEventListener('click', async()=>
   if(!name){alert('Please enter a name.');return;}
   const btn=document.getElementById('saveExhibitionBtn');
   btn.innerHTML='<span class="spinner"></span>Saving…'; btn.disabled=true;
-  const data={name,place:document.getElementById('ePlace').value.trim(),start_date:document.getElementById('eStart').value||null,end_date:document.getElementById('eEnd').value||null,year:parseInt(document.getElementById('eYear').value)||null,visibility:document.getElementById('eVisibility').value,work_ids:[...exSelectedIds]};
+  const data={name,place:document.getElementById('ePlace').value.trim(),start_date:document.getElementById('eStart').value||null,end_date:document.getElementById('eEnd').value||null,year:parseInt(document.getElementById('eYear').value)||null,visibility:document.getElementById('eVisibility').value,work_ids:[...exSelectedIds],about_text:document.getElementById('eAbout').value.trim(),exhibition_images:exImages.filter(im=>im.url),co_exhibitors:exCoExhibitors.filter(c=>c.name&&c.name.trim())};
   try {
     if(editingExhibitionId){ const updated=await sb.safePatch('exhibitions',editingExhibitionId,data); const idx=exhibitions.findIndex(e=>e.id===editingExhibitionId); exhibitions[idx]=updated[0]||{...exhibitions[idx],...data}; }
     else { const created=await sb.safePost('exhibitions',data); exhibitions.push(created[0]||{id:uid(),...data}); }
