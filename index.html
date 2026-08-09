@@ -142,6 +142,9 @@
   .upload-zone strong { display: block; font-size: 0.9rem; color: var(--ink); margin-bottom: 0.3rem; }
   .upload-zone input[type="file"] { display: none; }
   .upload-previews { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.7rem; }
+  .ex-pdf-tile { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.3rem; background:var(--panel); border:1px solid var(--light); border-radius:2px; text-align:center; padding:0.4rem; box-sizing:border-box; }
+  .ex-pdf-tile .ex-pdf-icon { font-size:1.3rem; }
+  .ex-pdf-tile .ex-pdf-label { font-size:0.62rem; color:var(--mid); word-break:break-word; line-height:1.3; max-width:100%; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
   .ex-chip-link { text-decoration: none; }
   .ex-chip-link:hover { color: var(--ink); background: var(--light); }
   #exLightbox { display:none; position:fixed; inset:0; background:#000; z-index:1000; align-items:center; justify-content:center; flex-direction:column; cursor:pointer; }
@@ -633,13 +636,13 @@
       <div class="form-group form-full">
         <label>Exhibition Images <span style="font-weight:300;text-transform:none;letter-spacing:0;">(poster, booklet, install or opening-night shots — separate from the works themselves)</span></label>
         <label class="upload-zone">
-          <input type="file" id="exImagesFile" accept="image/*" multiple>
-          <strong>Click to upload images</strong>
-          <p>Poster, booklet pages, install or press photos</p>
+          <input type="file" id="exImagesFile" accept="image/*,application/pdf" multiple>
+          <strong>Click to upload images or a PDF</strong>
+          <p>Poster or booklet (PDF or photos), install or press photos</p>
         </label>
         <p id="exImagesUploadProgress" style="display:none;font-size:0.75rem;color:var(--mid);margin-top:0.4rem;"></p>
         <div class="upload-previews" id="exImagesPreviews" style="align-items:flex-start;"></div>
-        <p style="font-size:0.7rem;color:var(--light);margin-top:0.5rem;">Tag one image "Poster" to feature it large at the top of the exhibition page.</p>
+        <p style="font-size:0.7rem;color:var(--light);margin-top:0.5rem;">Tag one image "Poster" to feature it large at the top of the exhibition page — PDFs can't be featured this way and always show as a document tile.</p>
       </div>
     </div>
     <div class="form-actions">
@@ -786,7 +789,7 @@ async function uploadToCloudinary(file, onProgress) {
   const fd = new FormData();
   fd.append('file', file);
   fd.append('upload_preset', CONFIG.CLOUDINARY_UPLOAD_PRESET);
-  const resourceType = file.type.startsWith('video/') ? 'video' : 'image';
+  const resourceType = file.type.startsWith('video/') ? 'video' : (file.type === 'application/pdf' ? 'raw' : 'image');
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `https://api.cloudinary.com/v1_1/${CONFIG.CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`);
@@ -2426,7 +2429,7 @@ function openExhibitionDetail(id) {
   document.getElementById('exDetailMeta').textContent=[ex.place,exhibitionDateLabel(ex,true)].filter(Boolean).join(' · ');
 
   const exImgs=(ex.exhibition_images||[]).filter(im=>im&&im.url);
-  const poster=exImgs.find(im=>im.type==='poster');
+  const poster=exImgs.find(im=>im.type==='poster'&&!im.is_pdf);
   const posterEl=document.getElementById('exDetailPoster');
   if(poster){ posterEl.src=poster.url; posterEl.alt=poster.caption||ex.name; posterEl.style.display='block'; posterEl.onclick=()=>openExLightbox(exImgs,exImgs.indexOf(poster)); }
   else { posterEl.style.display='none'; posterEl.onclick=null; }
@@ -2477,12 +2480,24 @@ function openExhibitionDetail(id) {
   if(filmImages.length){
     imagesContainer.style.display='flex';
     filmImages.forEach(im=>{
-      const thumb=document.createElement('img');
-      thumb.src=im.url; thumb.alt=im.caption||'';
-      thumb.style.cssText='height:110px;flex-shrink:0;object-fit:cover;border-radius:2px;cursor:pointer;';
-      thumb.title=im.caption||(im.type?im.type.charAt(0).toUpperCase()+im.type.slice(1):'');
-      thumb.addEventListener('click',()=>openExLightbox(exImgs,exImgs.indexOf(im)));
-      imagesContainer.appendChild(thumb);
+      if(im.is_pdf){
+        const tile=document.createElement('div');
+        tile.className='ex-pdf-tile';
+        tile.style.cssText='height:110px;width:100px;flex-shrink:0;cursor:pointer;';
+        tile.title=im.caption||im.filename||'View PDF';
+        const icon=document.createElement('span'); icon.className='ex-pdf-icon'; icon.textContent='📄';
+        const label=document.createElement('span'); label.className='ex-pdf-label'; label.textContent=im.caption||im.filename||'View PDF';
+        tile.appendChild(icon); tile.appendChild(label);
+        tile.addEventListener('click',()=>window.open(im.url,'_blank'));
+        imagesContainer.appendChild(tile);
+      } else {
+        const thumb=document.createElement('img');
+        thumb.src=im.url; thumb.alt=im.caption||'';
+        thumb.style.cssText='height:110px;flex-shrink:0;object-fit:cover;border-radius:2px;cursor:pointer;';
+        thumb.title=im.caption||(im.type?im.type.charAt(0).toUpperCase()+im.type.slice(1):'');
+        thumb.addEventListener('click',()=>openExLightbox(exImgs,exImgs.indexOf(im)));
+        imagesContainer.appendChild(thumb);
+      }
     });
   } else { imagesContainer.style.display='none'; }
 
@@ -2580,25 +2595,40 @@ function renderExImagesPreviews() {
     wrap.style.cssText = 'display:flex;flex-direction:column;gap:0.3rem;width:120px;';
     const thumbWrap = document.createElement('div');
     thumbWrap.style.cssText = 'position:relative;';
-    const el = document.createElement('img');
-    el.className = 'upload-preview';
-    el.src = img.url;
-    el.style.cssText = 'width:120px;height:90px;object-fit:cover;display:block;';
+    if (img.is_pdf) {
+      const tile = document.createElement('div');
+      tile.className = 'ex-pdf-tile';
+      tile.style.cssText = 'width:120px;height:90px;';
+      const icon = document.createElement('span');
+      icon.className = 'ex-pdf-icon';
+      icon.textContent = '📄';
+      const label = document.createElement('span');
+      label.className = 'ex-pdf-label';
+      label.textContent = img.filename || 'PDF document';
+      tile.appendChild(icon); tile.appendChild(label);
+      thumbWrap.appendChild(tile);
+    } else {
+      const el = document.createElement('img');
+      el.className = 'upload-preview';
+      el.src = img.url;
+      el.style.cssText = 'width:120px;height:90px;object-fit:cover;display:block;';
+      thumbWrap.appendChild(el);
+    }
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
     removeBtn.textContent = '✕';
     removeBtn.title = 'Remove';
     removeBtn.style.cssText = 'position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--ink);color:var(--white);border:none;cursor:pointer;font-size:0.6rem;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;';
     removeBtn.addEventListener('click', () => { exImages.splice(i, 1); renderExImagesPreviews(); });
-    thumbWrap.appendChild(el);
     thumbWrap.appendChild(removeBtn);
 
     const typeSelect = document.createElement('select');
     typeSelect.style.cssText = 'font-size:0.68rem;padding:0.25rem;border:1px solid var(--light);border-radius:2px;background:var(--white);width:100%;';
-    EX_IMAGE_TYPES.forEach(([val, label]) => {
+    const typeOptions = img.is_pdf ? EX_IMAGE_TYPES.filter(([val]) => val !== 'poster') : EX_IMAGE_TYPES;
+    typeOptions.forEach(([val, label]) => {
       const opt = document.createElement('option');
       opt.value = val; opt.textContent = label;
-      if ((img.type || 'install') === val) opt.selected = true;
+      if ((img.type || (img.is_pdf ? 'booklet' : 'install')) === val) opt.selected = true;
       typeSelect.appendChild(opt);
     });
     typeSelect.addEventListener('change', function() { exImages[i].type = this.value; });
@@ -2627,7 +2657,8 @@ document.getElementById('exImagesFile').addEventListener('change', async functio
     progress.textContent = `Uploading ${i + 1} of ${files.length}… 0%`;
     try {
       const url = await uploadToCloudinary(file, pct => { progress.textContent = `Uploading ${i + 1} of ${files.length}… ${pct}%`; });
-      exImages.push({ url, type: 'install', caption: '' });
+      const isPdf = file.type === 'application/pdf';
+      exImages.push({ url, type: isPdf ? 'booklet' : 'install', caption: '', is_pdf: isPdf, filename: isPdf ? file.name : undefined });
       renderExImagesPreviews();
     } catch (e) { toast('Upload failed: ' + e.message, true); }
   }
