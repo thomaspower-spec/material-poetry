@@ -124,6 +124,20 @@
   .detail-close { position: fixed; top: 1rem; right: 1rem; background: rgba(0,0,0,0.25); border: 1px solid rgba(0,0,0,0.15); color: var(--ink); width: 36px; height: 36px; font-size: 0.9rem; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.18s; z-index: 210; }
   .detail-close:hover { background: rgba(0,0,0,0.15); }
 
+  /* Exhibition detail overlay — reuses the work-detail two-column grid
+     (media left, info right) instead of a narrow left-anchored single
+     column, so a poster/filmstrip has room to breathe and the panel
+     fills the viewport properly. Info column is wider than the work
+     overlay's 360px since exhibitions carry denser text/lists.
+     Falls back to a single, centered column when an exhibition has no
+     poster or images yet (true for most historical shows for now). */
+  #exhibitionDetailOverlay .detail-panel { grid-template-columns: 1fr 440px; }
+  #exhibitionDetailOverlay .detail-media { flex-direction: column; align-items: center; justify-content: flex-start; overflow-y: auto; padding: 3.5rem 2.5rem; gap: 1.2rem; }
+  #exhibitionDetailOverlay #exDetailPoster { display: none; width: 100%; max-width: 620px; max-height: 65vh; object-fit: contain; border-radius: 2px; cursor: pointer; }
+  #exhibitionDetailOverlay #exDetailImages { display: none; flex-wrap: wrap; gap: 0.6rem; justify-content: center; max-width: 620px; }
+  #exhibitionDetailOverlay.no-media .detail-panel { grid-template-columns: 1fr; max-width: 720px; margin: 0 auto; }
+  #exhibitionDetailOverlay.no-media .detail-media { display: none; }
+
   /* ── MODAL ── */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,24,20,0.5); z-index: 300; align-items: center; justify-content: center; padding: 2rem; }
   .modal-overlay.open { display: flex; }
@@ -251,6 +265,9 @@
     .detail-panel { grid-template-columns: 1fr; grid-template-rows: 60vh 1fr; }
     .detail-media { height: 60vh; max-height: 60vh; }
     .detail-overlay { padding: 0; align-items: flex-start; }
+    #exhibitionDetailOverlay .detail-panel { grid-template-rows: 40vh 1fr; }
+    #exhibitionDetailOverlay .detail-media { height: 40vh; max-height: 40vh; padding: 1.5rem; }
+    #exhibitionDetailOverlay.no-media .detail-panel { grid-template-rows: auto; }
     .works-grid { gap: 0.3rem; }
     .works-grid .works-col:nth-child(3) { display: none; }
     .modal-overlay { padding: 0; align-items: flex-end; }
@@ -576,7 +593,11 @@
 
 <!-- EXHIBITION DETAIL OVERLAY -->
 <div class="detail-overlay" id="exhibitionDetailOverlay">
-  <div class="detail-panel" style="grid-template-columns:1fr;max-width:700px;">
+  <div class="detail-panel">
+    <div class="detail-media">
+      <img id="exDetailPoster" src="" alt="">
+      <div id="exDetailImages"></div>
+    </div>
     <div class="detail-info" style="padding:2.5rem;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1.5rem;">
         <div>
@@ -586,11 +607,9 @@
         <div id="exDetailSizeSummary" class="admin-only" style="font-size:0.72rem;color:var(--mid);text-align:right;line-height:1.6;flex-shrink:0;max-width:280px;"></div>
         <button class="detail-close" id="exDetailClose" style="position:static;background:var(--panel);color:var(--ink);flex-shrink:0;width:32px;height:32px;">✕</button>
       </div>
-      <img id="exDetailPoster" src="" alt="" style="display:none;width:100%;max-height:min(46vh,420px);object-fit:contain;background:var(--panel);border-radius:2px;margin-bottom:1.5rem;cursor:pointer;">
       <p id="exDetailAbout" style="display:none;font-family:var(--serif);font-style:italic;font-size:1.02rem;line-height:1.65;color:var(--ink);margin-bottom:1.5rem;white-space:pre-line;"></p>
-      <div id="exDetailWorks" style="display:flex;flex-direction:column;gap:0.7rem;max-height:55vh;overflow-y:auto;margin-bottom:1.5rem;"></div>
+      <div id="exDetailWorks" style="display:flex;flex-direction:column;gap:0.7rem;max-height:42vh;overflow-y:auto;margin-bottom:1.5rem;"></div>
       <div id="exDetailCoExhibitors" style="display:none;flex-wrap:wrap;gap:0.4rem;align-items:center;margin-bottom:1.2rem;"></div>
-      <div id="exDetailImages" style="display:none;gap:0.6rem;overflow-x:auto;padding-bottom:0.5rem;margin-bottom:1.5rem;"></div>
       <div style="display:flex;gap:0.7rem;flex-wrap:wrap;border-top:1px solid var(--light);padding-top:1.2rem;">
         <button class="btn admin-only" id="exDetailPrintBtn">⎙ Print Contact Sheet</button>
         <button class="btn admin-only" id="exDetailExportBtn">⬇ Export Zip</button>
@@ -2501,6 +2520,7 @@ function openExhibitionDetail(id) {
     });
   } else { imagesContainer.style.display='none'; }
 
+  document.getElementById('exhibitionDetailOverlay').classList.toggle('no-media', !poster && !filmImages.length);
   document.getElementById('exhibitionDetailOverlay').classList.add('open');
 }
 
