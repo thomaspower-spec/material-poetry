@@ -124,31 +124,37 @@
   .detail-close { position: fixed; top: 1rem; right: 1rem; background: rgba(0,0,0,0.25); border: 1px solid rgba(0,0,0,0.15); color: var(--ink); width: 36px; height: 36px; font-size: 0.9rem; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.18s; z-index: 210; }
   .detail-close:hover { background: rgba(0,0,0,0.15); }
 
-  /* ── EXHIBITION PAGE (Variant A) ──
-     Full-page layout instead of a split detail panel: poster + info as a
-     banner up top, then the exhibition's works dropped into the same
-     three-column masonry grid used on the Works tab (same tile size,
-     same click-through to work detail), install shots as a strip below.
+  /* ── EXHIBITION PAGE (Variant C — magazine/catalogue spread) ──
+     Full-bleed poster as a cover moment, centred caption beneath it,
+     then a wide two-up grid of works (fewer, bigger tiles, more air),
+     install shots demoted to a small appendix strip at the bottom.
      Lives inside #exhibitionDetailOverlay, which keeps its existing
      open/close plumbing — only the inner layout changes. */
   #exhibitionDetailOverlay { overflow-y: auto; }
-  .ex-page { max-width: 1120px; margin: 0 auto; padding: 5rem 2rem 6rem; }
-  .ex-banner { display: grid; grid-template-columns: 260px 1fr; gap: 2.6rem; margin-bottom: 3rem; padding-bottom: 2.6rem; border-bottom: 1px solid var(--light); }
-  .ex-banner.no-poster { grid-template-columns: 1fr; }
-  .ex-banner.no-poster #exDetailPoster { display: none !important; }
-  #exhibitionDetailOverlay #exDetailPoster { display: none; width: 100%; height: 100%; min-height: 320px; max-height: 460px; object-fit: cover; border-radius: 2px; cursor: pointer; background: var(--panel); }
-  .ex-banner-meta { display: flex; flex-direction: column; }
-  .ex-banner-meta .detail-title { margin-bottom: 0.4rem; }
-  .ex-banner-meta #exDetailMeta { font-size: 0.85rem; color: var(--mid); margin-bottom: 1.2rem; }
-  .ex-banner-meta #exDetailAbout { display: none; font-family: var(--serif); font-style: italic; font-size: 1.02rem; line-height: 1.65; color: var(--ink); max-width: 560px; white-space: pre-line; margin-bottom: 1.2rem; }
-  #exDetailCoExhibitors { display: none; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-bottom: 1.4rem; }
-  .ex-banner-actions { display: flex; gap: 0.7rem; flex-wrap: wrap; margin-top: auto; padding-top: 1rem; }
-  .ex-section-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mid); margin-bottom: 1.1rem; }
-  #exDetailWorksGrid { margin-bottom: 3rem; }
-  #exDetailWorksGrid:empty { display: none; }
-  #exDetailImagesLabel { display: none; }
-  #exDetailImages { display: none; gap: 0.7rem; overflow-x: auto; padding-bottom: 0.6rem; }
-  #exDetailImages img, #exDetailImages .ex-pdf-tile { height: 130px; flex-shrink: 0; }
+  .ex-hero-wrap { width: 100%; max-height: 62vh; overflow: hidden; background: var(--panel); display: flex; align-items: center; justify-content: center; }
+  .ex-hero-wrap.no-poster { display: none; }
+  #exhibitionDetailOverlay #exDetailPoster { display: none; width: 100%; max-height: 62vh; object-fit: cover; cursor: pointer; }
+  .ex-caption { max-width: 720px; margin: 0 auto; padding: 2.4rem 2rem 3rem; text-align: center; border-bottom: 1px solid var(--light); }
+  .ex-caption .detail-title { margin-bottom: 0.5rem; }
+  .ex-caption #exDetailMeta { font-size: 0.85rem; color: var(--mid); margin-bottom: 1.2rem; }
+  .ex-caption #exDetailAbout { display: none; font-family: var(--serif); font-style: italic; font-size: 1.02rem; line-height: 1.65; color: var(--ink); white-space: pre-line; margin: 0 auto 1.2rem; }
+  #exDetailCoExhibitors { display: none; flex-wrap: wrap; gap: 0.4rem; align-items: center; justify-content: center; margin-bottom: 0.4rem; }
+  .ex-page { max-width: 1120px; margin: 0 auto; padding: 3rem 2rem 5rem; }
+  .ex-banner-actions { display: flex; gap: 0.7rem; flex-wrap: wrap; justify-content: center; margin-top: 1.4rem; }
+  .ex-section-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mid); margin-bottom: 1.1rem; text-align: center; }
+  /* Combined works + installation-shot carousel — one horizontally
+     scrolling row. Each image sits in a bounding box (max-height AND
+     max-width) and is displayed at its own natural aspect ratio via
+     object-fit:contain, so a portrait piece ends up taller/narrower and
+     a landscape piece ends up shorter/wider — nothing is cropped or
+     forced to match another image's height. */
+  #exDetailCarousel { display: flex; align-items: flex-end; gap: 1.6rem; overflow-x: auto; padding: 0.5rem 0 1.2rem; }
+  #exDetailCarousel:empty { display: none; }
+  .ex-car-item { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+  .ex-car-item .ex-car-frame { height: 480px; width: 420px; display: flex; align-items: flex-end; justify-content: center; }
+  .ex-car-item img { max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; display: block; background: var(--panel); border-radius: 2px; transition: opacity 0.2s; }
+  .ex-car-item:hover img { opacity: 0.88; }
+  .ex-car-cap { font-size: 0.72rem; color: var(--mid); font-style: italic; margin-top: 0.7rem; text-align: center; max-width: 420px; }
 
   /* ── MODAL ── */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,24,20,0.5); z-index: 300; align-items: center; justify-content: center; padding: 2rem; }
@@ -277,9 +283,13 @@
     .detail-panel { grid-template-columns: 1fr; grid-template-rows: 60vh 1fr; }
     .detail-media { height: 60vh; max-height: 60vh; }
     .detail-overlay { padding: 0; align-items: flex-start; }
-    .ex-page { padding: 4.5rem 1.2rem 4rem; }
-    .ex-banner { grid-template-columns: 1fr; gap: 1.5rem; }
-    #exhibitionDetailOverlay #exDetailPoster { min-height: 220px; max-height: 320px; }
+    .ex-hero-wrap { max-height: 42vh; }
+    #exhibitionDetailOverlay #exDetailPoster { max-height: 42vh; }
+    .ex-caption { padding: 1.8rem 1.2rem 2.2rem; }
+    .ex-page { padding: 2.2rem 1.2rem 3.5rem; }
+    #exDetailCarousel { gap: 1rem; }
+    .ex-car-item .ex-car-frame { height: 320px; width: 260px; }
+    .ex-car-cap { max-width: 260px; }
     .works-grid { gap: 0.3rem; }
     .works-grid .works-col:nth-child(3) { display: none; }
     .modal-overlay { padding: 0; align-items: flex-end; }
@@ -603,30 +613,28 @@
   </div>
 </div>
 
-<!-- EXHIBITION DETAIL OVERLAY (Variant A — full-page: banner + works grid) -->
+<!-- EXHIBITION DETAIL OVERLAY (Variant C — magazine/catalogue spread) -->
 <div class="detail-overlay" id="exhibitionDetailOverlay">
   <button class="detail-close" id="exDetailClose">✕</button>
-  <div class="ex-page">
-    <div class="ex-banner" id="exBanner">
-      <img id="exDetailPoster" src="" alt="">
-      <div class="ex-banner-meta">
-        <div id="exDetailSizeSummary" class="admin-only" style="font-size:0.72rem;color:var(--mid);line-height:1.6;margin-bottom:0.6rem;"></div>
-        <h2 class="detail-title" id="exDetailTitle"></h2>
-        <p id="exDetailMeta"></p>
-        <p id="exDetailAbout"></p>
-        <div id="exDetailCoExhibitors"></div>
-        <div class="ex-banner-actions">
-          <button class="btn admin-only" id="exDetailPrintBtn">⎙ Print Contact Sheet</button>
-          <button class="btn admin-only" id="exDetailExportBtn">⬇ Export Zip</button>
-          <button class="btn admin-only" id="exDetailEditBtn">Edit</button>
-          <button class="btn admin-only" style="color:var(--accent);border-color:var(--accent);" id="exDetailDeleteBtn">Delete</button>
-        </div>
-      </div>
+  <div class="ex-hero-wrap" id="exHeroWrap">
+    <img id="exDetailPoster" src="" alt="">
+  </div>
+  <div class="ex-caption">
+    <div id="exDetailSizeSummary" class="admin-only" style="font-size:0.72rem;color:var(--mid);line-height:1.6;margin-bottom:0.6rem;"></div>
+    <h2 class="detail-title" id="exDetailTitle"></h2>
+    <p id="exDetailMeta"></p>
+    <p id="exDetailAbout"></p>
+    <div id="exDetailCoExhibitors"></div>
+    <div class="ex-banner-actions">
+      <button class="btn admin-only" id="exDetailPrintBtn">⎙ Print Contact Sheet</button>
+      <button class="btn admin-only" id="exDetailExportBtn">⬇ Export Zip</button>
+      <button class="btn admin-only" id="exDetailEditBtn">Edit</button>
+      <button class="btn admin-only" style="color:var(--accent);border-color:var(--accent);" id="exDetailDeleteBtn">Delete</button>
     </div>
-    <div class="ex-section-label" id="exWorksLabel">Works in this exhibition</div>
-    <div class="works-grid" id="exDetailWorksGrid"></div>
-    <div class="ex-section-label" id="exDetailImagesLabel">Install views</div>
-    <div id="exDetailImages"></div>
+  </div>
+  <div class="ex-page">
+    <div class="ex-section-label" id="exWorksLabel">In the exhibition</div>
+    <div id="exDetailCarousel"></div>
   </div>
 </div>
 
@@ -2460,36 +2468,57 @@ function openExhibitionDetail(id) {
   const exImgs=(ex.exhibition_images||[]).filter(im=>im&&im.url);
   const poster=exImgs.find(im=>im.type==='poster'&&!im.is_pdf);
   const posterEl=document.getElementById('exDetailPoster');
-  const banner=document.getElementById('exBanner');
-  if(poster){ posterEl.src=poster.url; posterEl.alt=poster.caption||ex.name; posterEl.style.display='block'; posterEl.onclick=()=>openExLightbox(exImgs,exImgs.indexOf(poster)); banner.classList.remove('no-poster'); }
-  else { posterEl.style.display='none'; posterEl.onclick=null; banner.classList.add('no-poster'); }
+  const heroWrap=document.getElementById('exHeroWrap');
+  if(poster){ posterEl.src=poster.url; posterEl.alt=poster.caption||ex.name; posterEl.style.display='block'; posterEl.onclick=()=>openExLightbox(exImgs,exImgs.indexOf(poster)); heroWrap.classList.remove('no-poster'); }
+  else { posterEl.style.display='none'; posterEl.onclick=null; heroWrap.classList.add('no-poster'); }
 
   const aboutEl=document.getElementById('exDetailAbout');
   if(ex.about_text&&ex.about_text.trim()){ aboutEl.textContent=ex.about_text; aboutEl.style.display='block'; }
   else { aboutEl.style.display='none'; }
 
-  // Works — same three-column masonry tiles as the Works tab (image only,
-  // click through to the work detail overlay), not a text list.
-  const worksGrid=document.getElementById('exDetailWorksGrid');
-  const worksLabel=document.getElementById('exWorksLabel');
-  worksGrid.innerHTML='';
+  // Works + installation shots — one combined, horizontally scrolling
+  // carousel. Each image keeps its own natural aspect ratio (a portrait
+  // piece ends up taller/narrower, a landscape piece shorter/wider —
+  // nothing is cropped to match a shared height). Works link through to
+  // the work detail overlay and are captioned with title/year; exhibition
+  // photos open the lightbox and are captioned "Installation photo".
+  const carousel=document.getElementById('exDetailCarousel');
+  const carouselLabel=document.getElementById('exWorksLabel');
+  carousel.innerHTML='';
   const exWorks=(ex.work_ids||[]).map(wid=>works.find(w=>w.id===wid)).filter(Boolean);
   if (SHOW_EXHIBITION_SIZE_SUMMARY) { renderExDetailSizeSummary(exWorks); } else { document.getElementById('exDetailSizeSummary').innerHTML=''; }
-  if(!exWorks.length){
-    worksLabel.style.display='none';
-    worksGrid.innerHTML=`<div class="empty-state" style="grid-column:1/-1;padding:2rem;"><div class="empty-icon">◻</div><p>No works associated.</p></div>`;
+  const filmImages=exImgs.filter(im=>im!==poster);
+
+  if(!exWorks.length && !filmImages.length){
+    carouselLabel.style.display='none';
+    carousel.innerHTML=`<div class="empty-state" style="padding:2rem;"><div class="empty-icon">◻</div><p>Nothing added yet.</p></div>`;
   } else {
-    worksLabel.style.display='block';
-    const numCols=3;
-    const cols=Array.from({length:numCols},()=>{ const col=document.createElement('div'); col.className='works-col'; worksGrid.appendChild(col); return col; });
-    exWorks.forEach((w,i)=>{
-      const card=document.createElement('div');
-      card.className='work-card';
+    carouselLabel.style.display='block';
+    exWorks.forEach(w=>{
+      const item=document.createElement('div');
+      item.className='ex-car-item';
       let badge='';
-      if(isAdmin() && w.visibility!=='published') badge=`<span class="visibility-badge badge-${w.visibility}">${w.visibility}</span>`;
-      card.innerHTML=`${badge}<img class="work-thumb" src="${thumbFor(w)}" alt="${w.title}">`;
-      card.addEventListener('click',()=>{ document.getElementById('exhibitionDetailOverlay').classList.remove('open'); const exId=currentExhibitionId; openDetail(w.id); returnToExhibitionId=exId; });
-      cols[i%numCols].appendChild(card);
+      if(isAdmin() && w.visibility!=='published') badge=`<span class="visibility-badge badge-${w.visibility}" style="position:absolute;">${w.visibility}</span>`;
+      item.style.position='relative';
+      item.innerHTML=`${badge}<div class="ex-car-frame"><img src="${thumbFor(w)}" alt="${w.title}"></div><div class="ex-car-cap">${w.title}${w.year?', '+w.year:''}</div>`;
+      item.addEventListener('click',()=>{ document.getElementById('exhibitionDetailOverlay').classList.remove('open'); const exId=currentExhibitionId; openDetail(w.id); returnToExhibitionId=exId; });
+      carousel.appendChild(item);
+    });
+    filmImages.forEach(im=>{
+      if(im.is_pdf){
+        const item=document.createElement('div');
+        item.className='ex-car-item';
+        item.innerHTML=`<div class="ex-car-frame"><div class="ex-pdf-tile" style="width:120px;">${''}<span class="ex-pdf-icon">📄</span><span class="ex-pdf-label">${im.caption||im.filename||'View PDF'}</span></div></div>`;
+        item.title=im.caption||im.filename||'View PDF';
+        item.addEventListener('click',()=>window.open(im.url,'_blank'));
+        carousel.appendChild(item);
+      } else {
+        const item=document.createElement('div');
+        item.className='ex-car-item';
+        item.innerHTML=`<div class="ex-car-frame"><img src="${im.url}" alt="${im.caption||'Installation photo'}"></div><div class="ex-car-cap">${im.caption||'Installation photo'}</div>`;
+        item.addEventListener('click',()=>openExLightbox(exImgs,exImgs.indexOf(im)));
+        carousel.appendChild(item);
+      }
     });
   }
 
@@ -2511,35 +2540,6 @@ function openExhibitionDetail(id) {
       coContainer.appendChild(chip);
     });
   } else { coContainer.style.display='none'; }
-
-  const filmImages=exImgs.filter(im=>im!==poster);
-  const imagesContainer=document.getElementById('exDetailImages');
-  const imagesLabel=document.getElementById('exDetailImagesLabel');
-  imagesContainer.innerHTML='';
-  if(filmImages.length){
-    imagesContainer.style.display='flex';
-    imagesLabel.style.display='block';
-    filmImages.forEach(im=>{
-      if(im.is_pdf){
-        const tile=document.createElement('div');
-        tile.className='ex-pdf-tile';
-        tile.style.cssText='width:100px;flex-shrink:0;cursor:pointer;';
-        tile.title=im.caption||im.filename||'View PDF';
-        const icon=document.createElement('span'); icon.className='ex-pdf-icon'; icon.textContent='📄';
-        const label=document.createElement('span'); label.className='ex-pdf-label'; label.textContent=im.caption||im.filename||'View PDF';
-        tile.appendChild(icon); tile.appendChild(label);
-        tile.addEventListener('click',()=>window.open(im.url,'_blank'));
-        imagesContainer.appendChild(tile);
-      } else {
-        const thumb=document.createElement('img');
-        thumb.src=im.url; thumb.alt=im.caption||'';
-        thumb.style.cssText='object-fit:cover;border-radius:2px;cursor:pointer;';
-        thumb.title=im.caption||(im.type?im.type.charAt(0).toUpperCase()+im.type.slice(1):'');
-        thumb.addEventListener('click',()=>openExLightbox(exImgs,exImgs.indexOf(im)));
-        imagesContainer.appendChild(thumb);
-      }
-    });
-  } else { imagesContainer.style.display='none'; imagesLabel.style.display='none'; }
 
   document.getElementById('exhibitionDetailOverlay').classList.add('open');
   document.getElementById('exhibitionDetailOverlay').scrollTop=0;
