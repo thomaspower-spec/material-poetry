@@ -152,7 +152,7 @@
   #exDetailCarousel:empty { display: none; }
   .ex-car-item { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
   .ex-car-item .ex-car-frame { height: 480px; width: 420px; display: flex; align-items: flex-end; justify-content: center; }
-  .ex-car-item img { max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; display: block; background: var(--panel); border-radius: 2px; transition: opacity 0.2s; }
+  .ex-car-item img { width: 100%; height: 100%; object-fit: contain; object-position: center bottom; display: block; background: var(--panel); border-radius: 2px; transition: opacity 0.2s; }
   .ex-car-item:hover img { opacity: 0.88; }
   .ex-car-cap { font-size: 0.72rem; color: var(--mid); font-style: italic; margin-top: 0.7rem; text-align: center; max-width: 420px; }
 
@@ -2495,14 +2495,19 @@ function openExhibitionDetail(id) {
   } else {
     carouselLabel.style.display='block';
     exWorks.forEach(w=>{
-      const item=document.createElement('div');
-      item.className='ex-car-item';
-      let badge='';
-      if(isAdmin() && w.visibility!=='published') badge=`<span class="visibility-badge badge-${w.visibility}" style="position:absolute;">${w.visibility}</span>`;
-      item.style.position='relative';
-      item.innerHTML=`${badge}<div class="ex-car-frame"><img src="${thumbFor(w)}" alt="${w.title}"></div><div class="ex-car-cap">${w.title}${w.year?', '+w.year:''}</div>`;
-      item.addEventListener('click',()=>{ document.getElementById('exhibitionDetailOverlay').classList.remove('open'); const exId=currentExhibitionId; openDetail(w.id); returnToExhibitionId=exId; });
-      carousel.appendChild(item);
+      const imgs=allImagesFor(w);
+      const srcs=imgs.length?imgs:[thumbFor(w)];
+      srcs.forEach((src,idx)=>{
+        const item=document.createElement('div');
+        item.className='ex-car-item';
+        let badge='';
+        if(idx===0 && isAdmin() && w.visibility!=='published') badge=`<span class="visibility-badge badge-${w.visibility}" style="position:absolute;">${w.visibility}</span>`;
+        item.style.position='relative';
+        const cap=idx===0 ? `${w.title}${w.year?', '+w.year:''}` : `${w.title}${w.year?', '+w.year:''} — detail`;
+        item.innerHTML=`${badge}<div class="ex-car-frame"><img src="${src}" alt="${w.title}"></div><div class="ex-car-cap">${cap}</div>`;
+        item.addEventListener('click',()=>{ document.getElementById('exhibitionDetailOverlay').classList.remove('open'); const exId=currentExhibitionId; openDetail(w.id); returnToExhibitionId=exId; });
+        carousel.appendChild(item);
+      });
     });
     filmImages.forEach(im=>{
       if(im.is_pdf){
