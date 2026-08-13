@@ -158,7 +158,7 @@
   #exDetailCarousel:active { cursor: grabbing; }
   #exDetailCarousel:empty { display: none; }
   .ex-car-item { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; cursor: pointer; scroll-snap-align: center; }
-  .ex-car-item img { height: min(76vh, 760px); width: auto; max-width: 82vw; display: block; background: var(--panel); border-radius: 2px; transition: opacity 0.2s; user-select: none; -webkit-user-drag: none; }
+  .ex-car-item img { height: min(68vh, 680px); width: auto; max-width: 82vw; display: block; background: var(--panel); border-radius: 2px; transition: opacity 0.2s; user-select: none; -webkit-user-drag: none; }
   .ex-car-item:hover img { opacity: 0.9; }
   .ex-car-cap { font-size: 0.72rem; color: var(--mid); font-style: italic; margin-top: 0.9rem; text-align: center; }
   .ex-car-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,0.92); border: 1px solid var(--light); color: var(--ink); font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5; opacity: 0; transition: opacity 0.2s; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
@@ -170,7 +170,7 @@
   .ex-car-progress-bar { position: absolute; left: 0; top: 0; height: 100%; background: var(--ink); border-radius: 1px; width: 0; }
   @media (max-width: 900px) {
     .ex-carousel-wrap { padding: 0 1rem; }
-    .ex-car-item img { height: min(52vh, 520px); max-width: 88vw; }
+    .ex-car-item img { height: min(47vh, 470px); max-width: 88vw; }
     .ex-car-nav { display: none; }
   }
 
@@ -2513,15 +2513,21 @@ function openExhibitionDetail(id) {
     carousel.innerHTML=`<div class="empty-state" style="padding:2rem;"><div class="empty-icon">◻</div><p>Nothing added yet.</p></div>`;
   } else {
     carouselLabel.style.display='block';
+    const MAX_IMAGES_PER_WORK=6;
     exWorks.forEach(w=>{
-      const item=document.createElement('div');
-      item.className='ex-car-item';
-      let badge='';
-      if(isAdmin() && w.visibility!=='published') badge=`<span class="visibility-badge badge-${w.visibility}" style="position:absolute;">${w.visibility}</span>`;
-      item.style.position='relative';
-      item.innerHTML=`${badge}<img src="${thumbFor(w)}" alt="${w.title}"><div class="ex-car-cap">${w.title}${w.year?', '+w.year:''}</div>`;
-      item.addEventListener('click',()=>{ document.getElementById('exhibitionDetailOverlay').classList.remove('open'); const exId=currentExhibitionId; openDetail(w.id); returnToExhibitionId=exId; });
-      carousel.appendChild(item);
+      const imgs=allImagesFor(w);
+      const srcs=(imgs.length?imgs:[thumbFor(w)]).slice(0,MAX_IMAGES_PER_WORK);
+      srcs.forEach((src,idx)=>{
+        const item=document.createElement('div');
+        item.className='ex-car-item';
+        let badge='';
+        if(idx===0 && isAdmin() && w.visibility!=='published') badge=`<span class="visibility-badge badge-${w.visibility}" style="position:absolute;">${w.visibility}</span>`;
+        item.style.position='relative';
+        const cap=idx===0 ? `${w.title}${w.year?', '+w.year:''}` : `${w.title}${w.year?', '+w.year:''} — detail`;
+        item.innerHTML=`${badge}<img src="${src}" alt="${w.title}"><div class="ex-car-cap">${cap}</div>`;
+        item.addEventListener('click',()=>{ document.getElementById('exhibitionDetailOverlay').classList.remove('open'); const exId=currentExhibitionId; openDetail(w.id); returnToExhibitionId=exId; });
+        carousel.appendChild(item);
+      });
     });
     filmImages.forEach(im=>{
       if(im.is_pdf){
