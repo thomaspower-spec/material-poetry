@@ -126,10 +126,9 @@
 
   /* ── EXHIBITION PAGE (Variant C — magazine/catalogue spread) ──
      Full-bleed poster as a cover moment, centred caption beneath it,
-     then a wide two-up grid of works (fewer, bigger tiles, more air),
-     install shots demoted to a small appendix strip at the bottom.
-     Lives inside #exhibitionDetailOverlay, which keeps its existing
-     open/close plumbing — only the inner layout changes. */
+     then a full-bleed horizontal carousel of every work + installation
+     shot. Lives inside #exhibitionDetailOverlay, which keeps its
+     existing open/close plumbing — only the inner layout changes. */
   #exhibitionDetailOverlay { overflow-y: auto; }
   .ex-hero-wrap { width: 100%; max-height: 62vh; overflow: hidden; background: var(--panel); display: flex; align-items: center; justify-content: center; }
   .ex-hero-wrap.no-poster { display: none; }
@@ -139,28 +138,41 @@
   .ex-caption #exDetailMeta { font-size: 0.85rem; color: var(--mid); margin-bottom: 1.2rem; }
   .ex-caption #exDetailAbout { display: none; font-family: var(--serif); font-style: italic; font-size: 1.02rem; line-height: 1.65; color: var(--ink); white-space: pre-line; margin: 0 auto 1.2rem; }
   #exDetailCoExhibitors { display: none; flex-wrap: wrap; gap: 0.4rem; align-items: center; justify-content: center; margin-bottom: 0.4rem; }
-  .ex-page { max-width: 1120px; margin: 0 auto; padding: 3rem 2rem 5rem; }
   .ex-banner-actions { display: flex; gap: 0.7rem; flex-wrap: wrap; justify-content: center; margin-top: 1.4rem; }
-  .ex-section-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mid); margin-bottom: 1.1rem; text-align: center; }
-  /* Combined works + installation-shot carousel — one horizontally
-     scrolling row. Each image sits in a bounding box (max-height AND
-     max-width) and is displayed at its own natural aspect ratio via
-     object-fit:contain, so a portrait piece ends up taller/narrower and
-     a landscape piece ends up shorter/wider — nothing is cropped or
-     forced to match another image's height. */
-  .ex-carousel-wrap { position: relative; }
-  #exDetailCarousel { display: flex; align-items: flex-end; gap: 1.6rem; overflow-x: auto; padding: 0.5rem 0 1.2rem; scroll-behavior: smooth; }
+  .ex-carousel-section { padding: 3rem 0 4rem; }
+  .ex-carousel-label { max-width: 720px; margin: 0 auto; padding: 0 2rem; }
+  .ex-section-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mid); margin-bottom: 1.6rem; text-align: center; }
+
+  /* Combined works + installation-shot carousel — full-bleed width, every
+     image sharing one generous height with natural (uncropped) width, so
+     a landscape piece and a portrait piece sit at the same scale rather
+     than one dwarfing the other. Native scrollbar hidden in favour of a
+     slim progress line; scroll-snap plus mouse-wheel and drag support
+     mean the buttons are a secondary affordance, not the only way in —
+     borrowed from the "two-finger scroll, film-strip" pattern used on
+     several clean artist-portfolio sites (Format's Reel theme, Atelier
+     Missor, Ashley Tarr) rather than small arrow buttons alone. */
+  .ex-carousel-wrap { position: relative; padding: 0 3rem; }
+  #exDetailCarousel { display: flex; align-items: center; gap: 1.6rem; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none; -ms-overflow-style: none; padding: 0.5rem 0 0.5rem; cursor: grab; }
+  #exDetailCarousel::-webkit-scrollbar { display: none; }
+  #exDetailCarousel:active { cursor: grabbing; }
   #exDetailCarousel:empty { display: none; }
-  .ex-car-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; background: var(--white); border: 1px solid var(--light); color: var(--ink); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5; box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
-  .ex-car-nav:hover { background: var(--panel); }
-  .ex-car-nav.prev { left: -8px; }
-  .ex-car-nav.next { right: -8px; }
-  @media (max-width: 900px) { .ex-car-nav { display: none; } }
-  .ex-car-item { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
-  .ex-car-item .ex-car-frame { height: 440px; width: 380px; display: flex; align-items: flex-end; justify-content: center; }
-  .ex-car-item img { width: 100%; height: 100%; object-fit: contain; object-position: center bottom; display: block; background: var(--panel); border-radius: 2px; transition: opacity 0.2s; }
-  .ex-car-item:hover img { opacity: 0.88; }
-  .ex-car-cap { font-size: 0.72rem; color: var(--mid); font-style: italic; margin-top: 0.7rem; text-align: center; max-width: 420px; }
+  .ex-car-item { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; cursor: pointer; scroll-snap-align: center; }
+  .ex-car-item img { height: min(76vh, 760px); width: auto; max-width: 82vw; display: block; background: var(--panel); border-radius: 2px; transition: opacity 0.2s; user-select: none; -webkit-user-drag: none; }
+  .ex-car-item:hover img { opacity: 0.9; }
+  .ex-car-cap { font-size: 0.72rem; color: var(--mid); font-style: italic; margin-top: 0.9rem; text-align: center; }
+  .ex-car-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,0.92); border: 1px solid var(--light); color: var(--ink); font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5; opacity: 0; transition: opacity 0.2s; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+  .ex-carousel-wrap:hover .ex-car-nav, .ex-car-nav:focus-visible { opacity: 1; }
+  .ex-car-nav.prev { left: 0.5rem; }
+  .ex-car-nav.next { right: 0.5rem; }
+  @media (hover: none) { .ex-car-nav { display: none; } }
+  .ex-car-progress { max-width: 280px; height: 2px; background: var(--light); margin: 1.6rem auto 0; position: relative; border-radius: 1px; overflow: hidden; }
+  .ex-car-progress-bar { position: absolute; left: 0; top: 0; height: 100%; background: var(--ink); border-radius: 1px; width: 0; }
+  @media (max-width: 900px) {
+    .ex-carousel-wrap { padding: 0 1rem; }
+    .ex-car-item img { height: min(52vh, 520px); max-width: 88vw; }
+    .ex-car-nav { display: none; }
+  }
 
   /* ── MODAL ── */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,24,20,0.5); z-index: 300; align-items: center; justify-content: center; padding: 2rem; }
@@ -292,10 +304,6 @@
     .ex-hero-wrap { max-height: 42vh; }
     #exhibitionDetailOverlay #exDetailPoster { max-height: 42vh; }
     .ex-caption { padding: 1.8rem 1.2rem 2.2rem; }
-    .ex-page { padding: 2.2rem 1.2rem 3.5rem; }
-    #exDetailCarousel { gap: 1rem; }
-    .ex-car-item .ex-car-frame { height: 320px; width: 260px; }
-    .ex-car-cap { max-width: 260px; }
     .works-grid { gap: 0.3rem; }
     .works-grid .works-col:nth-child(3) { display: none; }
     .modal-overlay { padding: 0; align-items: flex-end; }
@@ -638,13 +646,14 @@
       <button class="btn admin-only" style="color:var(--accent);border-color:var(--accent);" id="exDetailDeleteBtn">Delete</button>
     </div>
   </div>
-  <div class="ex-page">
-    <div class="ex-section-label" id="exWorksLabel">In the exhibition</div>
+  <div class="ex-carousel-section">
+    <div class="ex-carousel-label"><div class="ex-section-label" id="exWorksLabel">In the exhibition</div></div>
     <div class="ex-carousel-wrap">
       <button class="ex-car-nav prev" id="exCarPrev" aria-label="Scroll left">‹</button>
       <div id="exDetailCarousel"></div>
       <button class="ex-car-nav next" id="exCarNext" aria-label="Scroll right">›</button>
     </div>
+    <div class="ex-car-progress"><div class="ex-car-progress-bar" id="exCarProgressBar"></div></div>
   </div>
 </div>
 
@@ -2505,32 +2514,27 @@ function openExhibitionDetail(id) {
   } else {
     carouselLabel.style.display='block';
     exWorks.forEach(w=>{
-      const imgs=allImagesFor(w);
-      const srcs=(imgs.length?imgs:[thumbFor(w)]).slice(0,3); // cap: cover + up to 2 details, so one heavily-photographed work can't push everything else off-screen
-      srcs.forEach((src,idx)=>{
-        const item=document.createElement('div');
-        item.className='ex-car-item';
-        let badge='';
-        if(idx===0 && isAdmin() && w.visibility!=='published') badge=`<span class="visibility-badge badge-${w.visibility}" style="position:absolute;">${w.visibility}</span>`;
-        item.style.position='relative';
-        const cap=idx===0 ? `${w.title}${w.year?', '+w.year:''}` : `${w.title}${w.year?', '+w.year:''} — detail`;
-        item.innerHTML=`${badge}<div class="ex-car-frame"><img src="${src}" alt="${w.title}"></div><div class="ex-car-cap">${cap}</div>`;
-        item.addEventListener('click',()=>{ document.getElementById('exhibitionDetailOverlay').classList.remove('open'); const exId=currentExhibitionId; openDetail(w.id); returnToExhibitionId=exId; });
-        carousel.appendChild(item);
-      });
+      const item=document.createElement('div');
+      item.className='ex-car-item';
+      let badge='';
+      if(isAdmin() && w.visibility!=='published') badge=`<span class="visibility-badge badge-${w.visibility}" style="position:absolute;">${w.visibility}</span>`;
+      item.style.position='relative';
+      item.innerHTML=`${badge}<img src="${thumbFor(w)}" alt="${w.title}"><div class="ex-car-cap">${w.title}${w.year?', '+w.year:''}</div>`;
+      item.addEventListener('click',()=>{ document.getElementById('exhibitionDetailOverlay').classList.remove('open'); const exId=currentExhibitionId; openDetail(w.id); returnToExhibitionId=exId; });
+      carousel.appendChild(item);
     });
     filmImages.forEach(im=>{
       if(im.is_pdf){
         const item=document.createElement('div');
         item.className='ex-car-item';
-        item.innerHTML=`<div class="ex-car-frame"><div class="ex-pdf-tile" style="width:120px;">${''}<span class="ex-pdf-icon">📄</span><span class="ex-pdf-label">${im.caption||im.filename||'View PDF'}</span></div></div>`;
+        item.innerHTML=`<div class="ex-pdf-tile" style="width:220px;height:260px;"><span class="ex-pdf-icon">📄</span><span class="ex-pdf-label">${im.caption||im.filename||'View PDF'}</span></div>`;
         item.title=im.caption||im.filename||'View PDF';
         item.addEventListener('click',()=>window.open(im.url,'_blank'));
         carousel.appendChild(item);
       } else {
         const item=document.createElement('div');
         item.className='ex-car-item';
-        item.innerHTML=`<div class="ex-car-frame"><img src="${im.url}" alt="${im.caption||'Installation photo'}"></div><div class="ex-car-cap">${im.caption||'Installation photo'}</div>`;
+        item.innerHTML=`<img src="${im.url}" alt="${im.caption||'Installation photo'}"><div class="ex-car-cap">${im.caption||'Installation photo'}</div>`;
         item.addEventListener('click',()=>openExLightbox(exImgs,exImgs.indexOf(im)));
         carousel.appendChild(item);
       }
@@ -2558,6 +2562,8 @@ function openExhibitionDetail(id) {
 
   document.getElementById('exhibitionDetailOverlay').classList.add('open');
   document.getElementById('exhibitionDetailOverlay').scrollTop=0;
+  carousel.scrollLeft=0;
+  if(window._exCarUpdateProgress) window._exCarUpdateProgress();
 }
 
 // ── Exhibition image lightbox — simple standalone viewer, independent of the
@@ -2585,8 +2591,52 @@ document.getElementById('exLightboxNext').addEventListener('click',e=>{ e.stopPr
 
 document.getElementById('exDetailClose').addEventListener('click',()=>document.getElementById('exhibitionDetailOverlay').classList.remove('open'));
 document.getElementById('exhibitionDetailOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('exhibitionDetailOverlay')) document.getElementById('exhibitionDetailOverlay').classList.remove('open'); });
-document.getElementById('exCarPrev').addEventListener('click',()=>document.getElementById('exDetailCarousel').scrollBy({left:-760,behavior:'smooth'}));
-document.getElementById('exCarNext').addEventListener('click',()=>document.getElementById('exDetailCarousel').scrollBy({left:760,behavior:'smooth'}));
+document.getElementById('exCarPrev').addEventListener('click',()=>document.getElementById('exDetailCarousel').scrollBy({left:-Math.round(document.getElementById('exDetailCarousel').clientWidth*0.85),behavior:'smooth'}));
+document.getElementById('exCarNext').addEventListener('click',()=>document.getElementById('exDetailCarousel').scrollBy({left:Math.round(document.getElementById('exDetailCarousel').clientWidth*0.85),behavior:'smooth'}));
+
+// ── Exhibition carousel interaction — a vertical mouse wheel scrolls the
+// row sideways (most people default to their mouse wheel, not two-finger
+// trackpad scroll), click-and-drag pans it, and a slim line under the row
+// tracks progress instead of the browser's default scrollbar.
+(function(){
+  const car=document.getElementById('exDetailCarousel');
+  const bar=document.getElementById('exCarProgressBar');
+  const track=document.querySelector('.ex-car-progress');
+  const updateProgress=()=>{
+    const max=car.scrollWidth-car.clientWidth;
+    if(max<=4){ track.style.display='none'; return; }
+    track.style.display='block';
+    const pct=(car.scrollLeft/max)*100;
+    const thumb=Math.max(15,(car.clientWidth/car.scrollWidth)*100);
+    bar.style.width=thumb+'%';
+    bar.style.left=Math.min(100-thumb,pct)+'%';
+  };
+  car.addEventListener('scroll',updateProgress,{passive:true});
+  new ResizeObserver(updateProgress).observe(car);
+  window._exCarUpdateProgress=updateProgress;
+
+  car.addEventListener('wheel',e=>{
+    if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){ e.preventDefault(); car.scrollLeft+=e.deltaY; }
+  },{passive:false});
+
+  let isDown=false,startX=0,startScroll=0,dragged=false;
+  car.addEventListener('mousedown',e=>{ isDown=true; dragged=false; startX=e.pageX; startScroll=car.scrollLeft; });
+  window.addEventListener('mouseup',()=>{ isDown=false; });
+  window.addEventListener('mousemove',e=>{
+    if(!isDown) return;
+    const dx=e.pageX-startX;
+    if(Math.abs(dx)>4) dragged=true;
+    car.scrollLeft=startScroll-dx;
+  });
+  car.addEventListener('click',e=>{ if(dragged){ e.stopPropagation(); e.preventDefault(); } },true);
+
+  window.addEventListener('keydown',e=>{
+    if(!document.getElementById('exhibitionDetailOverlay').classList.contains('open')) return;
+    if(e.key==='ArrowRight') car.scrollBy({left:Math.round(car.clientWidth*0.85),behavior:'smooth'});
+    if(e.key==='ArrowLeft') car.scrollBy({left:-Math.round(car.clientWidth*0.85),behavior:'smooth'});
+  });
+})();
+
 document.getElementById('exDetailEditBtn').addEventListener('click',()=>{ document.getElementById('exhibitionDetailOverlay').classList.remove('open'); openExhibitionModal(currentExhibitionId); });
 document.getElementById('exDetailDeleteBtn').addEventListener('click', async()=>{
   if(!confirm('Delete this exhibition?')) return;
