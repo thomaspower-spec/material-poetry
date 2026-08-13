@@ -148,10 +148,16 @@
      object-fit:contain, so a portrait piece ends up taller/narrower and
      a landscape piece ends up shorter/wider — nothing is cropped or
      forced to match another image's height. */
-  #exDetailCarousel { display: flex; align-items: flex-end; gap: 1.6rem; overflow-x: auto; padding: 0.5rem 0 1.2rem; }
+  .ex-carousel-wrap { position: relative; }
+  #exDetailCarousel { display: flex; align-items: flex-end; gap: 1.6rem; overflow-x: auto; padding: 0.5rem 0 1.2rem; scroll-behavior: smooth; }
   #exDetailCarousel:empty { display: none; }
+  .ex-car-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; background: var(--white); border: 1px solid var(--light); color: var(--ink); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5; box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
+  .ex-car-nav:hover { background: var(--panel); }
+  .ex-car-nav.prev { left: -8px; }
+  .ex-car-nav.next { right: -8px; }
+  @media (max-width: 900px) { .ex-car-nav { display: none; } }
   .ex-car-item { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
-  .ex-car-item .ex-car-frame { height: 480px; width: 420px; display: flex; align-items: flex-end; justify-content: center; }
+  .ex-car-item .ex-car-frame { height: 440px; width: 380px; display: flex; align-items: flex-end; justify-content: center; }
   .ex-car-item img { width: 100%; height: 100%; object-fit: contain; object-position: center bottom; display: block; background: var(--panel); border-radius: 2px; transition: opacity 0.2s; }
   .ex-car-item:hover img { opacity: 0.88; }
   .ex-car-cap { font-size: 0.72rem; color: var(--mid); font-style: italic; margin-top: 0.7rem; text-align: center; max-width: 420px; }
@@ -634,7 +640,11 @@
   </div>
   <div class="ex-page">
     <div class="ex-section-label" id="exWorksLabel">In the exhibition</div>
-    <div id="exDetailCarousel"></div>
+    <div class="ex-carousel-wrap">
+      <button class="ex-car-nav prev" id="exCarPrev" aria-label="Scroll left">‹</button>
+      <div id="exDetailCarousel"></div>
+      <button class="ex-car-nav next" id="exCarNext" aria-label="Scroll right">›</button>
+    </div>
   </div>
 </div>
 
@@ -2496,7 +2506,7 @@ function openExhibitionDetail(id) {
     carouselLabel.style.display='block';
     exWorks.forEach(w=>{
       const imgs=allImagesFor(w);
-      const srcs=imgs.length?imgs:[thumbFor(w)];
+      const srcs=(imgs.length?imgs:[thumbFor(w)]).slice(0,3); // cap: cover + up to 2 details, so one heavily-photographed work can't push everything else off-screen
       srcs.forEach((src,idx)=>{
         const item=document.createElement('div');
         item.className='ex-car-item';
@@ -2575,6 +2585,8 @@ document.getElementById('exLightboxNext').addEventListener('click',e=>{ e.stopPr
 
 document.getElementById('exDetailClose').addEventListener('click',()=>document.getElementById('exhibitionDetailOverlay').classList.remove('open'));
 document.getElementById('exhibitionDetailOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('exhibitionDetailOverlay')) document.getElementById('exhibitionDetailOverlay').classList.remove('open'); });
+document.getElementById('exCarPrev').addEventListener('click',()=>document.getElementById('exDetailCarousel').scrollBy({left:-760,behavior:'smooth'}));
+document.getElementById('exCarNext').addEventListener('click',()=>document.getElementById('exDetailCarousel').scrollBy({left:760,behavior:'smooth'}));
 document.getElementById('exDetailEditBtn').addEventListener('click',()=>{ document.getElementById('exhibitionDetailOverlay').classList.remove('open'); openExhibitionModal(currentExhibitionId); });
 document.getElementById('exDetailDeleteBtn').addEventListener('click', async()=>{
   if(!confirm('Delete this exhibition?')) return;
